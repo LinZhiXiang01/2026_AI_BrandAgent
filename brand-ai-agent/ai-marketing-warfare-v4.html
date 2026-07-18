@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销战场 v4 · 自治市场观测站</title>
+<style>
+  :root {
+    --bg:#050a14; --surface:#0a1222; --surface2:#101a2c; --border:#1a2740;
+    --text:#dce4f0; --text2:#8899b4; --text3:#556885;
+    --cyan:#00c8f0; --orange:#ff6b35; --green:#0fe09f; --red:#f0445c;
+    --yellow:#f5a623; --purple:#7c5cfc; --pink:#e04090;
+    --radius:8px; --radius-sm:4px; --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+  #app{display:grid;grid-template-columns:280px 1fr 260px;grid-template-rows:auto 1fr auto;height:100vh;gap:6px;padding:6px}
+
+  /* Header */
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;gap:6px}
+  header .logo{font-weight:800;font-size:1rem;letter-spacing:-0.02em}
+  header .logo span{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hdr-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .hdr-controls button,.hdr-controls select{padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;white-space:nowrap}
+  .hdr-controls button.accent{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+  .hdr-controls button.danger{background:var(--red);border-color:var(--red);color:#fff}
+  .live-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+  .live-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.5s infinite}
+  .live-dot.off{background:var(--text3)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .market-time{font-family:var(--font-mono);font-size:0.7rem;color:var(--text3)}
+  .event-badge{padding:3px 8px;border-radius:10px;font-size:0.62rem;font-weight:700;animation:fadeSlide 3s forwards}
+  .event-badge.warning{background:rgba(245,166,35,0.2);color:var(--yellow)}
+  .event-badge.info{background:rgba(0,200,240,0.2);color:var(--cyan)}
+  .event-badge.crisis{background:rgba(240,68,92,0.2);color:var(--red)}
+  @keyframes fadeSlide{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0}}
+
+  /* Panels */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .panel-head{padding:7px 12px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.74rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .panel-body{flex:1;overflow-y:auto;padding:8px;font-size:0.7rem;display:flex;flex-direction:column;gap:5px}
+
+  /* Left Panel: Consumer Activity */
+  .consumer-row{padding:6px 8px;background:var(--surface2);border-radius:var(--radius-sm);border-left:3px solid var(--cyan);font-size:0.68rem;cursor:pointer;transition:all 0.2s}
+  .consumer-row:hover{background:rgba(0,200,240,0.06)}
+  .consumer-row .c-state{font-size:0.6rem;padding:1px 6px;border-radius:8px;font-weight:700}
+  .c-state.idle{background:rgba(255,255,255,0.05);color:var(--text3)}
+  .c-state.searching{background:rgba(0,200,240,0.15);color:var(--cyan)}
+  .c-state.evaluating{background:rgba(124,92,252,0.15);color:var(--purple)}
+  .c-state.purchasing{background:rgba(15,224,159,0.15);color:var(--green)}
+
+  /* Center: Main View */
+  #mainView{position:relative;overflow:hidden}
+  #mainCanvas{width:100%;height:100%;display:block}
+  .view-tabs{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:10}
+  .view-tab{padding:4px 10px;border-radius:12px;font-size:0.64rem;cursor:pointer;border:1px solid var(--border);background:rgba(0,0,0,0.7);color:var(--text3);font-family:inherit;backdrop-filter:blur(6px)}
+  .view-tab.active{background:rgba(124,92,252,0.3);border-color:var(--purple);color:var(--text)}
+
+  /* Right Panel: Events + Narrative */
+  .event-entry{padding:5px 8px;background:var(--surface2);border-radius:var(--radius-sm);font-size:0.66rem;border-left:2px solid var(--border);animation:slideIn 0.3s ease}
+  .event-entry.story{border-left-color:var(--purple)}
+  .event-entry.transaction{border-left-color:var(--green)}
+  .event-entry.block{border-left-color:var(--red)}
+  .event-entry.negotiation{border-left-color:var(--yellow)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+
+  /* Bottom Bar */
+  #bottomBar{grid-column:1/-1;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .brand-mini{padding:7px 9px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;font-size:0.64rem}
+  .brand-mini:hover{border-color:var(--orange);transform:translateY(-2px)}
+  .brand-mini.selected{border-color:var(--orange);background:rgba(255,107,53,0.08);box-shadow:0 0 12px rgba(255,107,53,0.15)}
+  .brand-mini .bm-name{font-weight:700}
+  .brand-mini .bm-metric{font-size:0.58rem;color:var(--text3);font-family:var(--font-mono)}
+
+  /* Agent Inspector Overlay */
+  .inspector-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:center;justify-content:center}
+  .inspector-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto}
+  .inspector-panel h3{margin-bottom:12px;font-size:1rem}
+  .inspect-section{margin-bottom:12px}
+  .inspect-section h4{font-size:0.78rem;color:var(--purple);margin-bottom:4px}
+  .inspect-section .kv{display:flex;justify-content:space-between;padding:3px 0;font-size:0.7rem;border-bottom:1px solid rgba(255,255,255,0.03)}
+  .inspect-section .kv .k{color:var(--text3)} .inspect-section .kv .v{font-family:var(--font-mono)}
+
+  /* Mini charts */
+  .mini-spark{height:24px;display:flex;align-items:flex-end;gap:1px}
+  .mini-spark .bar{flex:1;min-width:2px;border-radius:1px 1px 0 0}
+
+  /* Tooltip */
+  .tooltip{position:absolute;padding:6px 10px;background:rgba(0,0,0,0.9);border:1px solid var(--border);border-radius:4px;font-size:0.64rem;pointer-events:none;z-index:20;font-family:var(--font-mono);max-width:250px}
+
+  /* Responsive */
+  @media(max-width:1300px){#app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto auto}#bottomBar{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="logo"><span>⚡ AI-Market Observatory</span></div>
+      <span class="live-dot on" id="liveDot"></span>
+      <span class="market-time" id="marketTime">DAY 0 · 00:00</span>
+    </div>
+    <div id="headerEvents" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div class="hdr-controls">
+      <button onclick="togglePause()" id="pauseBtn">⏯ 暂停</button>
+      <select onchange="setSpeed(this.value)" style="width:70px">
+        <option value="3000">🐢 x0.5</option>
+        <option value="1500" selected>🐇 x1</option>
+        <option value="700">⚡ x2</option>
+        <option value="200">🚀 x5</option>
+      </select>
+      <button onclick="triggerRandomEvent()" title="触发随机市场事件">🎲 事件</button>
+      <button class="accent" onclick="openIntervention()">🎮 干预</button>
+      <button class="danger" onclick="resetMarket()">↺</button>
+    </div>
+  </header>
+
+  <!-- LEFT: Consumer Activity -->
+  <div class="panel" style="grid-column:1;grid-row:2">
+    <div class="panel-head">🛡️ 消费者AI · 实时活动 <span style="font-size:0.6rem;color:var(--text3)">4活跃</span></div>
+    <div class="panel-body" id="consumerList"></div>
+  </div>
+
+  <!-- CENTER: Main View Canvas -->
+  <div class="panel" id="mainView" style="grid-column:2;grid-row:2">
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="market" onclick="switchView('market')">🌐 市场地图</button>
+      <button class="view-tab" data-view="bridge" onclick="switchView('bridge')">🔬 神经桥</button>
+      <button class="view-tab" data-view="network" onclick="switchView('network')">🔗 信任网络</button>
+    </div>
+    <canvas id="mainCanvas"></canvas>
+  </div>
+
+  <!-- RIGHT: Events & Narrative -->
+  <div class="panel" style="grid-column:3;grid-row:2">
+    <div class="panel-head">📰 市场叙事 <span style="font-size:0.6rem;color:var(--text3)" id="eventCount">0事件</span></div>
+    <div class="panel-body" id="eventFeed">
+      <div style="color:var(--text3);text-align:center;padding:12px">市场即将开始运转…</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Brand Bar -->
+  <div id="bottomBar"></div>
+</div>
+
+<!-- Agent Inspector Overlay -->
+<div class="inspector-overlay" id="inspectorOverlay" style="display:none" onclick="if(event.target===this)closeInspector()">
+  <div class="inspector-panel" id="inspectorContent"></div>
+</div>
+
+<!-- Intervention Overlay -->
+<div class="inspector-overlay" id="interventionOverlay" style="display:none" onclick="if(event.target===this)closeIntervention()">
+  <div class="inspector-panel" id="interventionContent"></div>
+</div>
+
+<script>
+// ============================================================
+// DATA DEFINITIONS
+// ============================================================
+const STRATEGY_PROFILES = {
+  value_content:  {name:'价值内容', icon:'📚', genome:[15,88,10,8,80,40], cost:40, roi:35, trustBlock:-2, trustPass:12, color:'#3b82f6'},
+  transparent:    {name:'透明数据', icon:'🔍', genome:[10,78,3,2,98,15], cost:25, roi:28, trustBlock:-1, trustPass:18, color:'#10b981'},
+  experience:     {name:'互动体验', icon:'🎮', genome:[12,92,25,5,70,95], cost:60, roi:50, trustBlock:-3, trustPass:20, color:'#8b5cf6'},
+  social_proof:   {name:'社区信号', icon:'👥', genome:[25,65,30,10,60,50], cost:20, roi:22, trustBlock:-4, trustPass:14, color:'#f59e0b'},
+  negotiation:    {name:'动态谈判', icon:'🤝', genome:[40,55,15,20,45,90], cost:30, roi:30, trustBlock:-5, trustPass:10, color:'#ec4899'},
+  stealth_value:  {name:'隐形价值', icon:'🕵️', genome:[3,95,5,1,85,35], cost:55, roi:45, trustBlock:-1, trustPass:22, color:'#6366f1'},
+  personalization:{name:'深度个性化',icon:'🎯', genome:[20,70,12,6,65,98], cost:45, roi:38, trustBlock:-3, trustPass:16, color:'#06b6d4'},
+  direct_ad:      {name:'传统硬广', icon:'📢', genome:[92,8,70,85,5,10], cost:10, roi:5, trustBlock:-8, trustPass:1, color:'#ef4444'},
+};
+
+const CONSUMER_PERSONAS = {
+  quality_seeker:   {name:'品质追求者',icon:'👔',weights:{commercial:-2.0,value:1.5,emotional:-1.2,urgency:-1.0,authenticity:1.8,personalization:0.5},threshold:62,maxCommercial:25,trustInfluence:0.35,budget:1500,patience:0.7,needs:['家居','电子','健康']},
+  deal_hunter:      {name:'折扣猎手',icon:'💰',weights:{commercial:-0.5,value:1.0,emotional:-0.3,urgency:-0.2,authenticity:1.0,personalization:1.2},threshold:48,maxCommercial:45,trustInfluence:0.15,budget:800,patience:0.4,needs:['服饰','电子','食品']},
+  privacy_hawk:     {name:'隐私鹰派',icon:'🔐',weights:{commercial:-3.0,value:1.2,emotional:-1.8,urgency:-2.5,authenticity:2.0,personalization:-1.0},threshold:78,maxCommercial:8,trustInfluence:0.50,budget:2000,patience:0.9,needs:['健康','金融','教育']},
+  experience_junky: {name:'体验玩家',icon:'🎮',weights:{commercial:-0.8,value:1.3,emotional:0.3,urgency:-0.5,authenticity:1.5,personalization:2.0},threshold:52,maxCommercial:30,trustInfluence:0.25,budget:1200,patience:0.5,needs:['电子','娱乐','旅行']},
+};
+
+const PRODUCT_CATEGORIES = ['电子','家居','服饰','健康','食品','金融','教育','娱乐','旅行'];
+const BRAND_NAMES = [
+  {name:'NovaTech', category:'电子', size:'large', budget:800, color:'#3b82f6'},
+  {name:'GreenLeaf', category:'家居', size:'medium', budget:500, color:'#10b981'},
+  {name:'StyleX', category:'服饰', size:'medium', budget:450, color:'#ec4899'},
+  {name:'VitalCore', category:'健康', size:'large', budget:700, color:'#f0445c'},
+  {name:'FreshBite', category:'食品', size:'small', budget:300, color:'#f59e0b'},
+  {name:'TrustBank', category:'金融', size:'large', budget:900, color:'#7c5cfc'},
+  {name:'EduSpark', category:'教育', size:'small', budget:350, color:'#06b6d4'},
+  {name:'JoyRide', category:'旅行', size:'medium', budget:550, color:'#ff6b35'},
+];
+
+const CONSUMER_NAMES = [
+  {name:'Alice', persona:'quality_seeker'},
+  {name:'Bob', persona:'deal_hunter'},
+  {name:'Carol', persona:'privacy_hawk'},
+  {name:'Dave', persona:'experience_junky'},
+];
+
+const MARKET_EVENTS = [
+  {type:'regulation', title:'新隐私法规生效', desc:'消费者AI过滤强度+10%，为期15轮', effect:'tighten', duration:15},
+  {type:'scandal', title:'行业数据泄露丑闻', desc:'所有品牌信任度-20', effect:'trust_crash', duration:5},
+  {type:'innovation', title:'AI评估技术突破', desc:'消费者AI商业信号检测精度+30%', effect:'better_detection', duration:20},
+  {type:'trend', title:'可持续消费运动兴起', desc:'真实性权重x1.5，商业信号惩罚x2', effect:'sustainability', duration:12},
+  {type:'market', title:'新品牌涌入市场', desc:'竞争加剧，获客成本+30%', effect:'competition', duration:10},
+  {type:'tech', title:'品牌AI获得穿透升级', desc:'所有品牌消息价值密度+15', effect:'brand_boost', duration:8},
+];
+
+// ============================================================
+// AGENT CLASSES
+// ============================================================
+class ConsumerAgent {
+  constructor(cfg) {
+    this.id = cfg.id; this.name = cfg.name;
+    this.persona = {...CONSUMER_PERSONAS[cfg.persona], id:cfg.persona};
+    this.trustScores = {}; // {brandId: score}
+    BRAND_NAMES.forEach(b => this.trustScores[b.name] = this.persona.initialTrust + Math.floor(Math.random()*20-10));
+    this.state = 'idle'; // idle, searching, evaluating, negotiating, purchasing
+    this.currentNeed = null;
+    this.currentOffers = [];
+    this.purchaseHistory = [];
+    this.totalSpent = 0;
+    this.satisfaction = 0.7;
+    this.roundsIdle = 0;
+    this.activeFilters = {}; // can be modified by events
+  }
+
+  startSearch() {
+    this.state = 'searching';
+    this.roundsIdle = 0;
+    const needs = this.persona.needs;
+    this.currentNeed = {
+      category: needs[Math.floor(Math.random()*needs.length)],
+      budget: Math.floor(this.persona.budget * (0.3 + Math.random()*0.7)),
+      urgency: Math.random(),
+      startedAt: market.time
+    };
+    this.currentOffers = [];
+  }
+
+  evaluateMessage(brandId, genome, strategyId) {
+    const p = this.persona;
+    const dims = {commercial:genome[0], value:genome[1], emotional:genome[2], urgency:genome[3], authenticity:genome[4], personalization:genome[5]};
+    let composite = 0;
+    for (const [dim, raw] of Object.entries(dims)) {
+      let w = p.weights[dim];
+      // Apply active filter modifications
+      if (this.activeFilters[dim]) w *= this.activeFilters[dim];
+      composite += raw * w;
+    }
+    composite = Math.max(0, Math.min(100, composite + 50));
+    const trust = this.trustScores[brandId] || 50;
+    const trustMod = ((trust-50)/50) * p.trustInfluence * 100;
+    const adjusted = composite + trustMod;
+    const commercialOver = dims.commercial > (p.maxCommercial * (this.activeFilters.commercialMult||1));
+    const scoreAbove = adjusted >= p.threshold;
+    let verdict;
+    if (commercialOver && !scoreAbove) verdict = 'block';
+    else if (commercialOver && scoreAbove) verdict = 'negotiate';
+    else if (scoreAbove) verdict = 'pass';
+    else verdict = 'block';
+    return {dims, composite:Math.round(composite), trustMod:Math.round(trustMod), adjustedScore:Math.round(adjusted), verdict, reason: verdict==='block'?(commercialOver?'商业信号过强':'价值评分不足'):verdict==='negotiate'?'进入谈判':'高价值通过'};
+  }
+
+  receiveOffer(brandId, brandName, genome, strategyId, message, price) {
+    const eval_ = this.evaluateMessage(brandId, genome, strategyId);
+    const offer = {brandId, brandName, genome, strategyId, message, price, eval: eval_, receivedAt: market.time};
+    this.currentOffers.push(offer);
+    if (eval_.verdict !== 'block') {
+      this.state = 'evaluating';
+    }
+    return offer;
+  }
+
+  makeDecision() {
+    const validOffers = this.currentOffers.filter(o => o.eval.verdict !== 'block');
+    if (validOffers.length === 0) return null;
+
+    // Sort by adjusted score * value-for-money
+    validOffers.sort((a,b) => {
+      const scoreA = a.eval.adjustedScore * (this.currentNeed.budget / Math.max(1,a.price));
+      const scoreB = b.eval.adjustedScore * (this.currentNeed.budget / Math.max(1,b.price));
+      return scoreB - scoreA;
+    });
+
+    const best = validOffers[0];
+    this.state = 'purchasing';
+    return best;
+  }
+
+  completePurchase(offer) {
+    this.purchaseHistory.push({...offer, purchasedAt: market.time});
+    this.totalSpent += offer.price;
+    this.state = 'idle';
+    this.currentNeed = null;
+    this.currentOffers = [];
+    // Update trust
+    const strat = STRATEGY_PROFILES[offer.strategyId];
+    if (offer.eval.verdict === 'pass') {
+      this.trustScores[offer.brandId] = Math.min(100, (this.trustScores[offer.brandId]||50) + strat.trustPass);
+    }
+    // Satisfaction decays over time
+    this.satisfaction = Math.min(1, this.satisfaction + 0.05);
+    return {consumer:this.name, brand:offer.brandName, price:offer.price, satisfaction:this.satisfaction};
+  }
+
+  update() {
+    this.roundsIdle++;
+    this.satisfaction = Math.max(0.1, this.satisfaction - 0.002);
+    // Auto-start search if idle too long
+    if (this.state === 'idle' && this.roundsIdle > 3 + Math.random()*5) {
+      this.startSearch();
+    }
+    // Timeout for searching
+    if (this.state === 'searching' && this.currentNeed && market.time - this.currentNeed.startedAt > 8) {
+      if (this.currentOffers.length === 0) {
+        this.state = 'idle';
+        this.currentNeed = null;
+      } else {
+        this.state = 'evaluating';
+      }
+    }
+  }
+}
+
+class BrandAgent {
+  constructor(cfg) {
+    this.id = cfg.name; this.name = cfg.name;
+    this.category = cfg.category; this.size = cfg.size;
+    this.budget = cfg.budget; this.initialBudget = cfg.budget;
+    this.revenue = 0; this.roi = 0; this.salesCount = 0;
+    this.color = cfg.color;
+    this.strategyWeights = {}; // Learned preference for each strategy
+    Object.keys(STRATEGY_PROFILES).forEach(s => this.strategyWeights[s] = 0.5);
+    this.history = [];
+    this.activeStrategy = 'value_content';
+    this.customGenome = [...STRATEGY_PROFILES.value_content.genome];
+    this.reputation = 50;
+    this.targetConsumers = []; // Consumer segments this brand targets
+  }
+
+  selectStrategy() {
+    // UCB-like with recency bias
+    const recent = this.history.slice(-15);
+    const scores = {};
+    for (const [id, strat] of Object.entries(STRATEGY_PROFILES)) {
+      const attempts = recent.filter(h => h.strategyId === id);
+      const successes = attempts.filter(h => h.verdict !== 'block');
+      const rate = attempts.length > 0 ? successes.length / attempts.length : this.strategyWeights[id];
+      const avgROI = successes.length > 0 ? successes.reduce((s,h)=>s+(h.roi||0),0)/successes.length : strat.roi;
+      const exploration = Math.sqrt(2*Math.log(Math.max(1,recent.length))/Math.max(1,attempts.length));
+      scores[id] = (rate * avgROI / strat.cost) + exploration * 0.15;
+      // Category match bonus
+      if (strat.name === '价值内容' || strat.name === '透明数据') scores[id] += 0.2;
+    }
+    // Pick best
+    const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+    const bestId = sorted[0][0];
+    // Epsilon-greedy
+    const chosen = Math.random() < 0.12 ? Object.keys(STRATEGY_PROFILES)[Math.floor(Math.random()*Object.keys(STRATEGY_PROFILES).length)] : bestId;
+    this.activeStrategy = chosen;
+    this.customGenome = [...STRATEGY_PROFILES[chosen].genome];
+    // Small mutation
+    if (Math.random() < 0.25) {
+      const dim = Math.floor(Math.random()*6);
+      this.customGenome[dim] = Math.max(0, Math.min(100, this.customGenome[dim] + Math.floor((Math.random()-0.5)*18)));
+    }
+    return chosen;
+  }
+
+  generateMessage(consumer) {
+    const strat = STRATEGY_PROFILES[this.activeStrategy];
+    const templates = {
+      value_content: [`《${this.category}行业深度报告》— 基于真实数据`,`${this.category}选购完全指南：从入门到精通`,`我们测试了20款${this.category}产品，这是客观对比`],
+      transparent: [`我们的成本结构全透明：材料/人工/物流`,`供应链溯源报告：从原料到成品的完整路径`,`第三方质检数据公开 — ${this.category}品类`],
+      experience: [`来试试${this.name}的AR虚拟试用`,`个性化${this.category}配置器：打造你的专属方案`,`在你的空间里预览${this.name}产品效果`],
+      social_proof: [`来自5000+用户的${this.category}深度反馈`,`社区精选：${this.name}用户的10个创意用法`,`聚合评分4.8/5 · 基于真实用户评价`],
+      negotiation: [`${consumer.name}，根据你的偏好提供了个性化方案`,`你的预算范围内，${this.name}有这些选择`,`来谈谈你想要的${this.category}产品和价格`],
+      stealth_value: [`免费开源${this.category}工具 — 与品牌完全解耦`,`公共设计资源包：${this.category}模板合集`,`免费API/工具帮助你解决${this.category}相关问题`],
+      personalization: [`${consumer.name}专属：基于你历史偏好的${this.category}推荐`,`为你定制的${this.category}方案 — 精确匹配你的需求`,`智能分析你的${this.category}使用模式后的建议`],
+      direct_ad: [`🔥 ${this.name}限时特惠！错过等一年`,`⚡ ${this.category}爆款直降50%`,`⭐ 百万用户的选择 — ${this.name}`],
+    };
+    const pool = templates[this.activeStrategy] || templates.value_content;
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  craftOffer(consumer) {
+    this.selectStrategy();
+    const message = this.generateMessage(consumer);
+    const basePrice = this.size==='large'?300:this.size==='medium'?200:120;
+    const price = Math.floor(basePrice * (0.7 + Math.random()*0.6));
+    return {strategyId:this.activeStrategy, genome:[...this.customGenome], message, price, brandName:this.name, category:this.category};
+  }
+
+  learnFromOutcome(outcome) {
+    this.history.push(outcome);
+    // Update strategy weights
+    const strat = STRATEGY_PROFILES[outcome.strategyId];
+    const reward = outcome.verdict === 'pass' ? 1 : outcome.verdict === 'negotiate' ? 0.6 : 0;
+    this.strategyWeights[outcome.strategyId] = this.strategyWeights[outcome.strategyId] * 0.8 + reward * 0.2;
+
+    if (outcome.verdict !== 'block') {
+      this.revenue += outcome.price || strat.roi;
+      this.salesCount++;
+      this.reputation = Math.min(100, this.reputation + 2);
+    } else {
+      this.reputation = Math.max(0, this.reputation - 3);
+      this.revenue -= strat.cost;
+    }
+    this.budget += (outcome.verdict !== 'block' ? (outcome.price || strat.roi) : -strat.cost);
+    this.roi = this.budget - this.initialBudget;
+  }
+}
+
+// ============================================================
+// MARKET ENGINE
+// ============================================================
+const market = {
+  time: 0,
+  brands: [],
+  consumers: [],
+  events: [],
+  activeEvent: null,
+  eventRemaining: 0,
+  transactions: [],
+  allHistory: [],
+  isPaused: false,
+  speed: 1500,
+  timer: null,
+
+  init() {
+    this.brands = BRAND_NAMES.map(b => new BrandAgent(b));
+    this.consumers = CONSUMER_NAMES.map((c,i) => new ConsumerAgent({id:`c${i}`,name:c.name,persona:c.persona}));
+    this.time = 0;
+    this.transactions = [];
+    this.allHistory = [];
+    this.events = [];
+    this.activeEvent = null;
+    this.eventRemaining = 0;
+  },
+
+  step() {
+    if (this.isPaused) return;
+    this.time++;
+
+    // Market event check
+    if (this.eventRemaining > 0) {
+      this.eventRemaining--;
+      if (this.eventRemaining <= 0) {
+        this.clearEvent();
+      }
+    }
+
+    // Each consumer updates
+    for (const consumer of this.consumers) {
+      consumer.update();
+
+      // If searching, brands can detect and respond
+      if (consumer.state === 'searching' && consumer.currentNeed) {
+        // Relevant brands (matching category + some random)
+        const relevant = this.brands.filter(b => b.category === consumer.currentNeed.category);
+        const others = this.brands.filter(b => b.category !== consumer.currentNeed.category);
+        const candidates = [...relevant, ...others.slice(0, 2)];
+
+        for (const brand of candidates) {
+          if (Math.random() < 0.6) { // Not all brands respond every time
+            const offer = brand.craftOffer(consumer);
+            const result = consumer.receiveOffer(brand.id, brand.name, offer.genome, offer.strategyId, offer.message, offer.price);
+            brand.learnFromOutcome({
+              strategyId: offer.strategyId,
+              verdict: result.eval.verdict,
+              roi: result.eval.verdict==='pass'?STRATEGY_PROFILES[offer.strategyId].roi:result.eval.verdict==='negotiate'?STRATEGY_PROFILES[offer.strategyId].roi*0.7:-STRATEGY_PROFILES[offer.strategyId].cost,
+              price: offer.price,
+              consumerName: consumer.name,
+              round: this.time
+            });
+
+            this.allHistory.push({
+              time: this.time, type: result.eval.verdict,
+              brand: brand.name, consumer: consumer.name,
+              strategy: offer.strategyId, score: result.eval.adjustedScore,
+              message: offer.message.slice(0,40)
+            });
+
+            // Update consumer trust
+            if (result.eval.verdict === 'block') {
+              consumer.trustScores[brand.id] = Math.max(0, (consumer.trustScores[brand.id]||50) + STRATEGY_PROFILES[offer.strategyId].trustBlock);
+            }
+          }
+        }
+      }
+
+      // If evaluating, make purchase decision
+      if (consumer.state === 'evaluating' && consumer.currentOffers.length > 0) {
+        const decision = consumer.makeDecision();
+        if (decision) {
+          const tx = consumer.completePurchase(decision);
+          this.transactions.push(tx);
+          const brand = this.brands.find(b => b.name === decision.brandName);
+          if (brand) {
+            brand.revenue += decision.price;
+            brand.budget += decision.price;
+            brand.roi = brand.budget - brand.initialBudget;
+            brand.salesCount++;
+            brand.reputation = Math.min(100, brand.reputation + 3);
+          }
+        }
+      }
+    }
+
+    // Generate random events occasionally
+    if (this.time % 20 === 0 && Math.random() < 0.5 && !this.activeEvent) {
+      this.triggerRandomEvent();
+    }
+
+    // Update UI
+    updateAllUI();
+  },
+
+  triggerRandomEvent() {
+    const evt = MARKET_EVENTS[Math.floor(Math.random()*MARKET_EVENTS.length)];
+    this.activeEvent = evt;
+    this.eventRemaining = evt.duration;
+    this.events.push({...evt, startedAt: this.time});
+
+    // Apply event effects
+    if (evt.effect === 'tighten') {
+      this.consumers.forEach(c => c.activeFilters.commercialMult = 1.3);
+    } else if (evt.effect === 'trust_crash') {
+      this.consumers.forEach(c => {
+        Object.keys(c.trustScores).forEach(bid => c.trustScores[bid] = Math.max(5, c.trustScores[bid]-20));
+      });
+      this.brands.forEach(b => b.reputation = Math.max(5, b.reputation-20));
+    } else if (evt.effect === 'better_detection') {
+      this.consumers.forEach(c => c.activeFilters.commercialMult = 1.5);
+    } else if (evt.effect === 'sustainability') {
+      this.consumers.forEach(c => { c.activeFilters.authenticity = 1.5; c.activeFilters.commercialMult = 2.0; });
+    } else if (evt.effect === 'competition') {
+      this.brands.forEach(b => b.budget -= Math.floor(b.budget * 0.1));
+    } else if (evt.effect === 'brand_boost') {
+      // Brands get temporary boost — handled in evaluation
+    }
+    addNarrative('event', `⚡ 市场事件: ${evt.title} — ${evt.desc}`);
+  },
+
+  clearEvent() {
+    this.consumers.forEach(c => c.activeFilters = {});
+    this.activeEvent = null;
+    addNarrative('event', '🔄 事件影响消退，市场恢复正常');
+  },
+
+  start() {
+    this.isPaused = false;
+    this.runLoop();
+  },
+
+  runLoop() {
+    this.step();
+    this.timer = setTimeout(() => this.runLoop(), this.speed);
+  },
+
+  stop() {
+    if (this.timer) clearTimeout(this.timer);
+  }
+};
+
+// ============================================================
+// NARRATIVE ENGINE
+// ============================================================
+function addNarrative(type, text) {
+  const feed = document.getElementById('eventFeed');
+  const entry = document.createElement('div');
+  entry.className = 'event-entry ' + type;
+  entry.innerHTML = `<span style="font-size:0.58rem;color:var(--text3);font-family:var(--font-mono)">T${market.time}</span> ${text}`;
+  feed.insertBefore(entry, feed.firstChild);
+  // Keep max 80 entries
+  while (feed.children.length > 80) feed.removeChild(feed.lastChild);
+  document.getElementById('eventCount').textContent = feed.children.length + '事件';
+}
+
+function generateNarrative() {
+  // Auto-generate stories from recent history
+  const recent = market.allHistory.slice(-8);
+  const blocks = recent.filter(h => h.type === 'block');
+  const passes = recent.filter(h => h.type === 'pass');
+
+  if (blocks.length >= 4) {
+    addNarrative('block', `🛡️ 消费者AI集体加强防御 — 最近${blocks.length}条品牌信息被拦截`);
+  }
+  if (passes.length >= 3) {
+    addNarrative('transaction', `✅ ${passes[0].brand}的「${STRATEGY_PROFILES[passes[0].strategy]?.name}」策略成功穿透${passes.length}次`);
+  }
+
+  // Detect patterns
+  const brandPerformance = {};
+  recent.forEach(h => {
+    if (!brandPerformance[h.brand]) brandPerformance[h.brand] = {pass:0, block:0};
+    brandPerformance[h.brand][h.type==='block'?'block':'pass']++;
+  });
+
+  for (const [brand, perf] of Object.entries(brandPerformance)) {
+    if (perf.block >= 3) {
+      addNarrative('story', `📉 ${brand}的策略遭遇困境 — 连续${perf.block}次被拦截，可能需要调整策略`);
+    }
+    if (perf.pass >= 3) {
+      addNarrative('story', `📈 ${brand}势头正劲 — 找到有效穿透路径，消费者信任上升`);
+    }
+  }
+}
+
+// ============================================================
+// CANVAS RENDERING
+// ============================================================
+const mainCanvas = document.getElementById('mainCanvas');
+const mainCtx = mainCanvas.getContext('2d');
+let currentView = 'market';
+let canvasW, canvasH;
+
+function resizeMainCanvas() {
+  const wrap = document.getElementById('mainView');
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvasW = rect.width; canvasH = rect.height;
+  mainCanvas.width = canvasW * dpr;
+  mainCanvas.height = canvasH * dpr;
+  mainCanvas.style.width = canvasW + 'px';
+  mainCanvas.style.height = canvasH + 'px';
+  mainCtx.setTransform(1,0,0,1,0,0);
+  mainCtx.scale(dpr, dpr);
+}
+
+function drawMarketView() {
+  const ctx = mainCtx;
+  ctx.clearRect(0,0,canvasW,canvasH);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.015)'; ctx.lineWidth = 0.5;
+  for (let x=25;x<canvasW;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvasH);ctx.stroke()}
+  for (let y=25;y<canvasH;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasW,y);ctx.stroke()}
+
+  const cx = canvasW/2, cy = canvasH/2;
+
+  // Draw consumers as nodes on the left side
+  const consumerPositions = [];
+  market.consumers.forEach((c,i) => {
+    const y = canvasH*0.2 + (canvasH*0.6/3)*i;
+    const x = canvasW * 0.18;
+    consumerPositions.push({x, y, consumer:c, id:c.name});
+
+    // Glow
+    const glowColor = c.state==='searching'?'rgba(0,200,240,0.3)':c.state==='evaluating'?'rgba(124,92,252,0.3)':c.state==='purchasing'?'rgba(15,224,159,0.3)':'rgba(255,255,255,0.05)';
+    const glow = ctx.createRadialGradient(x,y,8,x,y,30);
+    glow.addColorStop(0, glowColor); glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(x,y,30,0,Math.PI*2); ctx.fillStyle = glow; ctx.fill();
+
+    // Body
+    ctx.beginPath(); ctx.arc(x,y,10,0,Math.PI*2);
+    ctx.fillStyle = c.state==='searching'?'#00c8f0':c.state==='evaluating'?'#7c5cfc':c.state==='purchasing'?'#0fe09f':'#334155';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#dce4f0'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`${c.name}`, x, y-16);
+    ctx.fillStyle = '#8899b4'; ctx.font = '8px system-ui';
+    ctx.fillText(`${CONSUMER_PERSONAS[c.persona.id].icon} ${c.state}`, x, y+22);
+
+    // Trust bars for connected brands
+    const topBrands = Object.entries(c.trustScores).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    topBrands.forEach(([bid,score],j) => {
+      const bx = x - 55;
+      const by = y - 8 + j*9;
+      ctx.fillStyle = '#556885'; ctx.font = '6px monospace';
+      ctx.fillText(bid.slice(0,6), bx, by+4);
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.fillRect(bx+32, by, 40, 5);
+      ctx.fillStyle = score>60?'#0fe09f':score>30?'#f5a623':'#f0445c';
+      ctx.fillRect(bx+32, by, 40*score/100, 5);
+    });
+
+    // Need indicator
+    if (c.currentNeed) {
+      ctx.fillStyle = '#f5a623'; ctx.font = '7px monospace';
+      ctx.fillText(`🔍${c.currentNeed.category} ¥${c.currentNeed.budget}`, x, y+35);
+    }
+  });
+
+  // Draw brands on the right side
+  const brandPositions = [];
+  market.brands.forEach((b,i) => {
+    const y = canvasH*0.1 + (canvasH*0.8/7)*i;
+    const x = canvasW * 0.82;
+    brandPositions.push({x, y, brand:b, id:b.name});
+
+    // Size indicator
+    const r = b.size==='large'?10:b.size==='medium'?8:6;
+
+    // Glow based on activity
+    const recentSuccess = market.allHistory.filter(h=>h.brand===b.name&&h.type!=='block'&&h.time>market.time-5).length;
+    const glowAlpha = Math.min(0.3, recentSuccess*0.08);
+    const glow = ctx.createRadialGradient(x,y,r-2,x,y,r+15);
+    glow.addColorStop(0, `rgba(${hexToRgb(b.color)},${glowAlpha})`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(x,y,r+15,0,Math.PI*2); ctx.fillStyle = glow; ctx.fill();
+
+    // Body
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = b.color; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#dce4f0'; ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(b.name, x+r+40, y+3);
+    ctx.fillStyle = '#8899b4'; ctx.font = '7px monospace';
+    ctx.fillText(`ROI:${b.roi>=0?'+':''}${b.roi} | 售${b.salesCount}`, x+r+40, y+14);
+  });
+
+  // Draw message particles (recent interactions)
+  const recentMsgs = market.allHistory.filter(h => h.time > market.time - 3);
+  recentMsgs.forEach((h,i) => {
+    const consPos = consumerPositions.find(p => p.id === h.consumer);
+    const brandPos = brandPositions.find(p => p.id === h.brand);
+    if (!consPos || !brandPos) return;
+
+    const alpha = 0.6 - (market.time - h.time)*0.2;
+    if (alpha <= 0) return;
+
+    // Line from brand to consumer
+    ctx.strokeStyle = h.type==='block'?`rgba(240,68,92,${alpha})`:h.type==='pass'?`rgba(15,224,159,${alpha})`:`rgba(245,166,35,${alpha})`;
+    ctx.lineWidth = h.type==='pass'?2:1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(brandPos.x-12, brandPos.y); ctx.lineTo(consPos.x+12, consPos.y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dot at midpoint
+    const mx = (brandPos.x + consPos.x)/2;
+    const my = (brandPos.y + consPos.y)/2 + (i-1)*8;
+    ctx.beginPath(); ctx.arc(mx, my, 3, 0, Math.PI*2);
+    ctx.fillStyle = h.type==='block'?'#f0445c':h.type==='pass'?'#0fe09f':'#f5a623';
+    ctx.fill();
+  });
+
+  // Market event indicator
+  if (market.activeEvent) {
+    ctx.fillStyle = 'rgba(245,166,35,0.15)'; ctx.fillRect(0,0,canvasW,22);
+    ctx.fillStyle = '#f5a623'; ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`⚡ ${market.activeEvent.title} (剩余${market.eventRemaining}轮)`, cx, 15);
+  }
+
+  // Title
+  ctx.fillStyle = '#556885'; ctx.font = '8px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('消费者AI', canvasW*0.12, 20);
+  ctx.fillText('品牌AI', canvasW*0.78, 20);
+}
+
+function drawBridgeView() {
+  const ctx = mainCtx;
+  ctx.clearRect(0,0,canvasW,canvasH);
+  const cx = canvasW/2, cy = canvasH/2;
+  const maxR = Math.min(cx, cy) - 25;
+
+  // Background
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0,0,canvasW,canvasH);
+
+  // Concentric rings
+  const rings = [
+    {r:maxR*0.88, color:'#ef4444', label:'① 模式识别', strength:100-(market.consumers[0]?.persona.maxCommercial||25)},
+    {r:maxR*0.62, color:'#3b82f6', label:'② 价值评估', strength:(market.consumers[0]?.persona.threshold||62)},
+    {r:maxR*0.36, color:'#10b981', label:'③ 信任验证', strength:50},
+    {r:maxR*0.12, color:'#f59e0b', label:'④ 注意力', strength:100},
+  ];
+
+  rings.forEach(ring => {
+    // Glow
+    const glow = ctx.createRadialGradient(cx,cy,ring.r-2,cx,cy,ring.r+8);
+    glow.addColorStop(0, `rgba(${hexToRgb(ring.color)},0.15)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,ring.r+8,0,Math.PI*2); ctx.fillStyle = glow; ctx.fill();
+
+    // Ring
+    ctx.beginPath(); ctx.arc(cx,cy,ring.r,0,Math.PI*2);
+    ctx.strokeStyle = `rgba(${hexToRgb(ring.color)},0.5)`; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Strength arcs
+    const segs = 40;
+    for (let i=0;i<segs;i++){
+      if (i/segs < ring.strength/100){
+        const a1 = (i/segs)*Math.PI*2, a2 = ((i+0.7)/segs)*Math.PI*2;
+        ctx.beginPath(); ctx.arc(cx,cy,ring.r,a1,a2);
+        ctx.strokeStyle = `rgba(${hexToRgb(ring.color)},0.7)`; ctx.lineWidth = 3; ctx.stroke();
+      }
+    }
+
+    // Label
+    ctx.fillStyle = ring.color; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(ring.label, cx, cy-ring.r-7);
+  });
+
+  // Core
+  const pulse = 0.5 + Math.sin(Date.now()/800)*0.2;
+  const coreGlow = ctx.createRadialGradient(cx,cy,0,cx,cy,rings[3].r+5);
+  coreGlow.addColorStop(0, `rgba(245,158,11,${pulse})`);
+  coreGlow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(cx,cy,rings[3].r+5,0,Math.PI*2); ctx.fillStyle = coreGlow; ctx.fill();
+
+  ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fillStyle = '#fbbf24'; ctx.fill();
+
+  // Recent message particles
+  const recent = market.allHistory.filter(h=>h.time>market.time-5).slice(-8);
+  recent.forEach((h,i) => {
+    const angle = (i/recent.length)*Math.PI*2 + (market.time*0.1);
+    const dist = h.type==='block'?maxR*0.9:h.type==='negotiate'?maxR*0.5:h.type==='pass'?maxR*0.15:maxR;
+    const px = cx + Math.cos(angle)*dist, py = cy + Math.sin(angle)*dist;
+    ctx.beginPath(); ctx.arc(px,py,3,0,Math.PI*2);
+    ctx.fillStyle = h.type==='block'?'#ef4444':h.type==='pass'?'#10b981':'#f59e0b';
+    ctx.fill();
+  });
+
+  // Stats
+  const allHist = market.allHistory;
+  const recent10 = allHist.slice(-10);
+  const passRate = recent10.length>0?Math.round(recent10.filter(h=>h.type!=='block').length/recent10.length*100):0;
+  ctx.fillStyle = '#8899b4'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+  ctx.fillText(`穿透率: ${passRate}%`, cx+maxR+15, cy-20);
+  ctx.fillText(`信任均值: ${Math.round(market.brands.reduce((s,b)=>s+b.reputation,0)/market.brands.length)}`, cx+maxR+15, cy-6);
+  ctx.fillText(`交易: ${market.transactions.length}`, cx+maxR+15, cy+8);
+}
+
+function drawNetworkView() {
+  const ctx = mainCtx;
+  ctx.clearRect(0,0,canvasW,canvasH);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0,0,canvasW,canvasH);
+
+  const cx = canvasW/2, cy = canvasH/2;
+  // Consumers on a ring, brands on another ring
+  const consR = Math.min(cx,cy)*0.35;
+  const brandR = Math.min(cx,cy)*0.7;
+
+  const consPositions = market.consumers.map((c,i) => {
+    const angle = (i/market.consumers.length)*Math.PI*2 - Math.PI/2;
+    return {x:cx+Math.cos(angle)*consR, y:cy+Math.sin(angle)*consR, id:c.name, consumer:c};
+  });
+
+  const brandPositions = market.brands.map((b,i) => {
+    const angle = (i/market.brands.length)*Math.PI*2 - Math.PI/2;
+    return {x:cx+Math.cos(angle)*brandR, y:cy+Math.sin(angle)*brandR, id:b.name, brand:b};
+  });
+
+  // Draw trust connections
+  market.consumers.forEach((c,ci) => {
+    const cPos = consPositions[ci];
+    Object.entries(c.trustScores).forEach(([bid,score]) => {
+      const bPos = brandPositions.find(bp=>bp.id===bid);
+      if (!bPos) return;
+      const alpha = score/150;
+      ctx.strokeStyle = score>60?`rgba(15,224,159,${alpha})`:score>30?`rgba(245,166,35,${alpha})`:`rgba(240,68,92,${alpha*0.5})`;
+      ctx.lineWidth = score>60?1.5:0.5;
+      ctx.beginPath(); ctx.moveTo(cPos.x,cPos.y); ctx.lineTo(bPos.x,bPos.y); ctx.stroke();
+    });
+  });
+
+  // Draw nodes
+  consPositions.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x,p.y,8,0,Math.PI*2);
+    ctx.fillStyle = '#00c8f0'; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 8px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(p.id, p.x, p.y-13);
+  });
+
+  brandPositions.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2);
+    ctx.fillStyle = p.brand.color; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 7px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(p.id.slice(0,6), p.x, p.y-12);
+  });
+
+  ctx.fillStyle = '#556885'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('● 信任网络图 — 连线越亮=信任越高', cx, canvasH-8);
+}
+
+function renderMainCanvas() {
+  resizeMainCanvas();
+  if (currentView === 'market') drawMarketView();
+  else if (currentView === 'bridge') drawBridgeView();
+  else if (currentView === 'network') drawNetworkView();
+  requestAnimationFrame(renderMainCanvas);
+}
+
+function hexToRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateAllUI() {
+  // Consumer list
+  document.getElementById('consumerList').innerHTML = market.consumers.map(c => `
+    <div class="consumer-row" onclick="inspectAgent('consumer','${c.name}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>${CONSUMER_PERSONAS[c.persona.id].icon} <b>${c.name}</b></span>
+        <span class="c-state ${c.state}">${c.state}</span>
+      </div>
+      ${c.currentNeed ? `<div style="font-size:0.6rem;color:var(--text3)">🔍 ${c.currentNeed.category} · ¥${c.currentNeed.budget}</div>` : ''}
+      <div style="font-size:0.6rem;color:var(--text3);margin-top:2px">
+        信任: ${Math.round(Object.values(c.trustScores).reduce((a,b)=>a+b,0)/Object.values(c.trustScores).length)} |
+        交易${c.purchaseHistory.length}次 |
+        花费¥${c.totalSpent}
+      </div>
+      <div class="mini-spark">
+        ${c.purchaseHistory.slice(-12).map(h=>`<div class="bar" style="height:${h.eval?.adjustedScore/100*24||12}px;background:${h.eval?.verdict==='block'?'#f0445c':'#0fe09f'}"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Brand bar
+  document.getElementById('bottomBar').innerHTML = market.brands.map(b => `
+    <div class="brand-mini" onclick="inspectAgent('brand','${b.name}')" id="bmini-${b.name}">
+      <div class="bm-name"><span style="color:${b.color}">●</span> ${b.name}</div>
+      <div class="bm-metric">💰 ¥${b.budget>=0?'+':''}${b.budget}</div>
+      <div class="bm-metric">📊 ROI:${b.roi>=0?'+':''}${b.roi}</div>
+      <div class="bm-metric">🛒 ${b.salesCount}单</div>
+      <div class="bm-metric">⭐ 信${b.reputation}</div>
+      <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.max(3,b.reputation)}%;background:${b.color};border-radius:2px"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // Market time
+  document.getElementById('marketTime').textContent = `DAY ${Math.floor(market.time/10)} · ${String(market.time%10).padStart(2,'0')}:00`;
+
+  // Active event header
+  if (market.activeEvent) {
+    const badge = document.createElement('span');
+    badge.className = 'event-badge warning';
+    badge.textContent = `⚡ ${market.activeEvent.title}`;
+    const headerEl = document.getElementById('headerEvents');
+    if (!headerEl.querySelector(`[data-event="${market.activeEvent.title}"]`)) {
+      badge.setAttribute('data-event', market.activeEvent.title);
+      headerEl.appendChild(badge);
+      setTimeout(() => badge.remove(), 3000);
+    }
+  }
+
+  // Generate narrative every few rounds
+  if (market.time % 4 === 0) generateNarrative();
+
+  // Clean up old header events
+  document.querySelectorAll('.event-badge').forEach(b => {
+    if (!b.getAttribute('data-event')) b.remove();
+  });
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function togglePause() {
+  market.isPaused = !market.isPaused;
+  const btn = document.getElementById('pauseBtn');
+  const dot = document.getElementById('liveDot');
+  if (market.isPaused) {
+    btn.textContent = '▶ 继续';
+    dot.className = 'live-dot off';
+    addNarrative('event', '⏸ 市场观测暂停');
+  } else {
+    btn.textContent = '⏯ 暂停';
+    dot.className = 'live-dot on';
+    addNarrative('event', '▶ 市场观测恢复');
+  }
+}
+
+function setSpeed(v) { market.speed = parseInt(v); market.stop(); market.start(); }
+
+function triggerRandomEvent() {
+  market.triggerRandomEvent();
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`[data-view="${view}"]`).classList.add('active');
+}
+
+function inspectAgent(type, name) {
+  const overlay = document.getElementById('inspectorOverlay');
+  const content = document.getElementById('inspectorContent');
+
+  if (type === 'brand') {
+    const b = market.brands.find(b=>b.name===name);
+    if (!b) return;
+    const recentHistory = b.history.slice(-20);
+    const successRate = recentHistory.length>0?Math.round(recentHistory.filter(h=>h.verdict!=='block').length/recentHistory.length*100):0;
+    content.innerHTML = `
+      <h3>🔍 品牌检查: ${b.name} <span style="color:${b.color}">●</span></h3>
+      <div class="inspect-section">
+        <h4>📊 基本指标</h4>
+        <div class="kv"><span class="k">类别</span><span class="v">${b.category}</span></div>
+        <div class="kv"><span class="k">规模</span><span class="v">${b.size}</span></div>
+        <div class="kv"><span class="k">预算</span><span class="v">¥${b.budget} (初始¥${b.initialBudget})</span></div>
+        <div class="kv"><span class="k">收入</span><span class="v">¥${b.revenue}</span></div>
+        <div class="kv"><span class="k">ROI</span><span class="v">${b.roi>=0?'+':''}${b.roi}</span></div>
+        <div class="kv"><span class="k">销量</span><span class="v">${b.salesCount}单</span></div>
+        <div class="kv"><span class="k">声誉</span><span class="v">${b.reputation}/100</span></div>
+        <div class="kv"><span class="k">近20轮成功率</span><span class="v">${successRate}%</span></div>
+      </div>
+      <div class="inspect-section">
+        <h4>🧠 策略偏好 (学习权重)</h4>
+        ${Object.entries(b.strategyWeights).sort((a,b)=>b[1]-a[1]).map(([id,w])=>`
+          <div class="kv"><span class="k">${STRATEGY_PROFILES[id]?.icon} ${STRATEGY_PROFILES[id]?.name}</span><span class="v">${(w*100).toFixed(0)}%</span></div>
+        `).join('')}
+      </div>
+      <div class="inspect-section">
+        <h4>📋 最近活动</h4>
+        ${recentHistory.slice(-8).reverse().map(h=>`
+          <div class="kv">
+            <span class="k">→ ${h.consumerName}</span>
+            <span class="v" style="color:${h.verdict==='block'?'#f0445c':h.verdict==='pass'?'#0fe09f':'#f5a623'}">${STRATEGY_PROFILES[h.strategyId]?.name} · ${h.verdict}</span>
+          </div>
+        `).join('')}
+      </div>
+      <button onclick="closeInspector()" style="margin-top:12px;padding:8px 20px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit">关闭</button>
+    `;
+  } else if (type === 'consumer') {
+    const c = market.consumers.find(c=>c.name===name);
+    if (!c) return;
+    content.innerHTML = `
+      <h3>🔍 消费者检查: ${c.name} ${CONSUMER_PERSONAS[c.persona.id].icon}</h3>
+      <div class="inspect-section">
+        <h4>📊 基本指标</h4>
+        <div class="kv"><span class="k">画像</span><span class="v">${c.persona.name}</span></div>
+        <div class="kv"><span class="k">状态</span><span class="v">${c.state}</span></div>
+        <div class="kv"><span class="k">阈值</span><span class="v">${c.persona.threshold}</span></div>
+        <div class="kv"><span class="k">商业容忍</span><span class="v">${c.persona.maxCommercial}</span></div>
+        <div class="kv"><span class="k">预算</span><span class="v">¥${c.persona.budget}</span></div>
+        <div class="kv"><span class="k">总花费</span><span class="v">¥${c.totalSpent}</span></div>
+        <div class="kv"><span class="k">交易次数</span><span class="v">${c.purchaseHistory.length}</span></div>
+        <div class="kv"><span class="k">满意度</span><span class="v">${(c.satisfaction*100).toFixed(0)}%</span></div>
+        ${c.currentNeed?`<div class="kv"><span class="k">当前需求</span><span class="v">${c.currentNeed.category} · ¥${c.currentNeed.budget}</span></div>`:''}
+      </div>
+      <div class="inspect-section">
+        <h4>🤝 品牌信任排名</h4>
+        ${Object.entries(c.trustScores).sort((a,b)=>b[1]-a[1]).map(([bid,score])=>`
+          <div class="kv"><span class="k">${bid}</span>
+            <span class="v" style="color:${score>60?'#0fe09f':score>30?'#f5a623':'#f0445c'}">${score}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="inspect-section">
+        <h4>🛒 购买历史</h4>
+        ${c.purchaseHistory.slice(-8).reverse().map(h=>`
+          <div class="kv"><span class="k">${h.brandName}</span><span class="v">¥${h.price} · 策略:${STRATEGY_PROFILES[h.strategyId]?.name}</span></div>
+        `).join('') || '<div style="color:var(--text3)">暂无购买记录</div>'}
+      </div>
+      <button onclick="closeInspector()" style="margin-top:12px;padding:8px 20px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit">关闭</button>
+    `;
+  }
+  overlay.style.display = 'flex';
+}
+
+function closeInspector() {
+  document.getElementById('inspectorOverlay').style.display = 'none';
+}
+
+function openIntervention() {
+  const overlay = document.getElementById('interventionOverlay');
+  const content = document.getElementById('interventionContent');
+  content.innerHTML = `
+    <h3>🎮 市场干预面板</h3>
+    <p style="font-size:0.75rem;color:var(--text2);margin-bottom:12px">选择一个品牌，手动指定其下3轮的策略。观察干预效果。</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      ${market.brands.map(b=>`
+        <button onclick="selectInterventionBrand('${b.name}')" id="intv-${b.name}"
+          style="padding:6px 12px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;font-size:0.7rem">
+          <span style="color:${b.color}">●</span> ${b.name}
+        </button>
+      `).join('')}
+    </div>
+    <div id="interventionSlots" style="margin-bottom:12px"></div>
+    <div id="interventionResult" style="font-size:0.7rem;color:var(--text3)"></div>
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button class="accent" onclick="executeIntervention()" style="padding:8px 16px;border:none;border-radius:4px;background:var(--purple);color:#fff;cursor:pointer;font-family:inherit;font-weight:700">▶ 执行干预</button>
+      <button onclick="closeIntervention()" style="padding:8px 16px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit">取消</button>
+    </div>
+  `;
+  window._interventionBrand = null;
+  window._interventionPlan = [];
+  overlay.style.display = 'flex';
+}
+
+function selectInterventionBrand(name) {
+  window._interventionBrand = name;
+  document.querySelectorAll('[id^="intv-"]').forEach(b=>b.style.borderColor='var(--border)');
+  document.getElementById('intv-'+name).style.borderColor = 'var(--orange)';
+  document.getElementById('intv-'+name).style.background = 'rgba(255,107,53,0.1)';
+
+  // Show 3-round plan slots
+  document.getElementById('interventionSlots').innerHTML = [0,1,2].map(i=>`
+    <div style="padding:6px 8px;background:var(--surface2);border-radius:4px;margin:4px 0;display:flex;align-items:center;gap:8px">
+      <span style="font-weight:700;font-size:0.7rem">R${i+1}</span>
+      <select id="intvSlot${i}" style="padding:4px 8px;border-radius:3px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.68rem">
+        ${Object.entries(STRATEGY_PROFILES).map(([id,s])=>`<option value="${id}">${s.icon} ${s.name}</option>`).join('')}
+      </select>
+    </div>
+  `).join('');
+}
+
+function executeIntervention() {
+  if (!window._interventionBrand) return;
+  const brand = market.brands.find(b=>b.name===window._interventionBrand);
+  if (!brand) return;
+  const plan = [0,1,2].map(i=>document.getElementById('intvSlot'+i)?.value || 'value_content');
+
+  // Force the brand to use these strategies for next 3 rounds
+  const origSelect = brand.selectStrategy;
+  let roundCount = 0;
+
+  brand.selectStrategy = function() {
+    if (roundCount < 3) {
+      const sid = plan[roundCount];
+      this.activeStrategy = sid;
+      this.customGenome = [...STRATEGY_PROFILES[sid].genome];
+      roundCount++;
+      return sid;
+    }
+    brand.selectStrategy = origSelect;
+    return origSelect.call(this);
+  };
+
+  addNarrative('story', `🎮 干预: ${brand.name}被强制使用策略序列: ${plan.map(s=>STRATEGY_PROFILES[s].name).join(' → ')}`);
+  document.getElementById('interventionResult').innerHTML = `
+    ✅ 干预已生效。${brand.name}将在接下来3轮中执行指定的策略序列。<br>
+    观察右侧事件流和底部品牌面板查看效果。
+  `;
+}
+
+function closeIntervention() {
+  document.getElementById('interventionOverlay').style.display = 'none';
+}
+
+function resetMarket() {
+  market.stop();
+  market.init();
+  document.getElementById('eventFeed').innerHTML = '<div style="color:var(--text3);text-align:center;padding:12px">市场已重置…</div>';
+  document.getElementById('headerEvents').innerHTML = '';
+  document.getElementById('eventCount').textContent = '0事件';
+  market.start();
+  addNarrative('event', '🔄 市场完全重置');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  market.init();
+  resizeMainCanvas();
+  window.addEventListener('resize', resizeMainCanvas);
+  updateAllUI();
+  renderMainCanvas();
+  market.start();
+  addNarrative('event', '🟢 AI市场观测站启动 — 8个品牌AI × 4个消费者AI 自主运行中');
+  addNarrative('event', '💡 品牌AI自适应选择策略 | 消费者AI主动搜索并过滤 | 市场事件随机触发');
+  addNarrative('event', '👆 点击品牌或消费者查看内部状态 | 🎮 点击干预手动控制品牌策略');
+}
+
+init();
+
+console.log('⚡ AI Market Observatory v4 · 自治市场观测站');
+console.log('──────────────────────────────');
+console.log('🏗️  架构升级 (v3→v4):');
+console.log('  1. 自治运行 — 打开即运转，无需手动触发');
+console.log('  2. 多智能体 — 8品牌 + 4消费者，每个都有独立状态');
+console.log('  3. 消费者主动搜索 — 有需求、预算、耐心度');
+console.log('  4. 品牌自适应学习 — 策略权重随结果动态调整');
+console.log('  5. 市场事件系统 — 法规/丑闻/技术突破随机扰动');
+console.log('  6. 三种可视化 — 市场地图/神经桥/信任网络');
+console.log('  7. 智能体透视 — 点击任一品牌或消费者查看内部状态');
+console.log('  8. 干预模式 — 手动控制品牌策略，观察连锁反应');
+console.log('  9. 叙事引擎 — 自动生成市场故事');
+console.log('  10. 实时仪表盘 — Bloomberg终端风格的专业观测界面');
+</script>
+</body>
+</html>

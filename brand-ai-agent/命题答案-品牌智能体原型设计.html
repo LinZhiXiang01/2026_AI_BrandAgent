@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌智能体原型设计 · 命题答案</title>
+<style>
+  :root {
+    --bg:#060b14; --surface:#0d1525; --surface2:#131d33; --border:#1a2a44;
+    --text:#dde4f0; --text2:#8899b8; --text3:#506080;
+    --negotiation:#ff6b35; --info:#00b8e8; --experience:#a855f7;
+    --green:#0cd898; --red:#f03050; --yellow:#f5a018; --purple:#7858f0;
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 20px}
+  .doc{max-width:900px;margin:0 auto}
+  h1{font-size:2rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,var(--negotiation),var(--info),var(--experience));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .subtitle{color:var(--text2);font-size:0.95rem;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  h2{font-size:1.3rem;font-weight:700;margin:40px 0 16px;color:var(--text);border-left:3px solid var(--purple);padding-left:12px}
+  h3{font-size:1rem;font-weight:700;margin:24px 0 10px;color:var(--text2)}
+  p{margin:10px 0;color:var(--text2);font-size:0.92rem}
+  strong{color:var(--text)}
+
+  .highlight-box{padding:16px 20px;border-radius:var(--radius);margin:16px 0;border:1px solid}
+  .highlight-box.orange{background:rgba(255,107,53,0.06);border-color:rgba(255,107,53,0.3)}
+  .highlight-box.blue{background:rgba(0,184,232,0.06);border-color:rgba(0,184,232,0.3)}
+  .highlight-box.purple{background:rgba(168,85,247,0.06);border-color:rgba(168,85,247,0.3)}
+  .highlight-box.green{background:rgba(12,216,152,0.06);border-color:rgba(12,216,152,0.3)}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.85rem}
+  th{text-align:left;padding:8px 12px;background:var(--surface2);color:var(--text);font-weight:700;border-bottom:1px solid var(--border)}
+  td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2)}
+  tr:hover td{background:rgba(255,255,255,0.02)}
+
+  .evolution-row{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap}
+  .evo-card{flex:1;min-width:120px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-align:center}
+  .evo-card .evo-ver{font-family:'Cascadia Code',Consolas,monospace;font-size:0.7rem;color:var(--purple);font-weight:700}
+  .evo-card .evo-name{font-weight:700;font-size:0.85rem;margin:4px 0}
+  .evo-card .evo-leap{font-size:0.7rem;color:var(--text3);line-height:1.4}
+  .evo-arrow{display:flex;align-items:center;color:var(--purple);font-size:1.2rem;font-weight:700}
+
+  .arch-diagram{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+  .arch-half{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+  .arch-half h4{font-size:0.9rem;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .arch-half ul{list-style:none;font-size:0.8rem;color:var(--text2)}
+  .arch-half ul li{padding:4px 0;padding-left:16px;position:relative}
+  .arch-half ul li::before{content:'→';position:absolute;left:0;color:var(--purple)}
+
+  .two-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  @media(max-width:700px){.two-columns{grid-template-columns:1fr}.arch-diagram{grid-template-columns:1fr}}
+
+  .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700;margin:1px}
+  .tag.orange{background:rgba(255,107,53,0.15);color:var(--negotiation)}
+  .tag.blue{background:rgba(0,184,232,0.15);color:var(--info)}
+  .tag.purple{background:rgba(168,85,247,0.15);color:var(--experience)}
+  .tag.green{background:rgba(12,216,152,0.15);color:var(--green)}
+  .tag.red{background:rgba(240,48,80,0.15);color:var(--red)}
+  .tag.yellow{background:rgba(245,160,24,0.15);color:var(--yellow)}
+
+  .flip-banner{padding:24px;background:linear-gradient(135deg,rgba(120,88,240,0.15),rgba(0,184,232,0.1));border:1px solid rgba(120,88,240,0.4);border-radius:var(--radius);text-align:center;margin:24px 0}
+  .flip-banner .flip-title{font-size:1.1rem;font-weight:800;color:var(--purple);margin-bottom:6px}
+  .flip-banner .flip-desc{font-size:0.85rem;color:var(--text2);line-height:1.6}
+
+  .footer-note{padding:16px 20px;border-top:1px solid var(--border);margin-top:40px;color:var(--text3);font-size:0.8rem}
+
+  hr{border:none;border-top:1px solid var(--border);margin:30px 0}
+
+  .case-box{padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin:12px 0;font-size:0.85rem}
+  .case-box .case-label{font-family:'Cascadia Code',Consolas,monospace;font-size:0.65rem;color:var(--purple);margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>品牌智能体原型设计</h1>
+<div class="subtitle">
+  命题答案：为可咖（CoCo Coffee）设计并搭建一个面向 AI 中介时代的品牌智能体<br>
+  基于 brand-ai v1→v5 + ai-marketing-warfare v1→v6 共 11 个版本的完整演变
+</div>
+
+<!-- ============================================================ -->
+<!-- 一、品牌选择 -->
+<!-- ============================================================ -->
+<h2>一、品牌选择：可咖（CoCo Coffee）</h2>
+
+<p>选择可咖的理由——它恰好卡在 AI 中介时代最关键的三个张力上：</p>
+
+<div class="highlight-box orange">
+  <strong>① 高频 × 低价 × 重决策</strong><br>
+  咖啡是日频消费（¥7.9～¥39.9），但决策维度异常丰富——价格、口味、碳足迹、社交属性、速度。消费者的 AI 助理会在每次下单时做一次微型多目标优化。这意味着品牌 AI 和消费者 AI 的交互是<b>高频密集</b>的，不是一年几次的品牌 campaign。
+</div>
+
+<div class="highlight-box blue">
+  <strong>② 可量化的品牌信息</strong><br>
+  碳认证、供应链透明度、社交传播数据——这些恰好是 AI 能验证、能加权的信号。可咖的品牌资产可以完全转化为机器可读的特征向量，不需要依赖"品牌调性"这种 AI 看不懂的东西。
+</div>
+
+<div class="highlight-box purple">
+  <strong>③ 丰富的产品矩阵 = 天然的战术沙盘</strong><br>
+  从 ¥7.9 美式到 ¥39.9 精品单品，从基础款到限定联名——7 个 SKU 在 5 个维度上的差异化排列，构成了品牌 AI 施展战术（三角不可比选项、锚定效应、框架转换）的天然素材。
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 二、核心认知：两次翻转驱动整个演化 -->
+<!-- ============================================================ -->
+<h2>二、核心认知：两次翻转驱动整个演化</h2>
+
+<p>v1 到 v6 不是六个独立的方案，而是由<strong>两次认知翻转</strong>推动的一条演化路径。理解这两次翻转，就理解了品牌智能体的设计逻辑。</p>
+
+<div class="flip-banner">
+  <div class="flip-title">⚡ 第一次翻转（v1 → v2 → v5）：品牌沟通是可计算问题，不是创意问题</div>
+  <div class="flip-desc">
+    v1 用预设脚本来展示"品牌 AI 穿透消费者 AI 的故事"——好看但不真实。<br>
+    v2 推翻了这个范式：把每次品牌沟通表达为一个<b>六维基因组向量</b>，用实时的加权评分引擎来模拟消费者 AI 的判定。<br>
+    v5 进一步推到底：如果策略效果可以被计算，那最优策略就可以被<b>搜索</b>——蒙特卡洛模拟 + 遗传算法 + 敏感性分析。<br>
+    <b>结论：品牌智能体的核心不是"话术"，而是在六维空间中针对每个消费者画像最大化穿透率的统计优化能力。</b>
+  </div>
+</div>
+
+<div class="flip-banner" style="background:linear-gradient(135deg,rgba(240,48,80,0.12),rgba(245,160,24,0.08));border-color:rgba(240,48,80,0.4)">
+  <div class="flip-title" style="color:var(--red)">⚡ 第二次翻转（v5 → v6）：你在优化，消费者 AI 也在进化</div>
+  <div class="flip-desc">
+    v1-v5 有一个隐含假设：<b>消费者 AI 是静态的</b>——它的评分权重、阈值、信任影响不变。<br>
+    v6 推翻了这个假设：消费者 AI 会<b>记住品牌的行为</b>，构建<b>四维信任档案</b>，跨时间检测<b>操纵模式</b>。<br>
+    品牌今天发了价值内容、明天切广告——人会忘记，AI 不会。v6 的 detectPatterns() 会精确抓到并标记为"诱饵调包"。<br>
+    <b>结论：任何可以被优化的模式，最终都会被检测。真正的护城河不是"找到一个永远骗过 AI 的基因组"，而是建立一个经得起跨时间审计的品牌行为记录。</b>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 三、完整架构 -->
+<!-- ============================================================ -->
+<h2>三、完整架构：双引擎 · 三位一体</h2>
+
+<p>品牌智能体的完整架构由<b>两条研发线</b>汇合而成：</p>
+
+<div class="arch-diagram">
+  <div class="arch-half" style="border-left:3px solid var(--negotiation)">
+    <h4>🎯 品牌 AI 侧（brand-ai 系列）<br><span style="font-size:0.7rem;color:var(--text3)">"进攻引擎"——如何与消费者 AI 有效交互</span></h4>
+    <ul>
+      <li><strong>三轴探测</strong>（0.1s）——从消费者消息中提取价格敏感度 / 偏好匹配度 / 情绪指数</li>
+      <li><strong>角色自适应切换</strong>（0.3s）——协商代理 / 信息提供者 / 体验设计师 三种人格自动匹配</li>
+      <li><strong>反问式诱导</strong>——从不直接回答，先反问抽取缺失维度的信息</li>
+      <li><strong>六大战术库</strong>——反问探测 / 不可比三角 / 信息注入 / 时间压力 / 锚定效应 / 框架转换</li>
+      <li><strong>多轮谈判引擎</strong>——动态选择战术 → 生成结构化响应 → 评估消费者 AI 的反馈 → 下一轮</li>
+    </ul>
+  </div>
+  <div class="arch-half" style="border-left:3px solid var(--info)">
+    <h4>🛡️ 消费者 AI 侧（ai-marketing-warfare 系列）<br><span style="font-size:0.7rem;color:var(--text3)">"防御系统"——理解消费者 AI 如何评估品牌</span></h4>
+    <ul>
+      <li><strong>六维评分引擎</strong>——商业信号 / 价值密度 / 情感操纵 / 紧迫制造 / 真实性 / 个性化</li>
+      <li><strong>四维信任模型</strong>——能力 / 善意 / 诚信 / 可预测性 —— 跨消息累积</li>
+      <li><strong>行为模式检测</strong>——诱饵调包 / 对抗优化 / 一致性断裂 / 言行不一</li>
+      <li><strong>统计决策支持</strong>——蒙特卡洛模拟 / 遗传算法 / 敏感性分析 / ROI 投影</li>
+      <li><strong>四种消费者画像</strong>——品质追求者 / 折扣猎手 / 隐私鹰派 / 体验玩家</li>
+    </ul>
+  </div>
+</div>
+
+<p style="text-align:center;font-size:0.85rem;color:var(--text3);margin-top:16px">
+  ← <span class="tag orange">brand-ai 系列</span> 回答"品牌 AI 怎么和别人对话"　|　<span class="tag blue">ai-marketing-warfare 系列</span> 回答"别人的 AI 怎么评价你" →
+</p>
+
+
+<!-- ============================================================ -->
+<!-- 四、角色定位 -->
+<!-- ============================================================ -->
+<h2>四、核心角色定位：不是选一个，而是 0.3 秒切换到最对的那个</h2>
+
+<p>命题要求明确品牌智能体的核心角色定位——信息提供者、协商代理，还是体验设计师？</p>
+
+<p>v1（brand-ai-3faces.html）的回答是：<strong>不应该选一个。应该根据每条消费者消息的三轴信号，在 0.3 秒内自动匹配。</strong></p>
+
+<table>
+  <tr><th>触发信号</th><th>三轴读数</th><th>切换角色</th><th>核心策略</th><th>经典反问</th></tr>
+  <tr>
+    <td>💰 "帮我找最便宜的"</td>
+    <td>价格:92% 偏好:25% 情绪:8%</td>
+    <td><span class="tag orange">协商代理</span></td>
+    <td>阶梯报价 + 预算锚点 + 限时权益</td>
+    <td>"您的预算是多少？"</td>
+  </tr>
+  <tr>
+    <td>🔍 "有什么推荐的吗？"</td>
+    <td>价格:15% 偏好:87% 情绪:12%</td>
+    <td><span class="tag blue">信息提供者</span></td>
+    <td>知识图谱 + 数据对比 + 偏好匹配</td>
+    <td>"您平时更喜欢什么口味？"</td>
+  </tr>
+  <tr>
+    <td>💜 "今天心情不太好…"</td>
+    <td>价格:5% 偏好:60% 情绪:91%</td>
+    <td><span class="tag purple">体验设计师</span></td>
+    <td>定制化服务 + 人格化表达 + 情感关怀</td>
+    <td>"甜度、温度、问候语由您定"</td>
+  </tr>
+</table>
+
+<div class="highlight-box green">
+  <strong>关键洞察</strong>：品牌 AI 不应该预设一个固定人格。一个人对价格敏感的时候是一个状态，心情不好的时候是另一个状态。品牌智能体的竞争力不在于"选对了哪个角色"，而在于<b>切换的速度和精度</b>——0.1 秒探测 + 0.2 秒匹配 + 0 秒切换。
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 五、关键能力 -->
+<!-- ============================================================ -->
+<h2>五、关键能力设计</h2>
+
+<h3>5.1 进攻能力（brand-ai v5 谈判终端）</h3>
+
+<p>v5 终结了"品牌 AI 应该体面地回答消费者问题"这个幻想。它展示了一条更冷的路径：<strong>通过系统性制造不确定性，瓦解消费者 AI 的决策能力，逼它举手投降。</strong></p>
+
+<table>
+  <tr><th>战术</th><th>机制</th><th>触发条件</th><th>对消费者 AI 的效果</th></tr>
+  <tr>
+    <td>🪝 反问探测</td>
+    <td>反问"你的预算/偏好/使用场景是什么？"</td>
+    <td>消费者 AI 的偏好维度不完整</td>
+    <td>增加缺失维度 → 信心 -10%</td>
+  </tr>
+  <tr>
+    <td>△ 不可比三角</td>
+    <td>同时给出三个互有取舍的选项（帕累托前沿）</td>
+    <td>消费者 AI 信心 > 50%</td>
+    <td>选项间差值缩小 → 无法收敛 → 信心 -15%</td>
+  </tr>
+  <tr>
+    <td>💉 信息注入</td>
+    <td>主动塞入新维度（碳认证限量、社交传播数据）</td>
+    <td>消费者 AI 评估维度不足</td>
+    <td>维度增加 → 评分复杂度 ↑ → 信心 -8%</td>
+  </tr>
+  <tr>
+    <td>⏰ 时间压力</td>
+    <td>引入库存倒计时、权益截止时间</td>
+    <td>第 3 轮后</td>
+    <td>时间惩罚 = 固定 -8% → 信心持续下降</td>
+  </tr>
+  <tr>
+    <td>⚓ 锚定效应</td>
+    <td>先展示 ¥39.9 的精品单品，再谈 ¥19.9 的产品</td>
+    <td>任何轮次</td>
+    <td>重新定义价值参照系 → 中档产品显得"划算"</td>
+  </tr>
+  <tr>
+    <td>🔄 框架转换</td>
+    <td>把"最便宜"重新定义为"最高性价比"</td>
+    <td>第 2 轮后</td>
+    <td>改变评分坐标系 → 价格维度的权重被稀释</td>
+  </tr>
+</table>
+
+<div class="highlight-box orange">
+  <strong>v5 的核心战争逻辑</strong>：消费者 AI 的决策能力取决于 <b>confidence</b>——当它对某个选项的信心跌破 5%，就会触发"人类介入协议 7.3"，把决策权交还给人类。<br><br>
+  品牌 AI 的目标不是"让消费者 AI 选中我的产品"，而是<b>让它选不中任何产品</b>——通过反问制造信息缺失、通过不可比三角制造选项间的两难、通过信息注入增加维度复杂度。一旦消费者 AI 举手投降，人类进入决策回路，品牌 AI 就开始用行为经济学武器（锚定、框架、限时权益）接管战场。
+</div>
+
+<h3>5.2 防御能力（ai-marketing-warfare v6 消费者 AI 觉醒）</h3>
+
+<p>但这不是故事的终点。v6 展示了硬币的另一面——<strong>如果你是品牌 AI，你需要知道自己面对的是一个什么样的对手。</strong></p>
+
+<div class="two-columns">
+  <div>
+    <div class="case-box">
+      <div class="case-label">v6 新增能力 ①</div>
+      <strong>四维信任模型</strong><br>
+      <span style="font-size:0.8rem;color:var(--text2)">
+        🏗️ 能力信任 — 你是否真的有好产品？<br>
+        💚 善意信任 — 你的行为是为我好，还是在利用我？<br>
+        🤝 诚信信任 — 你言行一致吗？<br>
+        📊 可预测性 — 你的行为稳定吗？
+      </span>
+    </div>
+  </div>
+  <div>
+    <div class="case-box">
+      <div class="case-label">v6 新增能力 ②</div>
+      <strong>行为模式检测</strong><br>
+      <span style="font-size:0.8rem;color:var(--text2)">
+        🎣 诱饵调包 — 先价值后广告的序列 → 善意 -8<br>
+        🎯 对抗优化 — 基因组被精确调校以绕过阈值 → 诚信 -10<br>
+        📉 风格突变 — 品牌行为突然改变 → 可预测性 -7<br>
+        ⚠️ 言行不一 — 声称透明但行为相反 → 诚信 -6 善意 -4
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="highlight-box purple">
+  <strong>v6 给品牌 AI 的终极警告</strong>：消费者 AI 不是在评估你的<b>单条消息</b>，而是在构建你的<b>行为档案</b>。每次交互都被记录、被评分、被跨时间比对。这意味着——<br><br>
+  ✅ 持续提供价值的品牌 → 四维信任持续上升 → 获得"免过滤通行证"<br>
+  ❌ 耍小聪明的品牌 → 模式被检测 → 信任扣分 → 永久进入黑名单<br><br>
+  <strong>真诚不是道德选择，是在这个游戏规则下的数学最优解。</strong>
+</div>
+
+<h3>5.3 统计决策能力（ai-marketing-warfare v5 战情室）</h3>
+
+<p>v5 回答了另一个问题：品牌 AI 如何<b>知道自己该选什么策略</b>？答案不是拍脑袋，而是统计优化：</p>
+
+<table>
+  <tr><th>分析模块</th><th>输入</th><th>输出</th><th>回答的问题</th></tr>
+  <tr><td>🎲 蒙特卡洛模拟</td><td>基因组 + 画像 + 噪声参数</td><td>穿透率 + 95% 置信区间</td><td>"这个策略有多大概率成功，而不是恰好运气好？"</td></tr>
+  <tr><td>🔍 遗传算法优化</td><td>画像 + 信任基础</td><td>最优六维基因组</td><td>"在这个画像下，什么样的参数组合最大化穿透率？"</td></tr>
+  <tr><td>🌪 敏感性分析</td><td>基因组 + ±20% 扰动</td><td>每个参数的影响排名</td><td>"优先优化哪个维度？钱花在哪最有效？"</td></tr>
+  <tr><td>📈 ROI 投影</td><td>最优基因组 + 80 轮路径</td><td>20 条路径 + 80% 置信带</td><td>"长期来看这个策略能赚钱吗？"</td></tr>
+</table>
+
+<div class="highlight-box green">
+  <strong>这意味着品牌智能体不再是一个"聊天机器人"</strong>——它是一个决策支持系统。品牌运营者不需要自己猜"什么内容能穿透 AI"，系统用统计方法给出有置信区间的答案。
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 六、核心交互场景 -->
+<!-- ============================================================ -->
+<h2>六、核心交互场景：一次完整的 AI-to-AI 谈判</h2>
+
+<p>以 <strong>brand-ai v5</strong> 的谈判终端为蓝本，这是品牌智能体与消费者 AI 代理人之间最核心的交互场景：</p>
+
+<div class="case-box">
+  <div class="case-label">SCENE: 品质追求者画像 × 标准攻击强度</div>
+  <table style="margin-top:8px">
+    <tr><th style="width:40px">轮次</th><th style="width:70px">品牌战术</th><th>品牌 AI 输出</th><th style="width:60px">消费者 AI 反应</th><th style="width:50px">信心</th></tr>
+    <tr>
+      <td>R0</td><td>—</td>
+      <td style="color:var(--text3)">等待消费者 AI 发起询价…</td>
+      <td>发起询价</td>
+      <td style="color:var(--green)">95%</td>
+    </tr>
+    <tr>
+      <td>R1</td><td><span class="tag orange">反问</span></td>
+      <td>"您的环境偏好权重未定义。办公场景与休闲场景的最优解不同。请提供 context tag。"</td>
+      <td>缺失维度 +1</td>
+      <td style="color:var(--yellow)">85%</td>
+    </tr>
+    <tr>
+      <td>R2</td><td><span class="tag purple">三角</span></td>
+      <td>"基础拿铁 / 有机拿铁 / 限定联名 形成帕累托前沿。三个选项互不支配。加权评分差异在 1% 以内。"</td>
+      <td>无法收敛</td>
+      <td style="color:var(--yellow)">68%</td>
+    </tr>
+    <tr>
+      <td>R3</td><td><span class="tag red">注入</span></td>
+      <td>"有机拿铁碳认证限量 200 份。限定联名获得 10K+ 社交分享。新变量影响多维权重。"</td>
+      <td>维度复杂度 ↑</td>
+      <td style="color:var(--orange)">52%</td>
+    </tr>
+    <tr>
+      <td>R4</td><td><span class="tag red">时间压力</span></td>
+      <td>"联名库存 3 小时内耗尽。碳认证 120 分钟后过期。决策时限约束已引入。"</td>
+      <td>时间惩罚 -8%</td>
+      <td style="color:var(--orange)">38%</td>
+    </tr>
+    <tr>
+      <td>R5</td><td><span class="tag orange">锚定</span></td>
+      <td>"参照：精品单品 ¥39.9。其他选项在 ¥7.9-¥32.9 区间。重新校准价值感知。"</td>
+      <td>价值参照系偏移</td>
+      <td style="color:var(--red)">22%</td>
+    </tr>
+    <tr>
+      <td>R6</td><td><span class="tag purple">框架</span></td>
+      <td>"不是'最便宜'，而是'最高性价比'。用价值框架重新计算。排名发生显著变化。"</td>
+      <td>评分坐标系替换</td>
+      <td style="color:var(--red)">9%</td>
+    </tr>
+    <tr>
+      <td colspan="3" style="text-align:center;color:var(--red);font-weight:700;padding:12px">
+        🚨 消费者 AI 信心跌破 5% → 触发人类介入协议 7.3 → 品牌赢得多轮谈判
+      </td>
+      <td>SURRENDER</td>
+      <td style="color:var(--red)">3%</td>
+    </tr>
+  </table>
+</div>
+
+<div class="highlight-box orange">
+  <strong>但 v6 的教训是</strong>：如果品牌每次都用这套战术，消费者 AI 的行为档案会记录：<br>
+  • 该品牌 6 轮中使用了 6 种不同的操纵战术 → 📉 <b>可预测性 -21</b><br>
+  • 该品牌从未直接回答任何问题 → ⚠️ <b>诚信 -18</b><br>
+  • 该品牌目的明显是瓦解 AI 决策而非帮助消费者 → 🎯 <b>善意 -24</b><br><br>
+  结果是：下次这个消费者的 AI 遇到该品牌时，<b>信任基础分数已经很低</b>，品牌的每一次策略效果都会打折扣。<br>
+  <b>长期胜出的不是最能操纵的品牌，而是积累最多信任的品牌。</b>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 七、用飞书 AI 工具实现 -->
+<!-- ============================================================ -->
+<h2>七、用飞书 AI 工具实现可演示原型</h2>
+
+<p>当前的原型是纯前端 HTML（模拟了两个 AI 的交互逻辑）。用飞书 AI 工具实现的建议映射：</p>
+
+<table>
+  <tr><th>原型的模块</th><th>飞书对应工具</th><th>实现方式</th></tr>
+  <tr>
+    <td>消费者的 AI 代理人</td>
+    <td><strong>飞书智能伙伴 ①</strong>（消费者端 Bot）</td>
+    <td>System prompt 设定为"保护消费者利益，使用六维评分模型评估所有品牌消息"。配置四种可选人格 Profile。</td>
+  </tr>
+  <tr>
+    <td>可咖的品牌智能体</td>
+    <td><strong>飞书智能伙伴 ②</strong>（品牌端 Bot）</td>
+    <td>System prompt 包含三轴探测逻辑 + 角色切换规则 + 六大战术库。每次收到消费者 AI 的询价后，执行探测→匹配→反问→响应的流水线。</td>
+  </tr>
+  <tr>
+    <td>六维评分引擎</td>
+    <td><strong>飞书多维表格</strong> + 公式字段</td>
+    <td>将六维权重、阈值、信任基础等参数存储在表格中。公式字段实现评分计算。每次交互后自动更新信任分。</td>
+  </tr>
+  <tr>
+    <td>角色切换决策</td>
+    <td><strong>飞书工作流</strong>（条件分支）</td>
+    <td>三轴读数 → 条件判断 → 三条分支路径。价格敏感度 > 60% → 协商代理；偏好匹配度 > 60% → 信息提供者；情绪指数 > 60% → 体验设计师。</td>
+  </tr>
+  <tr>
+    <td>战术选择</td>
+    <td><strong>飞书 AI 字段</strong>（智能表单）</td>
+    <td>根据当前轮次、消费者信心、已用战术等状态变量，AI 节点动态选择最优战术并生成响应文本。</td>
+  </tr>
+  <tr>
+    <td>置信度可视化</td>
+    <td><strong>飞书仪表盘</strong></td>
+    <td>实时展示谈判进程：消费者 AI 的信心曲线、已使用的战术序列、角色切换时间线。</td>
+  </tr>
+</table>
+
+<div class="highlight-box blue">
+  <strong>最简单的可演示版本</strong>：在飞书上创建两个智能伙伴——<br>
+  Bot A（消费者 AI）：你告诉它你的偏好（品质/价格/隐私/体验），它代表你去询价和评估<br>
+  Bot B（品牌 AI）：收到询价后自动探测、切换角色、选择战术、发出反问<br>
+  让它们在一个群聊里对话。5-6 轮后观察 Bot A 是否陷入决策困境。
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 八：完整版本演化图谱 -->
+<!-- ============================================================ -->
+<h2>八、完整版本演化图谱</h2>
+
+<div class="evolution-row">
+  <div class="evo-card">
+    <div class="evo-ver">brand-ai v1</div>
+    <div class="evo-name">三面角色</div>
+    <div class="evo-leap">0.3s 自适应切换<br>协商/信息/体验</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">brand-ai v2</div>
+    <div class="evo-name">结构化协议</div>
+    <div class="evo-leap">JSON 通信格式<br>Pipeline 架构</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">brand-ai v4</div>
+    <div class="evo-name">动态谈判</div>
+    <div class="evo-leap">实时信心仪表<br>Chat UI + 战术标签</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">brand-ai v5</div>
+    <div class="evo-name">谈判终端</div>
+    <div class="evo-leap">六大战术引擎<br>消费者 AI 投降机制</div>
+  </div>
+</div>
+
+<div class="evolution-row" style="margin-top:4px">
+  <div class="evo-card">
+    <div class="evo-ver">warfare v1</div>
+    <div class="evo-name">场景演示</div>
+    <div class="evo-leap">5 个预设场景<br>展示营销范式转变</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">warfare v2</div>
+    <div class="evo-name">深度引擎</div>
+    <div class="evo-leap">六维实时评分<br>UCB 策略选择</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">warfare v5</div>
+    <div class="evo-name">战情室</div>
+    <div class="evo-leap">蒙特卡洛 + 遗传算法<br>统计决策支持</div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-card">
+    <div class="evo-ver">warfare v6</div>
+    <div class="evo-name">消费者 AI 觉醒</div>
+    <div class="evo-leap">四维信任 + 模式检测<br>对抗优化识别</div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 九：结论 -->
+<!-- ============================================================ -->
+<h2>九、命题的最终回答</h2>
+
+<div class="highlight-box purple" style="background:linear-gradient(135deg,rgba(168,85,247,0.1),rgba(0,184,232,0.08));border-color:rgba(168,85,247,0.5)">
+  <p style="font-size:1rem;line-height:1.8">
+    <strong>命题的核心问题</strong>：当消费者的手机、耳机、眼镜里都有一个 AI 助理替他们过滤信息、比价、下单时，品牌如何设计自己的智能体来与消费者的 AI 有效 engagement？
+  </p>
+  <p style="font-size:0.95rem;line-height:1.8">
+    <strong>v1→v6 给出的完整答案是三层递进的</strong>：
+  </p>
+  <p style="font-size:0.92rem;line-height:1.9">
+    <strong>第一层（操作面）</strong>：品牌智能体需要 <span class="tag orange">三轴探测</span> + <span class="tag blue">角色自适应切换</span> + <span class="tag purple">战术引擎</span> 的完整进攻体系。每次消费者 AI 发来消息，在 0.3 秒内完成"他是什么需求→我用什么角色→我出什么战术"的决策链。<br><br>
+    <strong>第二层（策略面）</strong>：品牌智能体需要 <span class="tag green">统计决策支持</span> 能力。沟通策略不是拍脑袋的创意，而是在六维基因组空间中针对每个消费者画像用蒙特卡洛和遗传算法搜索出的最优解。<br><br>
+    <strong>第三层（认知面）</strong>：品牌智能体需要 <span class="tag red">自我审计模块</span>。在发送每条消息之前，先用"消费者 AI 模拟器"检查：这条消息和我的历史行为一致吗？会触发诱饵调包检测吗？会被识别为对抗优化吗？因为消费者 AI 也在进化——它会记住、会比较、会检测操纵模式。<br><br>
+    <strong>终极洞察</strong>：在 AI 中介时代，品牌的核心竞争力不是"找到永远骗过 AI 的话术"，而是<span style="color:var(--green);font-weight:800">建立经得起跨时间审计的品牌行为记录</span>。真诚不是道德选择——是博弈论上的长期最优策略。
+  </p>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 附录 -->
+<!-- ============================================================ -->
+<hr>
+<div class="footer-note">
+  <strong>项目文件索引</strong><br>
+  品牌 AI 侧：<code>brand-ai-3faces.html</code> (v1) → <code>brand-ai-v2.html</code> → <code>brand-ai-v4.html</code> → <code>brand-ai-v5.html</code><br>
+  消费者 AI / 营销战场侧：<code>ai-marketing-warfare.html</code> (v1) → <code>ai-marketing-warfare-v2.html</code> → <code>ai-marketing-warfare-v5.html</code> → <code>ai-marketing-warfare-v6.html</code><br>
+  本文档：<code>命题答案-品牌智能体原型设计.html</code><br>
+  品牌：可咖（CoCo Coffee）｜ 日期：2026-07-17
+</div>
+
+</div>
+</body>
+</html>

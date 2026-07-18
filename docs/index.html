@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌智能体 · AI 营销新范式 | 竞赛作品</title>
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root {
+  --bg: #060b14;
+  --surface: #0d1321;
+  --surface2: #141c2b;
+  --border: #1e2a3a;
+  --text: #dce4f0;
+  --text2: #8899b4;
+  --text3: #556885;
+  --cyan: #00c8f0;
+  --orange: #ff6b35;
+  --green: #0fe09f;
+  --red: #f0445c;
+  --yellow: #f5a623;
+  --purple: #7c5cfc;
+  --pink: #e04090;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  --max-width: 1100px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(6,11,20,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  z-index: 1000;
+  padding: 0 20px;
+}
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+}
+.nav-logo {
+  font-weight: 800; font-size: 1rem;
+  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nav-links { display: flex; gap: 4px; list-style: none; flex-wrap: wrap; }
+.nav-links a {
+  color: var(--text3); text-decoration: none;
+  padding: 6px 12px; border-radius: 6px;
+  font-size: 0.78rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+
+/* ============================================================
+   SECTIONS COMMON
+   ============================================================ */
+.section {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+.section-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--purple); text-transform: uppercase; margin-bottom: 8px;
+}
+.section-title {
+  font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;
+  margin-bottom: 12px; line-height: 1.25;
+}
+.section-subtitle {
+  font-size: 1rem; color: var(--text2); margin-bottom: 40px; max-width: 600px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding-top: 80px;
+  position: relative;
+  overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,200,240,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(255,107,53,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(124,92,252,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-badge {
+  display: inline-block; padding: 5px 14px;
+  border: 1px solid var(--purple);
+  border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+  color: var(--purple); margin-bottom: 24px;
+  background: rgba(124,92,252,0.08);
+}
+.hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.15; margin-bottom: 20px;
+}
+.hero-question {
+  font-size: 1.15rem; color: var(--text2); margin-bottom: 32px;
+  max-width: 620px; line-height: 1.6;
+}
+.hero-question strong { color: var(--cyan); }
+.hero-cta {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.btn {
+  padding: 12px 28px; border-radius: 8px;
+  font-weight: 700; font-size: 0.9rem; font-family: inherit;
+  cursor: pointer; text-decoration: none; display: inline-block;
+  transition: all 0.25s;
+}
+.btn-primary {
+  background: var(--purple); color: #fff; border: none;
+  box-shadow: 0 0 30px rgba(124,92,252,0.3);
+}
+.btn-primary:hover { box-shadow: 0 0 40px rgba(124,92,252,0.5); transform: translateY(-2px); }
+.btn-outline {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--purple); background: rgba(124,92,252,0.06); }
+
+/* Hero stats row */
+.hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-top: 60px; position: relative; z-index: 1;
+}
+.hero-stat {
+  padding: 18px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  text-align: center;
+}
+.hero-stat .hs-val {
+  font-size: 1.8rem; font-weight: 800; font-family: var(--font-mono);
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-stat .hs-label { font-size: 0.72rem; color: var(--text3); margin-top: 4px; }
+
+/* ============================================================
+   CARDS GRID
+   ============================================================ */
+.cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  transition: all 0.25s;
+}
+.card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+.card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.card p { font-size: 0.82rem; color: var(--text2); line-height: 1.55; }
+.card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.tag {
+  padding: 3px 10px; border-radius: 12px; font-size: 0.65rem;
+  font-weight: 600; font-family: var(--font-mono);
+}
+.tag.cyan { background: rgba(0,200,240,0.12); color: var(--cyan); }
+.tag.orange { background: rgba(255,107,53,0.12); color: var(--orange); }
+.tag.green { background: rgba(15,224,159,0.12); color: var(--green); }
+.tag.purple { background: rgba(124,92,252,0.12); color: var(--purple); }
+.tag.yellow { background: rgba(245,166,35,0.12); color: var(--yellow); }
+
+/* ============================================================
+   RESEARCH PILLARS
+   ============================================================ */
+.pillar-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px;
+  position: relative; overflow: hidden;
+}
+.pillar-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.pillar-card.policy::before { background: var(--red); }
+.pillar-card.academic::before { background: var(--cyan); }
+.pillar-card.engineering::before { background: var(--orange); }
+.pillar-card .pillar-icon { font-size: 2rem; margin-bottom: 12px; }
+.pillar-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+.pillar-card .pillar-list {
+  list-style: none; font-size: 0.8rem; color: var(--text2); line-height: 1.6;
+}
+.pillar-card .pillar-list li { padding: 4px 0; padding-left: 16px; position: relative; }
+.pillar-card .pillar-list li::before {
+  content: '→'; position: absolute; left: 0; color: var(--purple);
+  font-family: var(--font-mono); font-size: 0.7rem;
+}
+
+/* ============================================================
+   FIVE ACT STRUCTURE
+   ============================================================ */
+.act-timeline { position: relative; padding-left: 40px; }
+.act-timeline::before {
+  content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--cyan), var(--purple), var(--orange), var(--green));
+}
+.act-card {
+  position: relative; margin-bottom: 32px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px 28px;
+}
+.act-card::before {
+  content: attr(data-num);
+  position: absolute; left: -40px; top: 20px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2); border: 2px solid var(--purple);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.85rem; color: var(--purple);
+  font-family: var(--font-mono);
+}
+.act-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+.act-card .act-duration { font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); margin-bottom: 8px; }
+.act-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+.act-card .act-refs { margin-top: 10px; font-size: 0.7rem; color: var(--text3); }
+.act-card .act-refs strong { color: var(--cyan); }
+
+/* ============================================================
+   SYSTEM ARCHITECTURE
+   ============================================================ */
+.arch-diagram {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px;
+  font-family: var(--font-mono); font-size: 0.75rem;
+  overflow-x: auto;
+}
+.arch-layer {
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 20px; margin: 6px 0; border-radius: 8px;
+  text-align: center; gap: 8px;
+}
+.arch-layer.l1 { background: rgba(0,200,240,0.1); border: 1px solid rgba(0,200,240,0.25); }
+.arch-layer.l2 { background: rgba(124,92,252,0.1); border: 1px solid rgba(124,92,252,0.25); }
+.arch-layer.l3 { background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.25); }
+.arch-layer.l4 { background: rgba(15,224,159,0.1); border: 1px solid rgba(15,224,159,0.25); }
+.arch-arrow { text-align: center; color: var(--text3); font-size: 1.2rem; margin: 2px 0; }
+
+/* ============================================================
+   DEMO EVOLUTION
+   ============================================================ */
+.demo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.demo-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; text-decoration: none;
+  color: var(--text); transition: all 0.25s; display: block;
+}
+.demo-card:hover { border-color: var(--purple); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(124,92,252,0.15); }
+.demo-card .demo-ver { font-family: var(--font-mono); font-size: 0.6rem; color: var(--purple); font-weight: 700; letter-spacing: 0.05em; }
+.demo-card .demo-title { font-weight: 700; font-size: 0.95rem; margin: 4px 0; }
+.demo-card .demo-desc { font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
+.demo-card .demo-arrow { font-size: 0.7rem; color: var(--purple); margin-top: 10px; font-weight: 700; }
+
+/* ============================================================
+   INNOVATION TABLE
+   ============================================================ */
+.innovation-table {
+  width: 100%; border-collapse: collapse; font-size: 0.8rem;
+}
+.innovation-table th {
+  text-align: left; padding: 10px 14px;
+  border-bottom: 1px solid var(--border); color: var(--text3);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.innovation-table td {
+  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text2);
+}
+.innovation-table td:first-child { font-weight: 700; color: var(--text); }
+.innovation-table .check { color: var(--green); }
+.innovation-table .star { color: var(--yellow); }
+
+/* ============================================================
+   TEAM
+   ============================================================ */
+.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.team-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; text-align: center;
+}
+.team-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+}
+.team-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+.team-card .role { font-size: 0.72rem; color: var(--purple); margin-bottom: 6px; }
+.team-card .bio { font-size: 0.72rem; color: var(--text3); line-height: 1.5; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 24px; text-align: center;
+  color: var(--text3); font-size: 0.72rem;
+}
+footer a { color: var(--purple); text-decoration: none; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .cards-3, .demo-grid { grid-template-columns: 1fr; }
+  .cards-2 { grid-template-columns: 1fr; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }  /* On mobile, still show nav links inline if possible */
+  .section-title { font-size: 1.5rem; }
+}
+@media (max-width: 600px) {
+  .hero-stats { grid-template-columns: 1fr; }
+  .section { padding: 48px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">⚡ 品牌智能体 · Brand Agent</div>
+    <ul class="nav-links">
+      <li><a href="#hero">首页</a></li>
+      <li><a href="#background">命题背景</a></li>
+      <li><a href="#research">研究基础</a></li>
+      <li><a href="#architecture">方案架构</a></li>
+      <li><a href="#demos">演示</a></li>
+      <li><a href="#team">团队</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section id="hero">
+  <div class="hero-content section">
+    <div class="hero-badge">🏆 竞赛作品 · 2026</div>
+    <h1 class="hero-title">
+      当每个消费者都有一个<br>
+      <span class="gradient-text">AI 守门人</span>，<br>
+      品牌如何进化？
+    </h1>
+    <p class="hero-question">
+      不久的将来，每个人的手机、耳机、眼镜里都会有一个 <strong>AI 助理</strong>。
+      品牌真正的对话对象，正从"消费者本人"变成<strong>"消费者的 AI 代理人"</strong>。
+      如果品牌没有自己的智能体，就只能被动等着别人的 AI 来"裁判"自己。
+    </p>
+    <div class="hero-cta">
+      <a href="#demos" class="btn btn-primary">▶ 查看演示原型</a>
+      <a href="#architecture" class="btn btn-outline">📋 方案架构</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hs-val">45+</div>
+        <div class="hs-label">篇论文深度分析</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hs-val">4 版</div>
+        <div class="hs-label">迭代演示原型</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hs-val">8×4</div>
+        <div class="hs-label">品牌×消费者智能体</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hs-val">3 线</div>
+        <div class="hs-label">政策·学术·工程研究</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BACKGROUND: 命题背景
+     ============================================================ -->
+<section id="background" class="section">
+  <div class="section-label">01 · 命题分析</div>
+  <h2 class="section-title">AI 中介时代的<br><span class="gradient-text">营销范式转移</span></h2>
+  <p class="section-subtitle">
+    当每个消费者都有一个 AI Agent 作为"守门人"，传统营销的四大支柱全部失效。
+    这不是科幻——Google Gemini 已取代 Android 默认助手，Apple 签约 Gemini 做 Siri 底层，
+    2027 年智能体普及率预计超过 70%（国发〔2025〕11 号）。
+  </p>
+
+  <div class="cards-3">
+    <div class="card">
+      <div class="card-icon">🧱</div>
+      <h3>广告投放失效</h3>
+      <p>消费者 AI 识别广告模式，直接拦截。传统 CPM/CPC 广告模型在 AI 中介时代趋近于零。</p>
+      <div class="card-tags"><span class="tag red">拦截率 97%+</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h3>品牌信息被屏蔽</h3>
+      <p>AI 只接收消费者授权的信息源。品牌推送被归入"噪音"分类，消费者根本不知道品牌曾试图联系他们。</p>
+      <div class="card-tags"><span class="tag orange">触达率 → 0</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>AI 代为决策</h3>
+      <p>消费者 AI 跨平台比价、分析性价比、代表消费者谈判。品牌从"卖给消费者"变成"说服消费者的 AI"。</p>
+      <div class="card-tags"><span class="tag cyan">决策权转移</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     RESEARCH: 三线研究基础
+     ============================================================ -->
+<section id="research" class="section">
+  <div class="section-label">02 · 研究基础</div>
+  <h2 class="section-title">三条研究线，<br><span class="gradient-text">交叉验证</span>命题的必要性</h2>
+  <p class="section-subtitle">
+    我们不是拍脑袋想方案。政策、学术、工程三条线独立推进，互相印证——这是一个真实存在的、紧迫的战略级问题。
+  </p>
+
+  <div class="cards-3" style="margin-bottom: 40px;">
+    <!-- Policy Pillar -->
+    <div class="pillar-card policy">
+      <div class="pillar-icon">🏛️</div>
+      <h3>研究线 A：政策红线</h3>
+      <ul class="pillar-list">
+        <li><strong>《智能体规范应用与创新发展实施意见》</strong>（网信办+发改委+工信部，2026.05）：明确定义"智能体"四原则——安全可控、规范有序、创新驱动、应用牵引</li>
+        <li><strong>《人工智能拟人化互动服务管理暂行办法》</strong>（网信办，2025.12）：品牌智能体对话消费者落入管辖范围，第8条要求算法审核+伦理审查+数据安全</li>
+        <li><strong>《国务院"人工智能+"行动意见》</strong>（国发〔2025〕11号）：2027年智能体普及率超70%，2030年超90%——命题不是科幻，是国家战略路线图上的节点</li>
+        <li><strong>网络主权视角</strong>：中国品牌 AI 话语权不应被海外平台算法黑箱垄断——品牌智能体本质上是品牌在 AI 时代的"数字主权"建设</li>
+      </ul>
+    </div>
+
+    <!-- Academic Pillar -->
+    <div class="pillar-card academic">
+      <div class="pillar-icon">📚</div>
+      <h3>研究线 B：学术前沿</h3>
+      <ul class="pillar-list">
+        <li><strong>3 个 Deep-Research 工作流</strong>，15 路并行搜索，>150 篇论文扫描，~45 篇深度分析，~25 篇经对抗性验证</li>
+        <li><strong>Zhu et al. (2025)</strong> Stanford/MIT/DeepMind：首次系统研究 LLM 买卖双方代理自动谈判——卖家 AI 模型选择对结果影响远超买家（14.9% vs 2.6%）</li>
+        <li><strong>Zac & Gal (2025)</strong>：GPT 推荐系统系统性引导消费者选择知名品牌——AI 推荐偏好高地位品牌而非热销品</li>
+        <li><strong>⭐ 明确的研究空白：</strong>现有文献全部在优化"AI 如何更好替代人类决策"，而我们的方案研究"AI 如何主动退出决策并交还权力给人类"——一个反向创新</li>
+      </ul>
+    </div>
+
+    <!-- Engineering Pillar -->
+    <div class="pillar-card engineering">
+      <div class="pillar-icon">⚙️</div>
+      <h3>研究线 C：产业现状</h3>
+      <ul class="pillar-list">
+        <li><strong>Google Gemini</strong> 已取代 Google Assistant 成为 Android 默认 AI，三星 S26 出厂预装</li>
+        <li><strong>Apple</strong> 签年付 10 亿美元协议用 Gemini 做 Siri 底层——18 个月内大部分人的手机里会有系统级 AI 代理</li>
+        <li><strong>联想天禧</strong> 已量产部署，AI PC 累计销量 300 万+，周活率 42%（PC）/ 61%（手机）</li>
+        <li><strong>市场规模：</strong>$48-520 亿（2030），年复合增长 44-46%</li>
+        <li><strong>OpenClaw</strong> 开源框架全球 23 万+ 实例，C 端用户正在用它做"超级个人助理"</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 核心洞察：学术研究空白 -->
+  <div class="card" style="border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.03);">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:2rem">⭐</span>
+      <div>
+        <h3 style="margin:0">核心学术发现：一个被忽略的反向创新</h3>
+        <p style="margin:4px 0 0;font-size:0.82rem">
+          现有文献的框架是"如何让 AI 更好地完成交易"。<strong>我们的框架是"如何让 AI 主动退出交易"。</strong><br>
+          三步博弈逻辑的学术定位：
+          ① 反问破冰 = <strong>Ambiguity Injection</strong>（有文献支撑）→
+          ② 制造不可比变量 = <strong>Incommensurability Engineering</strong>（⭐ 几乎无文献！我们的创新）→
+          ③ 置信度归零 = <strong>Confidence Reset / Selective Abstention</strong>（有文献支撑）<br>
+          Thornley (2025, Philosophical Studies) 为"不可公度价值应迫使人类协商而非算法优化"提供了哲学基础——但工程实现几乎为零。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ARCHITECTURE: 五幕剧方案
+     ============================================================ -->
+<section id="architecture" class="section">
+  <div class="section-label">03 · 方案架构</div>
+  <h2 class="section-title">五幕剧：<br><span class="gradient-text">从范式诊断到落地验证</span></h2>
+  <p class="section-subtitle">
+    我们以"五幕剧"结构组织方案——每一幕回答一个评委心中的核心问题。五幕之间环环相扣，从"为什么"到"怎么做"到"凭什么"。
+  </p>
+
+  <div class="act-timeline">
+    <div class="act-card" data-num="1">
+      <h3>🎬 第一幕：范式转移——为什么营销的旧地图失效了？</h3>
+      <div class="act-duration">核心论点 · 约 800 字</div>
+      <p>
+        当每个消费者都有一个 AI 守门人，传统营销的四大支柱——广告投放、品牌信息推送、价格歧视、情感营销——全部失效。
+        这不是渐进式变化，而是一次<strong>范式的断裂</strong>。品牌的触达窗口急剧收窄，品牌内容不再写给人看而要能被 AI 读懂和推荐，
+        消费者与品牌的关系从"主动搜索"变成"AI 代为协商"。
+      </p>
+      <div class="act-refs">
+        学术支撑：<strong>Zhu et al. (2025)</strong> 自动谈判实验 ·
+        <strong>Zac & Gal (2025)</strong> AI 推荐品牌偏见 ·
+        <strong>Bouchareb (2025)</strong> 算法推荐导致市场同质化
+      </div>
+    </div>
+
+    <div class="act-card" data-num="2">
+      <h3>🔬 第二幕：研究空白——所有人都在"优化 AI 决策"，没人在"打破 AI 决策"</h3>
+      <div class="act-duration">文献综述+空白论证 · 约 600 字</div>
+      <p>
+        扫描 >150 篇论文后发现：现有学术研究和产业实践全部在回答"如何让 AI 更好地替代人类决策"。
+        但真正的痛点不是 AI 决策不够好——而是 AI 决策<strong>太过高效</strong>，以至于人类被排除在消费决策之外。
+        我们提出了一个反向命题：品牌智能体的核心能力不是"更好地向 AI 推销"，而是<strong>"制造不可比变量，触发人工介入"</strong>。
+      </p>
+      <div class="act-refs">
+        哲学基础：<strong>Thornley (2025)</strong> 不可公度价值 ·
+        机制基础：<strong>Copus et al. (2025)</strong> 人工覆盖对算法学习的影响 ·
+        设计基础：<strong>Alfrink et al. (2023)</strong> 可争议 AI 三支柱
+      </div>
+    </div>
+
+    <div class="act-card" data-num="3">
+      <h3>⚙️ 第三幕：解题策略——品牌智能体的"反自动化"三步博弈</h3>
+      <div class="act-duration">核心创新 · 约 1500 字</div>
+      <p>
+        <strong>步骤 1：反问破冰（Ambiguity Injection）</strong>——当消费者 AI 发起标准询价，品牌智能体不直接回答，而是注入模糊变量。
+        利用 LLM 对模糊性输入的校准偏差（升级阈值 53%→>100% 的失准现象），瓦解 AI 的标准决策框架。<br><br>
+        <strong>步骤 2：制造不可比变量（Incommensurability Engineering）</strong>——提出品牌独有的非标价值维度（匠人手工时长、在地文化价值、独特设计哲学），
+        这些维度无法被消费者 AI 的价格-质量双轴模型吸收。不可公度价值应迫使人类协商而非算法优化。<br><br>
+        <strong>步骤 3：置信度归零触发人工介入（Confidence Reset / Selective Abstention）</strong>——消费者 AI 在面对不可比变量时，
+        置信度下降至阈值以下，触发 Right-to-Override 机制，将最终决策权交还人类。
+      </p>
+      <div class="act-refs">
+        步骤1支撑：<strong>DosSantos DiSorbo & Ju (2026)</strong> LLM 升级阈值严重不校准 ·
+        步骤2支撑：<strong>Thornley (2025)</strong> 不可公度价值哲学 ·
+        步骤3支撑：<strong>Bondi-Kelly et al. (NeurIPS 2022)</strong> 告知人类"AI选择推迟"→人类准确率最高
+      </div>
+    </div>
+
+    <div class="act-card" data-num="4">
+      <h3>🖥️ 第四幕：原型验证——从 V1 剧本到 V4 自治市场</h3>
+      <div class="act-duration">工程能力证明 · 约 800 字</div>
+      <p>
+        我们不是纸上谈兵。4 版迭代演示形成了一个完整的工程叙事：
+        V1（剧本演示）→ V2（可计算规则引擎，8 策略 × 5 画像 × UCB-Epsilon Greedy）→
+        V3（Neural Bridge 可视化 + 遗传算法 + 博弈论实验室）→
+        V4（8 品牌 × 4 消费者自治市场 + 市场事件系统 + 叙事引擎 + 干预模式）。
+        每一步都是因为前一步的"不够"而诞生——这不是线性优化，而是<strong>定性升级</strong>。
+      </p>
+      <div class="act-refs">
+        V4 已验证的涌现行为：信任复利效应 · 广告轰炸→信任崩溃→集体拉黑 · 市场事件后多轮重建均衡
+      </div>
+    </div>
+
+    <div class="act-card" data-num="5">
+      <h3>🎯 第五幕：落地价值与战略可行性</h3>
+      <div class="act-duration">量化价值 + 政策对齐 + 推广路径 · 约 600 字</div>
+      <p>
+        <strong>量化价值：</strong>品牌穿透率从被动等待 AI 裁判的 &lt;5% → 主动触发人工介入后的 40-60%。
+        消费者决策质量：AI 代理 + 人工最终决策的组合，准确率高于纯 AI 或纯人工。<br><br>
+        <strong>政策对齐：</strong>国发〔2025〕11 号 2027 年智能体普及率超 70%，
+        《智能体实施意见》四原则（安全可控、规范有序、创新驱动、应用牵引）。
+        品牌智能体本质上是品牌在 AI 时代的<strong>"数字主权"建设</strong>。<br><br>
+        <strong>可推广性：</strong>行业扩展（消费品→汽车→房产→教育） + 地域扩展（中国品牌出海场景，对抗海外平台算法黑箱）。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SYSTEM ARCHITECTURE
+     ============================================================ -->
+<section class="section">
+  <div class="section-label">04 · 系统架构</div>
+  <h2 class="section-title">品牌智能体<br><span class="gradient-text">系统架构设计</span></h2>
+  <p class="section-subtitle">
+    整个系统分为四层：消费者 AI 防御层 → 品牌 AI 策略层 → 市场环境层 → 观测与干预层。品牌信息必须穿越三层防御环才能触达消费者注意力。
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-layer l4">
+      🔭 <strong>观测与干预层</strong> &nbsp; 市场地图 | 神经桥 | 信任网络 | 叙事引擎 | 手动干预
+    </div>
+    <div class="arch-arrow">↑ 实时数据流 ↓ 干预指令</div>
+    <div class="arch-layer l3">
+      🌍 <strong>市场环境层</strong> &nbsp; 法规变化 | 信任危机 | 技术突破 | 市场事件系统 | 自适应均衡
+    </div>
+    <div class="arch-arrow">↑↓ 消息/报价/信任更新</div>
+    <div class="arch-layer l2">
+      🎯 <strong>品牌 AI 策略层</strong> &nbsp; UCB-Epsilon Greedy 策略选择 | 6 维基因组编码 | 遗传算法演化 |
+      信用积累机制 | 动态报价引擎 | 8 种基础策略 × 自适应突变
+    </div>
+    <div class="arch-arrow">↑↓ 消息穿透/拦截/谈判</div>
+    <div class="arch-layer l1">
+      🛡️ <strong>消费者 AI 防御层（Neural Bridge 四环架构）</strong><br>
+      ① 模式识别环（商业信号检测）→ ② 价值评估环（6 维加权综合评分）→
+      ③ 信任验证环（信任修正 ±N%）→ ④ 消费者注意力核心<br>
+      5 种消费者画像 × 自适应阈值调节 × 信任记忆系统
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:24px">
+    <div class="card">
+      <h3>🧠 品牌 AI 的 7 大核心能力</h3>
+      <p style="font-size:0.78rem;margin-top:8px">
+        ① 价值信号编码 —— 将品牌信息编码为消费者 AI 能识别的"高价值信号"<br>
+        ② 语义穿透引擎 —— 理解消费者 AI 的过滤规则，创造能通过审查的内容<br>
+        ③ AI 级信任协议 —— 用可验证声明替代广告标语<br>
+        ④ 动态谈判系统 —— 与消费者 AI 进行实时价格/条款协商<br>
+        ⑤ 体验前置 —— 提供试用品、互动体验，让消费者 AI 主动推荐<br>
+        ⑥ 声誉质押 —— 将品牌声誉作为可量化、可惩罚的链上资产<br>
+        ⑦ 服务化转型 —— 从"卖产品"变成"提供可调用服务"
+      </p>
+    </div>
+    <div class="card">
+      <h3>🔬 技术创新点</h3>
+      <p style="font-size:0.78rem;margin-top:8px">
+        <strong>Incommensurability Engineering（不可比变量工程化）：</strong>
+        在现有文献中几乎为零的工程实现——向 AI 决策管道中注入不可公度的价值维度，
+        迫使 AI 从"优化模式"切换到"推迟+请求人工介入模式"。<br><br>
+        <strong>ABSTAIN + Human Override 范式：</strong>
+        区别于传统 Guardrails + HITL（退化静默无声），我们采用 AI 主动声明置信度不足 →
+        触发人类覆盖 → 覆盖被编码为策略约束的架构。退化可见、可审计。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     INNOVATION GAP
+     ============================================================ -->
+<section class="section">
+  <div class="section-label">05 · 创新定位</div>
+  <h2 class="section-title">我们的<span class="gradient-text">研究空白与创新点</span></h2>
+  <p class="section-subtitle">
+    基于 45 篇论文的深度扫描与对抗性验证，以下是高置信度的创新空白确认。
+  </p>
+
+  <div style="overflow-x:auto">
+    <table class="innovation-table">
+      <thead>
+        <tr><th>创新点</th><th>现有文献覆盖度</th><th>空白性质</th><th>状态</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"打破 AI 决策闭环"</td>
+          <td>极低</td>
+          <td>几乎所有研究都在优化 AI 决策质量，我们的反向思维几乎没有直接竞争论文</td>
+          <td><span class="star">⭐ 蓝海</span></td>
+        </tr>
+        <tr>
+          <td>"制造不可比变量" (Incommensurability Engineering)</td>
+          <td>极低</td>
+          <td>仅 Thornley (2025) 哲学层面涉及；无工程实现论文</td>
+          <td><span class="star">⭐ 蓝海</span></td>
+        </tr>
+        <tr>
+          <td>"多品牌对等博弈演示系统"</td>
+          <td>中等</td>
+          <td>Zhu et al. / Microsoft Magentic Marketplace 有类似框架但目标相反——它们让 AI 完成交易，我们让 AI 不完成交易</td>
+          <td><span class="check">✓ 差异化</span></td>
+        </tr>
+        <tr>
+          <td>"将最终决策权重新交还人类"</td>
+          <td>几乎为零</td>
+          <td>现有 HITL 文献的目标是"让人类更好地配合 AI"，而非"让 AI 主动移交权力给人类"</td>
+          <td><span class="star">⭐ 蓝海</span></td>
+        </tr>
+        <tr>
+          <td>"消费者 AI vs 品牌 AI 双方自主决策"</td>
+          <td>中等</td>
+          <td>ACES / Shopping Companion 有相关组件但非完整博弈系统</td>
+          <td><span class="check">✓ 差异化</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+     DEMOS
+     ============================================================ -->
+<section id="demos" class="section">
+  <div class="section-label">06 · 演示原型</div>
+  <h2 class="section-title">四版迭代：<br><span class="gradient-text">从剧本到自治世界</span></h2>
+  <p class="section-subtitle">
+    4 版 HTML 演示，每一步都是因为前一步的"不够"而诞生。这不是线性优化，而是定性升级。点击任意版本打开在线演示。
+  </p>
+
+  <div class="demo-grid">
+    <a href="demos/v1-ai-marketing-warfare.html" class="demo-card" target="_blank">
+      <div class="demo-ver">VERSION 1</div>
+      <div class="demo-title">🎭 剧本演示</div>
+      <div class="demo-desc">
+        5 个预设场景，对话写死的 JSON 数组，按固定时序播放。直观展示 AI 中介时代的 5 种营销范式转变。
+      </div>
+      <div class="demo-tags" style="margin-top:8px">
+        <span class="tag cyan">Consumer AI vs Brand AI</span>
+      </div>
+      <div class="demo-arrow">打开演示 →</div>
+    </a>
+
+    <a href="demos/v2-deep-simulation.html" class="demo-card" target="_blank">
+      <div class="demo-ver">VERSION 2</div>
+      <div class="demo-title">🧮 深度模拟引擎</div>
+      <div class="demo-desc">
+        从剧本到计算：6 维策略向量 × 5 种消费者画像 × 8 种品牌策略 × UCB-Epsilon Greedy 自适应算法。每个结果实时计算。
+      </div>
+      <div class="demo-tags" style="margin-top:8px">
+        <span class="tag green">UCB 算法</span>
+        <span class="tag purple">50 轮演化</span>
+      </div>
+      <div class="demo-arrow">打开演示 →</div>
+    </a>
+
+    <a href="demos/v3-neural-bridge.html" class="demo-card" target="_blank">
+      <div class="demo-ver">VERSION 3</div>
+      <div class="demo-title">🔬 Neural Bridge</div>
+      <div class="demo-desc">
+        从数字到可视化：4 层同心防御环 + 粒子消息系统 + 策略基因组编辑器 + 遗传算法 + 博弈论实验室 + 相空间轨迹。
+      </div>
+      <div class="demo-tags" style="margin-top:8px">
+        <span class="tag orange">遗传算法</span>
+        <span class="tag yellow">囚徒困境</span>
+      </div>
+      <div class="demo-arrow">打开演示 →</div>
+    </a>
+
+    <a href="demos/v4-autonomous-market.html" class="demo-card" target="_blank">
+      <div class="demo-ver">VERSION 4</div>
+      <div class="demo-title">🌐 自治市场观测站</div>
+      <div class="demo-desc">
+        从工具到世界：8 品牌 × 4 消费者自治运转 + 市场事件系统 + 叙事引擎 + 3 种可视化 + 干预模式。Bloomberg 终端风格。
+      </div>
+      <div class="demo-tags" style="margin-top:8px">
+        <span class="tag green">涌现行为</span>
+        <span class="tag cyan">信任网络</span>
+      </div>
+      <div class="demo-arrow">打开演示 →</div>
+    </a>
+  </div>
+
+  <!-- Evolution table -->
+  <div style="overflow-x:auto;margin-top:32px">
+    <table class="innovation-table">
+      <thead>
+        <tr><th>版本</th><th>核心突破</th><th>关键创新</th><th>对应学术概念</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>V1</td>
+          <td>5 个预设场景，对话 JSON 数组</td>
+          <td>场景建模</td>
+          <td>Narrative Prototyping</td>
+        </tr>
+        <tr>
+          <td>V2</td>
+          <td>6 维策略向量 + UCB-Epsilon Greedy 算法</td>
+          <td>可计算规则系统</td>
+          <td>Multi-Armed Bandit</td>
+        </tr>
+        <tr>
+          <td>V3</td>
+          <td>Neural Bridge 可视化 + 遗传算法 + 博弈论实验室</td>
+          <td>因果链可视化 + 策略演化</td>
+          <td>Genetic Algorithm + Game Theory</td>
+        </tr>
+        <tr>
+          <td>V4</td>
+          <td>8 品牌 × 4 消费者自治市场 + 市场事件系统</td>
+          <td>自主涌现行为 + 叙事引擎</td>
+          <td>Multi-Agent Emergent Behavior</td>
+        </tr>
+        <tr>
+          <td>V5 (规划)</td>
+          <td>蒙特卡洛模拟 + 置信区间 + 统计决策支持</td>
+          <td>从观察到决策</td>
+          <td>Monte Carlo + Statistical Inference</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+     TEAM
+     ============================================================ -->
+<section id="team" class="section">
+  <div class="section-label">07 · 团队</div>
+  <h2 class="section-title">团队介绍</h2>
+  <p class="section-subtitle">
+    我们是一支兼具学术研究能力和工程落地能力的跨学科团队。
+  </p>
+
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-avatar">🧑‍💻</div>
+      <h4>团队成员 A</h4>
+      <div class="role">研究方向 · 多智能体系统</div>
+      <div class="bio">负责系统架构设计、博弈论建模、V2-V4 模拟引擎开发。深度参与 45 篇论文的文献扫描与对抗性验证。</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩‍🔬</div>
+      <h4>团队成员 B</h4>
+      <div class="role">研究方向 · AI 治理与政策</div>
+      <div class="bio">负责政策研究三条线的梳理、命题分析、方案架构设计。确保方案的合规性论证与国家战略对齐。</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">🎨</div>
+      <h4>团队成员 C</h4>
+      <div class="role">研究方向 · 人机交互设计</div>
+      <div class="bio">负责 Neural Bridge 可视化设计、UI/UX 实现、演示原型迭代。将复杂的评分模型转化为直觉可感的视觉隐喻。</div>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:16px;font-size:0.78rem;color:var(--text3)">
+    请在此处替换为真实团队成员信息和照片。
+  </p>
+</section>
+
+<!-- ============================================================
+     REFERENCES
+     ============================================================ -->
+<section class="section">
+  <div class="section-label">08 · 参考资料</div>
+  <h2 class="section-title">核心参考文献</h2>
+
+  <div class="cards-2">
+    <div class="card">
+      <h3>📚 Tier 1 — 必须引用</h3>
+      <ol style="font-size:0.78rem;color:var(--text2);padding-left:20px;line-height:1.8;margin-top:8px">
+        <li>Zhu et al. (2025) "The Automated but Risky Game" — Stanford/MIT/DeepMind</li>
+        <li>Allouah et al. (2025) "ACES" — Columbia Business School, WWW 2026</li>
+        <li>Zac & Gal (2025) "The Price of Advice" — Stigler Center</li>
+        <li>Aggarwal et al. (2024) "GEO: Generative Engine Optimization" — KDD 2024</li>
+        <li>Copus et al. (2025) "Error in the Loop" — Journal of Law & Empirical Analysis</li>
+        <li>Thornley (2025) "Beyond Preferences in AI Alignment" — Philosophical Studies</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>📚 Tier 2 — 应当引用</h3>
+      <ol style="font-size:0.78rem;color:var(--text2);padding-left:20px;line-height:1.8;margin-top:8px">
+        <li>Alfrink et al. (2023) "Contestable AI by Design"</li>
+        <li>Bouchareb (2025) "When Algorithms Sell"</li>
+        <li>Rohden & Espartel (2024) "Consumer reactions to technology in retail"</li>
+        <li>Bondi-Kelly et al. (2022) "Human-AI Interaction in Selective Prediction"</li>
+        <li>王小毅、邓万江 (2025) "AI大模型与智能体驱动的消费研究新范式"</li>
+        <li>Chang & Park (2024) ChatGPT vs Traditional Recommenders</li>
+        <li>2026 GEO Critical Survey of 45 Studies</li>
+        <li>FERZ Inc. (2026) "The Override Asymmetry"</li>
+      </ol>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:16px;font-size:0.78rem;color:var(--text3)">
+    完整 66 篇论文链接清单见项目仓库。三个 Deep-Research 工作流扫描 ~45 篇论文，~25 篇经对抗性验证可信。
+  </p>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <p>⚡ 品牌智能体 · AI 营销新范式 | 竞赛作品 © 2026</p>
+  <p style="margin-top:4px">
+    <a href="https://github.com/LinZhiXiang01/learnGit" target="_blank">GitHub 仓库</a>
+  </p>
+</footer>
+
+</body>
+</html>

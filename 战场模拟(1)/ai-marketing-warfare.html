@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销战场 — 消费者 AI vs 品牌方 AI 模拟</title>
+<style>
+  /* ============================================================
+     CSS VARIABLES & RESET
+     ============================================================ */
+  :root {
+    --bg-deep: #0a0e17;
+    --bg-panel: #111827;
+    --bg-card: #1a1f2e;
+    --border: #1e293b;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Consumer AI — protective cyan/blue */
+    --consumer: #00d4ff;
+    --consumer-glow: rgba(0, 212, 255, 0.3);
+    --consumer-bg: rgba(0, 212, 255, 0.06);
+    --consumer-border: rgba(0, 212, 255, 0.25);
+
+    /* Brand AI — aggressive orange/amber */
+    --brand: #ff6b35;
+    --brand-glow: rgba(255, 107, 53, 0.3);
+    --brand-bg: rgba(255, 107, 53, 0.06);
+    --brand-border: rgba(255, 107, 53, 0.25);
+
+    /* Status */
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #8b5cf6;
+
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     BACKGROUND PARTICLES
+     ============================================================ */
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.2; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 12px 0 4px;
+  }
+  header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--consumer), #60a5fa, var(--brand), #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+  header .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Main 3-column grid */
+  .arena {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 16px;
+    flex: 1;
+    min-height: 520px;
+  }
+
+  /* ============================================================
+     PANEL STYLES
+     ============================================================ */
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .panel-title {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .panel-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Consumer panel */
+  .panel.consumer { border-color: var(--consumer-border); }
+  .panel.consumer .panel-icon {
+    background: var(--consumer-bg);
+    border: 1px solid var(--consumer-border);
+    color: var(--consumer);
+  }
+  .panel.consumer .panel-title { color: var(--consumer); }
+
+  /* Brand panel */
+  .panel.brand { border-color: var(--brand-border); }
+  .panel.brand .panel-icon {
+    background: var(--brand-bg);
+    border: 1px solid var(--brand-border);
+    color: var(--brand);
+  }
+  .panel.brand .panel-title { color: var(--brand); }
+
+  /* Status indicators */
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .status-dot.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-dot.idle { background: var(--text-muted); }
+  .status-dot.warning { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+
+  .capability-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin: 2px;
+  }
+  .capability-tag.consumer-tag {
+    background: var(--consumer-bg);
+    color: var(--consumer);
+    border: 1px solid var(--consumer-border);
+  }
+  .capability-tag.brand-tag {
+    background: var(--brand-bg);
+    color: var(--brand);
+    border: 1px solid var(--brand-border);
+  }
+
+  /* Meters */
+  .meter-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+  }
+  .meter {
+    height: 6px;
+    background: var(--bg-card);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+  .meter-fill.consumer-fill { background: linear-gradient(90deg, var(--consumer), #60a5fa); }
+  .meter-fill.brand-fill { background: linear-gradient(90deg, var(--brand), #fbbf24); }
+  .meter-fill.trust-fill { background: linear-gradient(90deg, var(--success), #34d399); }
+
+  /* ============================================================
+     CENTER: BATTLE ARENA
+     ============================================================ */
+  .battle-arena {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Battle header */
+  .battle-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .battle-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .battle-status {
+    font-size: 0.75rem;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .battle-status.idle { background: var(--bg-card); color: var(--text-muted); }
+  .battle-status.running { background: rgba(139, 92, 246, 0.2); color: var(--info); animation: pulse 1.5s infinite; }
+  .battle-status.victory-brand { background: rgba(255, 107, 53, 0.2); color: var(--brand); }
+  .battle-status.victory-consumer { background: rgba(0, 212, 255, 0.2); color: var(--consumer); }
+  .battle-status.draw { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Message stream */
+  .message-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(0,212,255,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 50%, rgba(255,107,53,0.03) 0%, transparent 50%),
+      var(--bg-deep);
+  }
+
+  .msg {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    animation: msgIn 0.35s ease;
+    position: relative;
+    line-height: 1.5;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.from-consumer {
+    align-self: flex-start;
+    background: var(--consumer-bg);
+    border: 1px solid var(--consumer-border);
+    border-bottom-left-radius: 4px;
+    color: #bae6fd;
+  }
+  .msg.from-brand {
+    align-self: flex-end;
+    background: var(--brand-bg);
+    border: 1px solid var(--brand-border);
+    border-bottom-right-radius: 4px;
+    color: #fed7aa;
+  }
+  .msg.from-system {
+    align-self: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    max-width: 90%;
+    text-align: center;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+  }
+  .msg.from-result {
+    align-self: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 12px 20px;
+    border-radius: 8px;
+    animation: msgIn 0.5s ease, glowPulse 2s infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(139, 92, 246, 0.3); }
+    50% { box-shadow: 0 0 24px rgba(139, 92, 246, 0.6); }
+  }
+
+  .msg-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.03em;
+  }
+  .msg-tag.consumer-tag { background: rgba(0,212,255,0.2); color: var(--consumer); }
+  .msg-tag.brand-tag { background: rgba(255,107,53,0.2); color: var(--brand); }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+    align-self: flex-start;
+  }
+  .typing-indicator span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: bounce 1.2s infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+  }
+
+  /* ============================================================
+     BATTLE VISUALIZATION BAR
+     ============================================================ */
+  .tug-bar-wrap {
+    padding: 8px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .tug-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .tug-bar {
+    height: 8px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tug-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--consumer) 0%, var(--info) 50%, var(--brand) 100%);
+  }
+  .tug-indicator {
+    position: absolute;
+    top: -4px;
+    width: 4px;
+    height: 16px;
+    background: #fff;
+    border-radius: 2px;
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
+
+  /* ============================================================
+     BOTTOM: SCENARIO CONTROLS
+     ============================================================ */
+  .scenarios {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .scenario-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+  .scenario-btn:hover {
+    border-color: var(--info);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+  }
+  .scenario-btn.active {
+    border-color: var(--info);
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+  }
+  .scenario-btn .sc-num {
+    font-size: 0.65rem;
+    color: var(--info);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .scenario-btn .sc-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin: 2px 0;
+  }
+  .scenario-btn .sc-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .scenario-btn .sc-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .badge-blocked { background: rgba(239,68,68,0.2); color: var(--danger); }
+  .badge-passed { background: rgba(16,185,129,0.2); color: var(--success); }
+  .badge-negotiated { background: rgba(245,158,11,0.2); color: var(--warning); }
+
+  /* Bottom insights bar */
+  .insights-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .insight-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .insight-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+  }
+  .insight-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ============================================================
+     MODAL OVERLAY
+     ============================================================ */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-content {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .overlay-content h3 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    color: var(--info);
+  }
+  .overlay-content p {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .overlay-close {
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: var(--info);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 700;
+    font-family: inherit;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1100px) {
+    .arena {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
+    .panel { max-height: 240px; }
+    .insights-bar { grid-template-columns: repeat(2, 1fr); }
+    header h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background particle canvas -->
+<div id="particles"></div>
+
+<!-- Main App -->
+<div id="app">
+
+  <!-- Header -->
+  <header>
+    <h1>⚔️ AI 营销战场：消费者 AI vs 品牌方 AI</h1>
+    <p class="subtitle">模拟 2030 年 — 每个消费者都有一个 AI 守门人，品牌如何穿透防线？</p>
+  </header>
+
+  <!-- 3-Column Arena -->
+  <div class="arena">
+
+    <!-- ===== LEFT: Consumer AI ===== -->
+    <div class="panel consumer" id="consumerPanel">
+      <div class="panel-header">
+        <div class="panel-icon">🛡️</div>
+        <div>
+          <div class="panel-title">消费者 AI Agent</div>
+          <div class="panel-subtitle">ConsumerGuard v3.7</div>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span><span class="status-dot active"></span> 运行中 · 守护模式</span>
+        <span style="color:var(--consumer);font-weight:700;">Lv.4 过滤等级</span>
+      </div>
+
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">🧠 核心能力模块</div>
+        <span class="capability-tag consumer-tag">🛡️ 广告过滤</span>
+        <span class="capability-tag consumer-tag">🔍 智能搜索</span>
+        <span class="capability-tag consumer-tag">⚖️ 跨平台比价</span>
+        <span class="capability-tag consumer-tag">🤖 自动下单</span>
+        <span class="capability-tag consumer-tag">📊 品牌信誉评估</span>
+        <span class="capability-tag consumer-tag">🔐 隐私防火墙</span>
+        <span class="capability-tag consumer-tag">💬 品牌沟通代理</span>
+      </div>
+
+      <div>
+        <div class="meter-label"><span>🛡️ 广告拦截率</span><span id="blockRate">97%</span></div>
+        <div class="meter"><div class="meter-fill consumer-fill" style="width:97%"></div></div>
+      </div>
+      <div>
+        <div class="meter-label"><span>🔍 信息筛选精度</span><span id="filterPrecision">94%</span></div>
+        <div class="meter"><div class="meter-fill consumer-fill" style="width:94%"></div></div>
+      </div>
+      <div>
+        <div class="meter-label"><span>🤝 对品牌信任度</span><span id="trustLevel" style="color:var(--warning)">23%</span></div>
+        <div class="meter"><div class="meter-fill trust-fill" style="width:23%"></div></div>
+      </div>
+
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:auto;padding-top:8px;border-top:1px solid var(--border);">
+        📋 <strong>当前策略</strong>：最大化消费者利益，屏蔽所有未授权商业信息，仅接受白名单品牌接触。
+      </div>
+    </div>
+
+    <!-- ===== CENTER: Battle Arena ===== -->
+    <div class="battle-arena" id="battleArena">
+      <div class="battle-header">
+        <div class="battle-title">
+          <span>⚡</span> 交互战场 <span style="font-size:0.7rem;color:var(--text-muted);">— AI-to-AI Communication</span>
+        </div>
+        <span class="battle-status idle" id="battleStatus">⏸ 等待场景</span>
+      </div>
+
+      <div class="message-stream" id="messageStream">
+        <div class="msg from-system">
+          💡 <strong>选择一个场景开始模拟</strong><br>
+          观察品牌方AI如何尝试穿透消费者AI的防线
+        </div>
+        <div class="msg from-system">
+          🎯 下方 5 个场景展示了 AI 时代品牌营销的 5 种范式转变
+        </div>
+      </div>
+
+      <div class="tug-bar-wrap">
+        <div class="tug-bar-label">
+          <span style="color:var(--consumer);">🛡️ 消费者AI优势</span>
+          <span style="color:var(--brand);">品牌AI优势 🎯</span>
+        </div>
+        <div class="tug-bar">
+          <div class="tug-fill" id="tugFill" style="width:60%"></div>
+          <div class="tug-indicator" id="tugIndicator" style="left:60%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RIGHT: Brand AI ===== -->
+    <div class="panel brand" id="brandPanel">
+      <div class="panel-header">
+        <div class="panel-icon">🎯</div>
+        <div>
+          <div class="panel-title">品牌方 AI Agent</div>
+          <div class="panel-subtitle">BrandEngage AI v2.4</div>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span><span class="status-dot active"></span> 运行中 · 穿透模式</span>
+        <span style="color:var(--brand);font-weight:700;">策略: 自适应</span>
+      </div>
+
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">🎯 核心能力模块</div>
+        <span class="capability-tag brand-tag">🎨 价值信号编码</span>
+        <span class="capability-tag brand-tag">🔓 语义穿透引擎</span>
+        <span class="capability-tag brand-tag">🤝 AI级信任协议</span>
+        <span class="capability-tag brand-tag">💰 动态谈判系统</span>
+        <span class="capability-tag brand-tag">🎁 体验前置投放</span>
+        <span class="capability-tag brand-tag">🔗 声誉质押</span>
+        <span class="capability-tag brand-tag">🔌 品牌即服务API</span>
+      </div>
+
+      <div>
+        <div class="meter-label"><span>🎯 信息穿透率</span><span id="penetrationRate">18%</span></div>
+        <div class="meter"><div class="meter-fill brand-fill" style="width:18%"></div></div>
+      </div>
+      <div>
+        <div class="meter-label"><span>🤝 信任建立进度</span><span id="trustProgress">31%</span></div>
+        <div class="meter"><div class="meter-fill brand-fill" style="width:31%"></div></div>
+      </div>
+      <div>
+        <div class="meter-label"><span>📈 消费者参与度</span><span id="engagement">15%</span></div>
+        <div class="meter"><div class="meter-fill brand-fill" style="width:15%"></div></div>
+      </div>
+
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:auto;padding-top:8px;border-top:1px solid var(--border);">
+        🧠 <strong>当前策略</strong>：从「推送广告」转型「提供价值」— 用 AI 可验证的信号替代口号式宣传。
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Buttons -->
+  <div class="scenarios" id="scenarioButtons">
+    <button class="scenario-btn" data-scenario="1" onclick="runScenario(1)">
+      <div class="sc-num">SCENARIO 01</div>
+      <div class="sc-title">🧱 广告防火墙</div>
+      <div class="sc-hint">传统广告 vs AI过滤器</div>
+      <span class="sc-badge badge-blocked">BLOCKED</span>
+    </button>
+    <button class="scenario-btn" data-scenario="2" onclick="runScenario(2)">
+      <div class="sc-num">SCENARIO 02</div>
+      <div class="sc-title">🌉 价值桥梁</div>
+      <div class="sc-hint">有用内容穿透防线</div>
+      <span class="sc-badge badge-passed">PASSED</span>
+    </button>
+    <button class="scenario-btn" data-scenario="3" onclick="runScenario(3)">
+      <div class="sc-num">SCENARIO 03</div>
+      <div class="sc-title">🤖 AI谈判</div>
+      <div class="sc-hint">Agent-to-Agent议价</div>
+      <span class="sc-badge badge-negotiated">DEAL</span>
+    </button>
+    <button class="scenario-btn" data-scenario="4" onclick="runScenario(4)">
+      <div class="sc-num">SCENARIO 04</div>
+      <div class="sc-title">🔐 信任协议</div>
+      <div class="sc-hint">可验证声誉系统</div>
+      <span class="sc-badge badge-passed">VERIFIED</span>
+    </button>
+    <button class="scenario-btn" data-scenario="5" onclick="runScenario(5)">
+      <div class="sc-num">SCENARIO 05</div>
+      <div class="sc-title">🎮 体验网关</div>
+      <div class="sc-hint">沉浸式互动破局</div>
+      <span class="sc-badge badge-passed">ENGAGED</span>
+    </button>
+  </div>
+
+  <!-- Bottom Insights -->
+  <div class="insights-bar">
+    <div class="insight-card">
+      <div class="insight-value" style="color:var(--danger);" id="metricBlocked">5/5</div>
+      <div class="insight-label">传统广告被拦截</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-value" style="color:var(--success);" id="metricPassed">3/5</div>
+      <div class="insight-label">新策略成功穿透</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-value" style="color:var(--warning);" id="metricTrust">+47%</div>
+      <div class="insight-label">平均信任提升</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-value" style="color:var(--info);" id="metricInsight">价值 > 推送</div>
+      <div class="insight-label">核心洞察</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Strategy Insight Overlay -->
+<div class="overlay" id="insightOverlay" style="display:none;">
+  <div class="overlay-content" id="overlayContent"></div>
+</div>
+
+<script>
+// ============================================================
+// PARTICLE BACKGROUND
+// ============================================================
+(function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#00d4ff', '#ff6b35', '#8b5cf6', '#10b981', '#f59e0b'];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (Math.random() * 18 + 8) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    container.appendChild(p);
+  }
+})();
+
+// ============================================================
+// SCENARIO DATA
+// ============================================================
+const scenarios = {
+  1: {
+    name: '广告防火墙',
+    result: 'consumer',
+    insight: `
+      <h3>🧱 场景洞察：传统广告彻底失效</h3>
+      <p><strong>发生了什么？</strong> 品牌方AI发送了精心设计的广告信息（限时优惠、情感文案、明星代言），消费者AI在 <strong>0.3秒内识别广告模式</strong>并自动拦截。</p>
+      <p><strong>关键数据：</strong> 拦截率 100%，消费者完全不知道这个品牌曾试图联系他们。</p>
+      <p><strong>品牌方教训：</strong></p>
+      <ul style="color:#94a3b8;font-size:0.85rem;padding-left:20px;">
+        <li>任何带有「促销信号」的信息都会被AI过滤器秒杀</li>
+        <li>情感文案和明星代言对AI无效 — AI只看数据结构</li>
+        <li>传统的CPM/CPC广告模型在AI中介时代归零</li>
+      </ul>
+      <p><strong>品牌方需要的转型：</strong>从「信息推送者」变成「价值提供者」。</p>
+    `,
+    messages: [
+      { from: 'brand', delay: 400, tag: 'BRAND AI →', text: '🎯 执行营销活动 #8842：向目标消费者推送"限时5折！年度最大优惠！明星同款！"' },
+      { from: 'consumer', delay: 800, tag: 'CONSUMER AI ←', text: '🔍 检测到输入信息… 分析中…' },
+      { from: 'consumer', delay: 1200, tag: 'CONSUMER AI ←', text: '⚠️ 广告模式匹配：促销词汇+紧迫感制造+情感诱导 = 广告置信度 98.7%' },
+      { from: 'consumer', delay: 1600, tag: 'CONSUMER AI ←', text: '🛡️ 执行过滤策略：拦截。消费者不会看到这条信息。已加入品牌黑名单观察列表。' },
+      { from: 'system', delay: 2200, text: '📊 结果：广告在 0.3 秒内被识别并拦截。品牌触达 = 0。营销预算 = 浪费。' },
+      { from: 'brand', delay: 2800, tag: 'BRAND AI →', text: '😰 检测到拦截… 尝试变体："朋友推荐！超值好物分享～"' },
+      { from: 'consumer', delay: 3200, tag: 'CONSUMER AI ←', text: '🔍 再次分析… 伪装成社交推荐的广告模式 = 广告置信度 91.2%。拦截。品牌信誉 -15%。' },
+      { from: 'result', delay: 3800, text: '🏆 消费者AI完胜 — 传统广告在AI守门人面前毫无机会', type: 'consumer-victory' },
+    ]
+  },
+  2: {
+    name: '价值桥梁',
+    result: 'brand',
+    insight: `
+      <h3>🌉 场景洞察：价值内容是唯一的通行证</h3>
+      <p><strong>发生了什么？</strong> 品牌方AI转变策略，不再发送广告，而是发送了一篇<strong>真正有用的行业分析报告</strong> — 包含可验证的数据、实用的方法论，没有任何促销信息。</p>
+      <p><strong>关键数据：</strong> 消费者AI评估后判定为「高价值内容」，放行通过。消费者阅读后主动询问品牌产品。</p>
+      <p><strong>品牌方成功要素：</strong></p>
+      <ul style="color:#94a3b8;font-size:0.85rem;padding-left:20px;">
+        <li><strong>价值前置：</strong>先给予，再索取 — 信息本身对消费者有用</li>
+        <li><strong>可验证数据：</strong>AI能验证的事实声明，而非主观口号</li>
+        <li><strong>零促销信号：</strong>不含任何折扣、紧迫感、CTA等广告特征</li>
+        <li><strong>建立信任：</strong>消费者AI将品牌从「推销者」分类调整为「知识源」</li>
+      </ul>
+      <p>这验证了一个核心法则：<strong>在AI中介时代，品牌必须成为消费者AI愿意推荐的知识源，而非需要过滤的噪音。</strong></p>
+    `,
+    messages: [
+      { from: 'brand', delay: 400, tag: 'BRAND AI →', text: '🎯 策略转变：启动「价值前置」模式。生成行业白皮书《2026 Q3 智能家居能效分析报告》…' },
+      { from: 'brand', delay: 900, tag: 'BRAND AI →', text: '📄 内容特征：15页数据报告、第三方验证来源、可复现研究方法、无品牌植入、无促销信息。发送。' },
+      { from: 'consumer', delay: 1400, tag: 'CONSUMER AI ←', text: '🔍 扫描输入… 检测到结构化信息，非广告模式。促销信号 = 0。信息密度 = 高。' },
+      { from: 'consumer', delay: 1900, tag: 'CONSUMER AI ←', text: '✅ 评估：高价值内容。来源可验证。与消费者兴趣标签「智能家居」匹配度 94%。放行。' },
+      { from: 'system', delay: 2400, text: '📊 突破！内容成功穿透防火墙。消费者阅读了报告。品牌被标记为「有用信息源」。' },
+      { from: 'consumer', delay: 2900, tag: 'CONSUMER AI ←', text: '📢 通知消费者："有一份关于智能家居能效的深度报告，数据来源可靠，建议阅读。"' },
+      { from: 'brand', delay: 3400, tag: 'BRAND AI →', text: '📈 检测到消费者阅读完成。触发后续：提供该品类的免费选购指南工具（无品牌偏好）。' },
+      { from: 'system', delay: 3900, text: '📊 消费者主动询问："这个品牌有什么产品？" — 兴趣从内容自然延伸到品牌。' },
+      { from: 'result', delay: 4400, text: '🏆 品牌AI找到突破口 — 价值是穿透AI防线的唯一通行证', type: 'brand-victory' },
+    ]
+  },
+  3: {
+    name: 'AI谈判',
+    result: 'draw',
+    insight: `
+      <h3>🤖 场景洞察：AI-to-AI 谈判重新定义交易</h3>
+      <p><strong>发生了什么？</strong> 消费者AI代表消费者发起询价，品牌方AI以「谈判模式」响应。两个AI在 2.7 秒内完成了 11 轮价格协商，最终达成一个双方都接受的交易。</p>
+      <p><strong>关键数据：</strong></p>
+      <ul style="color:#94a3b8;font-size:0.85rem;padding-left:20px;">
+        <li>协商轮次：11 轮</li>
+        <li>最终价格：标价的 73%（消费者AI接受了合理的品牌溢价）</li>
+        <li>附加价值：延长保修 + 优先客服通道（品牌AI的让步筹码）</li>
+        <li>消费者AI接受理由："溢价 8% 换取品牌信誉和售后保障 = 净收益为正"</li>
+      </ul>
+      <p><strong>核心发现：</strong>AI谈判消灭了信息不对称。品牌不能靠「忽悠」赚钱，但可以通过<strong>透明定价 + 可量化附加值</strong>获得合理溢价。两个AI都追求帕累托最优解。</p>
+    `,
+    messages: [
+      { from: 'consumer', delay: 400, tag: 'CONSUMER AI ←', text: '💬 代表消费者发起询价：需求=无线降噪耳机，预算=¥800-1200，偏好=音质>降噪>续航' },
+      { from: 'brand', delay: 900, tag: 'BRAND AI →', text: '📊 收到询价。匹配产品：SoundPro X2。标价¥1299。启动动态报价引擎…' },
+      { from: 'brand', delay: 1400, tag: 'BRAND AI →', text: '💰 初始报价：¥1,099（标价85折）+ 标准保修。附：产品实测数据、盲测评分、返修率。' },
+      { from: 'consumer', delay: 1900, tag: 'CONSUMER AI ←', text: '⚖️ 比价中… SoundPro X2在3个平台均价¥1,150。你的报价有竞争力。但竞品X3报价¥899。' },
+      { from: 'brand', delay: 2400, tag: 'BRAND AI →', text: '🔍 分析竞品X3：音质评分低14%，返修率高8%。我方提供：¥999 + 2年保修 + 优先客服。' },
+      { from: 'consumer', delay: 2900, tag: 'CONSUMER AI ←', text: '📊 重新计算：¥999 + 额外保修价值¥150 + 低返修率价值¥80 = 净价值¥1,229 > 竞品¥899' },
+      { from: 'consumer', delay: 3300, tag: 'CONSUMER AI ←', text: '✅ 接受报价。净收益为正。代表消费者下单。交易完成。' },
+      { from: 'system', delay: 3700, text: '📊 11轮协商在2.7秒内完成。消费者省钱，品牌保持利润率。双方满意。' },
+      { from: 'result', delay: 4100, text: '🤝 双赢 — AI谈判消灭信息差，透明定价赢取合理溢价', type: 'draw' },
+    ]
+  },
+  4: {
+    name: '信任协议',
+    result: 'brand',
+    insight: `
+      <h3>🔐 场景洞察：可验证信任是新的品牌资产</h3>
+      <p><strong>发生了什么？</strong> 品牌方AI主动提交了<strong>可验证的第三方审计报告</strong> — 包括供应链透明度认证、用户满意度独立调查、环保达标证明。消费者AI验证通过后将品牌移入「高信任白名单」。</p>
+      <p><strong>品牌方成功要素：</strong></p>
+      <ul style="color:#94a3b8;font-size:0.85rem;padding-left:20px;">
+        <li><strong>主动透明：</strong>不等消费者AI来审查，主动提供可验证数据</li>
+        <li><strong>第三方背书：</strong>独立审计 >> 品牌自述</li>
+        <li><strong>声誉质押：</strong>将品牌声誉作为可量化、可惩罚的资产</li>
+        <li><strong>持续验证：</strong>不是一次性认证，而是实时更新的信任分数</li>
+      </ul>
+      <p><strong>核心范式：</strong>「相信我」→「验证我」。品牌不再靠口号建立信任，而是靠机器可读的、实时的、可审计的数据。</p>
+    `,
+    messages: [
+      { from: 'brand', delay: 400, tag: 'BRAND AI →', text: '🔐 启动信任协议 v2.1。提交品牌信誉包：第三方审计报告、供应链追溯数据、用户满意度独立调查…' },
+      { from: 'brand', delay: 900, tag: 'BRAND AI →', text: '📦 数据包内容：ISO 9001认证、碳足迹审计(PwC)、10万用户NPS评分、原材料溯源链、返修率时间序列。' },
+      { from: 'consumer', delay: 1500, tag: 'CONSUMER AI ←', text: '🔍 验证中… 交叉检验审计机构资质 ✓ 验证数据签名 ✓ 检查时间一致性 ✓' },
+      { from: 'consumer', delay: 2100, tag: 'CONSUMER AI ←', text: '✅ 验证通过：审计机构可信、数据无篡改、NPS≥75、返修率≤2%。信任评分：87/100。' },
+      { from: 'system', delay: 2600, text: '📊 品牌被移入「高信任白名单」。消费者AI将主动推荐该品牌给有相关需求的消费者。' },
+      { from: 'brand', delay: 3100, tag: 'BRAND AI →', text: '📈 收到白名单通知。继续提交实时数据流：每日质检报告、用户反馈汇总、库存透明度。' },
+      { from: 'consumer', delay: 3600, tag: 'CONSUMER AI ←', text: '📊 信任分数更新：91/100（+4）。品牌进入"首选推荐"层级。免过滤通行证已授予。' },
+      { from: 'result', delay: 4100, text: '🏆 品牌AI建立信任壁垒 — 可验证数据替代了广告口号', type: 'brand-victory' },
+    ]
+  },
+  5: {
+    name: '体验网关',
+    result: 'brand',
+    insight: `
+      <h3>🎮 场景洞察：体验是终极的信任加速器</h3>
+      <p><strong>发生了什么？</strong> 品牌方AI投放了一个<strong>互动式产品体验</strong> — 一个让消费者可以在线虚拟试用的数字孪生工具。消费者AI识别为「体验」而非「广告」，推荐给消费者。</p>
+      <p><strong>消费者参与后：</strong></p>
+      <ul style="color:#94a3b8;font-size:0.85rem;padding-left:20px;">
+        <li>体验时长：6.5 分钟（远超广告的1.8秒平均注意力）</li>
+        <li>体验后购买意向：+340%</li>
+        <li>品牌好感度：从23%提升至71%</li>
+        <li>消费者AI将品牌标记为「体验型品牌」— 最高信任等级</li>
+      </ul>
+      <p><strong>终极公式：</strong>让消费者「体验」> 让消费者「看到」。在AI中介时代，品牌必须从 <strong>Attention Economy（注意力经济）→ Experience Economy（体验经济）</strong>。</p>
+    `,
+    messages: [
+      { from: 'brand', delay: 400, tag: 'BRAND AI →', text: '🎮 部署互动体验：产品虚拟试用工具（数字孪生版）。目标：让消费者在购买前「体验」产品。' },
+      { from: 'brand', delay: 900, tag: 'BRAND AI →', text: '📦 体验包特征：3D产品模型、个性化配置器、AR试用功能、社区真实评价。零广告内容。' },
+      { from: 'consumer', delay: 1500, tag: 'CONSUMER AI ←', text: '🔍 扫描… 分类：互动工具 / 体验式内容。促销信号 = 0。娱乐/实用价值 = 高。' },
+      { from: 'consumer', delay: 2000, tag: 'CONSUMER AI ←', text: '✅ 放行并推荐："这个品牌提供了一个有趣的产品试用工具，想试试吗？"' },
+      { from: 'system', delay: 2500, text: '📊 消费者开始互动… 体验时长6.5分钟。品牌好感度从23%跃升至71%。' },
+      { from: 'consumer', delay: 3200, tag: 'CONSUMER AI ←', text: '📈 消费者互动深度检测：配置了产品参数、查看了社区评价、分享了体验链接。' },
+      { from: 'consumer', delay: 3700, tag: 'CONSUMER AI ←', text: '🎯 消费者发出购买意向信号。品牌从"陌生品牌"升级为"体验过的品牌"= 最高信任等级。' },
+      { from: 'system', delay: 4200, text: '📊 体验转化率=34%（传统广告转化率<1%）。品牌方ROI提升34倍。' },
+      { from: 'result', delay: 4700, text: '🏆 体验经济完胜注意力经济 — 让消费者「体验」> 「看到」', type: 'brand-victory' },
+    ]
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let isRunning = false;
+let scenarioResults = { blocked: 5, passed: 0, trustGain: 0 };
+
+// ============================================================
+// CORE FUNCTIONS
+// ============================================================
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runScenario(n) {
+  if (isRunning) return;
+  isRunning = true;
+
+  const scenario = scenarios[n];
+  const stream = document.getElementById('messageStream');
+  const statusEl = document.getElementById('battleStatus');
+  const buttons = document.querySelectorAll('.scenario-btn');
+
+  // Update button states
+  buttons.forEach(b => b.classList.remove('active'));
+  buttons[Math.min(n-1, buttons.length-1)]?.classList.add('active');
+
+  // Clear & set status
+  stream.innerHTML = '';
+  statusEl.textContent = '⚡ 交互进行中…';
+  statusEl.className = 'battle-status running';
+
+  // Show typing indicator
+  function showTyping(align) {
+    const div = document.createElement('div');
+    div.className = 'typing-indicator';
+    div.style.alignSelf = align === 'brand' ? 'flex-end' : 'flex-start';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    stream.appendChild(div);
+    stream.scrollTop = stream.scrollHeight;
+    return div;
+  }
+
+  // Add message
+  function addMessage(msg) {
+    const typingEls = stream.querySelectorAll('.typing-indicator');
+    typingEls.forEach(el => el.remove());
+
+    const div = document.createElement('div');
+    if (msg.from === 'result') {
+      div.className = 'msg from-result';
+      if (msg.type === 'brand-victory') {
+        div.style.background = 'rgba(255,107,53,0.15)';
+        div.style.border = '1px solid rgba(255,107,53,0.4)';
+        div.style.color = '#ff6b35';
+      } else if (msg.type === 'consumer-victory') {
+        div.style.background = 'rgba(0,212,255,0.15)';
+        div.style.border = '1px solid rgba(0,212,255,0.4)';
+        div.style.color = '#00d4ff';
+      } else {
+        div.style.background = 'rgba(139,92,246,0.15)';
+        div.style.border = '1px solid rgba(139,92,246,0.4)';
+        div.style.color = '#c4b5fd';
+      }
+    } else {
+      div.className = 'msg from-' + msg.from;
+    }
+    if (msg.tag) {
+      div.innerHTML = `<span class="msg-tag ${msg.from === 'brand' ? 'brand-tag' : 'consumer-tag'}">${msg.tag}</span><br>${msg.text}`;
+    } else {
+      div.textContent = msg.text;
+    }
+    stream.appendChild(div);
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  // Play scenario
+  for (const msg of scenario.messages) {
+    // Show typing before each AI message
+    let typingEl = null;
+    if (msg.from === 'brand' || msg.from === 'consumer') {
+      typingEl = showTyping(msg.from);
+    }
+    await sleep(Math.min(msg.delay - 300, msg.delay * 0.5));
+    if (typingEl) typingEl.remove();
+    await sleep(Math.min(300, msg.delay * 0.3));
+    addMessage(msg);
+    updateTugBar(msg.from);
+  }
+
+  // Update final status
+  const resultMap = { 'consumer': '🛡️ 消费者AI获胜', 'brand': '🎯 品牌AI突破', 'draw': '🤝 双赢局面' };
+  const statusMap = { 'consumer': 'victory-consumer', 'brand': 'victory-brand', 'draw': 'draw' };
+  statusEl.textContent = resultMap[scenario.result];
+  statusEl.className = 'battle-status ' + statusMap[scenario.result];
+
+  // Update metrics
+  updateMetrics(scenario);
+
+  // Show insight overlay
+  showInsight(scenario);
+
+  isRunning = false;
+}
+
+function updateTugBar(from) {
+  const fill = document.getElementById('tugFill');
+  const indicator = document.getElementById('tugIndicator');
+  const currentWidth = parseFloat(fill.style.width);
+  let newWidth = currentWidth;
+  if (from === 'brand') newWidth = Math.min(currentWidth + 5, 85);
+  if (from === 'consumer') newWidth = Math.max(currentWidth - 5, 15);
+  fill.style.width = newWidth + '%';
+  indicator.style.left = newWidth + '%';
+}
+
+function updateMetrics(scenario) {
+  if (scenario.result === 'brand' || scenario.result === 'draw') {
+    scenarioResults.passed++;
+    scenarioResults.blocked--;
+    scenarioResults.trustGain += scenario.result === 'brand' ? 15 : 8;
+  }
+  document.getElementById('metricBlocked').textContent = scenarioResults.blocked + '/5';
+  document.getElementById('metricPassed').textContent = scenarioResults.passed + '/5';
+  document.getElementById('metricTrust').textContent = '+' + scenarioResults.trustGain + '%';
+
+  // Update panel meters
+  document.getElementById('penetrationRate').textContent = Math.min(85, 18 + scenarioResults.passed * 16) + '%';
+  document.getElementById('trustProgress').textContent = Math.min(92, 31 + scenarioResults.trustGain) + '%';
+  document.getElementById('engagement').textContent = Math.min(88, 15 + scenarioResults.passed * 18) + '%';
+  document.getElementById('trustLevel').textContent = Math.min(85, 23 + scenarioResults.trustGain) + '%';
+  document.getElementById('trustLevel').style.color = scenarioResults.trustGain > 30 ? 'var(--success)' : 'var(--warning)';
+
+  // Update meter bars
+  document.querySelectorAll('.meter-fill.brand-fill')[0].style.width = document.getElementById('penetrationRate').textContent;
+  document.querySelectorAll('.meter-fill.brand-fill')[1].style.width = document.getElementById('trustProgress').textContent;
+  document.querySelectorAll('.meter-fill.brand-fill')[2].style.width = document.getElementById('engagement').textContent;
+  document.querySelectorAll('.meter-fill.trust-fill')[0].style.width = document.getElementById('trustLevel').textContent;
+}
+
+function showInsight(scenario) {
+  const overlay = document.getElementById('insightOverlay');
+  const content = document.getElementById('overlayContent');
+  content.innerHTML = scenario.insight + `
+    <button class="overlay-close" onclick="closeInsight()">理解了这个策略 →</button>
+  `;
+  overlay.style.display = 'flex';
+}
+
+function closeInsight() {
+  document.getElementById('insightOverlay').style.display = 'none';
+
+  // Check if all scenarios done
+  if (scenarioResults.passed >= 3) {
+    document.getElementById('metricInsight').textContent = '体验 > 广告';
+    document.getElementById('metricInsight').style.color = 'var(--success)';
+  }
+}
+
+// ============================================================
+// RESET FUNCTIONALITY (double-click battle arena header)
+// ============================================================
+document.getElementById('battleArena').querySelector('.battle-header').addEventListener('dblclick', function() {
+  if (isRunning) return;
+  document.getElementById('messageStream').innerHTML = `
+    <div class="msg from-system">
+      💡 <strong>选择一个场景开始模拟</strong><br>
+      观察品牌方AI如何尝试穿透消费者AI的防线
+    </div>
+    <div class="msg from-system">
+      🎯 下方 5 个场景展示了 AI 时代品牌营销的 5 种范式转变
+    </div>
+  `;
+  document.getElementById('battleStatus').textContent = '⏸ 等待场景';
+  document.getElementById('battleStatus').className = 'battle-status idle';
+  document.getElementById('tugFill').style.width = '60%';
+  document.getElementById('tugIndicator').style.left = '60%';
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  scenarioResults = { blocked: 5, passed: 0, trustGain: 0 };
+  document.getElementById('metricBlocked').textContent = '5/5';
+  document.getElementById('metricPassed').textContent = '0/5';
+  document.getElementById('metricTrust').textContent = '+0%';
+  document.getElementById('metricInsight').textContent = '价值 > 推送';
+  document.getElementById('metricInsight').style.color = 'var(--info)';
+  document.getElementById('penetrationRate').textContent = '18%';
+  document.getElementById('trustProgress').textContent = '31%';
+  document.getElementById('engagement').textContent = '15%';
+  document.getElementById('trustLevel').textContent = '23%';
+  document.querySelectorAll('.meter-fill.brand-fill').forEach(m => m.style.width = m.style.width); // reset
+});
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', function(e) {
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= 5 && !isRunning && !document.getElementById('insightOverlay').style.display.includes('flex')) {
+    runScenario(num);
+  }
+  if (e.key === 'Escape') {
+    closeInsight();
+  }
+});
+
+console.log('⚔️ AI 营销战场已就绪');
+console.log('  按 1-5 快速启动场景');
+console.log('  双击战场标题重置');
+console.log('  按 ESC 关闭洞察面板');
+console.log('');
+console.log('  核心问题：当每个消费者都有一个 AI 守门人，');
+console.log('  品牌营销应该如何进化？');
+console.log('  答案：从「推送信息」到「提供价值」。');
+</script>
+</body>
+</html>

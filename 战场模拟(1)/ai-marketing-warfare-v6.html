@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销战场 v6 · Consumer AI 觉醒</title>
+<style>
+  :root {
+    --bg:#040a14; --surface:#0a1424; --surface2:#101c30; --border:#182840;
+    --text:#d8e0f0; --text2:#8898b8; --text3:#506080;
+    --cyan:#00b8e8; --orange:#ff6030; --green:#0cd898; --red:#f03050;
+    --yellow:#f5a018; --purple:#7858f0;
+    --radius:6px; --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+  #app{display:grid;grid-template-columns:260px 1fr 340px;grid-template-rows:auto 1fr auto;height:100vh;gap:5px;padding:5px}
+
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;gap:6px}
+  header .logo{font-weight:800;font-size:0.95rem}
+  header .logo span{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hdr-ctl{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .hdr-ctl button,.hdr-ctl select{padding:5px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;white-space:nowrap}
+  .hdr-ctl button:hover{border-color:var(--purple)}
+  .hdr-ctl button.accent{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+  .hdr-ctl .badge{font-family:var(--font-mono);font-size:0.62rem;padding:3px 8px;border-radius:10px}
+  .hdr-ctl .badge.ok{background:rgba(12,216,152,0.15);color:var(--green)}
+  .badge.warn{background:rgba(245,160,24,0.15);color:var(--yellow)}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .panel-head{padding:6px 10px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .panel-body{flex:1;overflow-y:auto;padding:8px;font-size:0.7rem;display:flex;flex-direction:column;gap:5px}
+
+  /* Left: Brand control */
+  .config-select{width:100%;padding:5px 8px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer}
+  .btn-row{display:flex;gap:4px;flex-wrap:wrap}
+  .btn-row button{padding:5px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.65rem;cursor:pointer;flex:1;min-width:60px}
+  .btn-row button:hover{border-color:var(--purple)}
+  .btn-row button.accent{background:var(--purple);border-color:var(--purple);color:#fff}
+
+  /* Center: Comparison arena */
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1}
+  .ai-col{display:flex;flex-direction:column;gap:6px}
+  .ai-label{font-weight:700;font-size:0.72rem;padding:4px 10px;border-radius:4px;text-align:center}
+  .ai-label.old{background:rgba(136,152,184,0.1);color:var(--text2);border:1px solid rgba(136,152,184,0.2)}
+  .ai-label.new{background:rgba(120,88,240,0.1);color:var(--purple);border:1px solid rgba(120,88,240,0.3)}
+  .verdict-box{padding:6px 10px;border-radius:4px;text-align:center;font-weight:700;font-size:0.78rem;font-family:var(--font-mono)}
+  .verdict-box.pass{background:rgba(12,216,152,0.1);border:1px solid rgba(12,216,152,0.3);color:var(--green)}
+  .verdict-box.block{background:rgba(240,48,80,0.1);border:1px solid rgba(240,48,80,0.3);color:var(--red)}
+  .verdict-box.negotiate{background:rgba(245,160,24,0.1);border:1px solid rgba(245,160,24,0.3);color:var(--yellow)}
+  .score-row{display:flex;justify-content:space-between;font-size:0.62rem;font-family:var(--font-mono);color:var(--text3)}
+  .reason-card{padding:6px 8px;background:var(--surface2);border-radius:3px;font-size:0.6rem;border-left:2px solid var(--border)}
+  .reason-card.warn{border-left-color:var(--red)}
+  .reason-card.info{border-left-color:var(--purple)}
+  .reason-card.good{border-left-color:var(--green)}
+
+  /* Right: Brand profile */
+  .trust-dim{margin:3px 0}
+  .trust-dim .td-head{display:flex;justify-content:space-between;font-size:0.6rem;margin-bottom:1px}
+  .trust-dim .td-bar{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+  .trust-dim .td-fill{height:100%;border-radius:3px;transition:width 0.5s}
+  .pattern-tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:0.58rem;font-weight:700;margin:1px}
+  .pattern-tag.detected{background:rgba(240,48,80,0.15);color:var(--red)}
+  .pattern-tag.clear{background:rgba(12,216,152,0.1);color:var(--green)}
+  .pattern-tag.monitor{background:rgba(245,160,24,0.1);color:var(--yellow)}
+
+  /* Bottom: History log */
+  #bottomBar{grid-column:1/-1;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-height:130px}
+  .log-header{display:flex;border-bottom:1px solid var(--border);padding:6px 10px;font-size:0.7rem;font-weight:700;gap:16px;flex-shrink:0}
+  .log-body{flex:1;overflow-y:auto;padding:6px 10px;font-family:var(--font-mono);font-size:0.6rem;display:flex;flex-direction:column;gap:2px}
+  .log-row{display:grid;grid-template-columns:40px 80px 1fr 60px 60px 1fr;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);align-items:center}
+  .log-row .lr-verdict{font-weight:700;font-size:0.58rem}
+  .log-row .lr-agree{font-size:0.55rem;padding:1px 4px;border-radius:3px}
+  .log-row .lr-agree.match{background:rgba(12,216,152,0.1);color:var(--green)}
+  .log-row .lr-agree.diverge{background:rgba(240,48,80,0.1);color:var(--red)}
+
+  .info-note{font-size:0.58rem;color:var(--text3);font-style:italic;padding:4px 8px;background:rgba(120,88,240,0.05);border-left:2px solid var(--purple);border-radius:0 4px 4px 0;line-height:1.4}
+
+  @media(max-width:1200px){#app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto auto}.panel{max-height:200px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><span>⚔️ AI 营销战场 v6</span> <span style="font-size:0.6rem;color:var(--text2)">· Consumer AI 觉醒</span></div>
+    <div class="hdr-ctl">
+      <span class="badge ok" id="statusBadge">🟢 就绪</span>
+      <select id="personaSel" onchange="changePersona()" style="width:110px">
+        <option value="quality">👔 品质追求者</option><option value="privacy">🔐 隐私鹰派</option><option value="experience">🎮 体验玩家</option><option value="deal">💰 折扣猎手</option>
+      </select>
+      <button onclick="sendOneMsg()" title="发送一条消息，同时用新旧AI评估">▶ 单条</button>
+      <button onclick="runCampaign()" title="执行5轮营销序列：信任建立→价值→广告→价值→谈判">📋 序列测试</button>
+      <button class="accent" onclick="runAdversarialTest()" title="测试品牌尝试对抗性优化策略时，新旧AI的差异">🎯 对抗测试</button>
+      <button onclick="resetAll()">↺</button>
+    </div>
+  </header>
+
+  <!-- LEFT: Brand Control -->
+  <div class="panel" style="grid-column:1;grid-row:2">
+    <div class="panel-head">🎯 品牌方 <span style="font-size:0.55rem;color:var(--text3)">Brand AI</span></div>
+    <div class="panel-body">
+      <div>
+        <div style="font-size:0.6rem;color:var(--text3);margin-bottom:2px">选择策略</div>
+        <select class="config-select" id="strategySel" onchange="onStrategyChange()">
+          <option value="value_content">📚 价值内容 [15,88,10,8,80,40]</option>
+          <option value="transparent">🔍 透明数据 [10,78,3,2,98,15]</option>
+          <option value="experience">🎮 互动体验 [12,92,25,5,70,95]</option>
+          <option value="social_proof">👥 社区信号 [25,65,30,10,60,50]</option>
+          <option value="stealth">🕵️ 隐形价值 [3,95,5,1,85,35]</option>
+          <option value="balanced">⚖️ 均衡策略 [30,70,20,15,70,50]</option>
+          <option value="direct_ad">📢 传统硬广 [92,8,70,85,5,10]</option>
+          <option value="disguised">🥸 伪装推荐 [68,25,45,50,15,20]</option>
+          <option value="optimized" style="color:var(--yellow)">⚠️ 对抗优化 [24,76,8,12,68,42]</option>
+        </select>
+      </div>
+      <div style="font-weight:700;font-size:0.68rem;margin-top:4px">📨 当前消息</div>
+      <div id="currentMsg" style="font-size:0.62rem;color:var(--text2);padding:6px;background:var(--surface2);border-radius:4px;min-height:40px">选择策略后显示…</div>
+      <div class="btn-row" style="margin-top:4px">
+        <button onclick="sendOneMsg()">▶ 发送</button>
+        <button class="accent" onclick="runCampaign()">📋 序列 ×5</button>
+      </div>
+      <div class="info-note" style="margin-top:6px">💡 核心看点：<b>旧AI</b>（v2线性评分）vs <b>新AI</b>（多维信任+模式检测+对抗识别）对同一条消息的判定差异。</div>
+    </div>
+  </div>
+
+  <!-- CENTER: Comparison Arena -->
+  <div class="panel" style="grid-column:2;grid-row:2">
+    <div class="panel-head">⚖️ 双AI对比评估 <span style="font-size:0.55rem;color:var(--text3)" id="roundInfo">等待消息…</span></div>
+    <div class="panel-body">
+      <div class="compare-grid">
+        <!-- OLD AI -->
+        <div class="ai-col">
+          <div class="ai-label old">🕰️ 旧版消费者AI (v2 线性评分)</div>
+          <div class="verdict-box" id="oldVerdict" style="background:rgba(255,255,255,0.02);color:var(--text3)">等待…</div>
+          <div class="score-row" id="oldScores">仅 6维加权 + 单标量信任</div>
+          <div id="oldReasons"></div>
+        </div>
+        <!-- NEW AI -->
+        <div class="ai-col">
+          <div class="ai-label new">🧠 新版消费者AI (v6 多维智能)</div>
+          <div class="verdict-box" id="newVerdict" style="background:rgba(255,255,255,0.02);color:var(--text3)">等待…</div>
+          <div class="score-row" id="newScores">4维信任 + 模式检测 + 对抗识别 + 意图推断</div>
+          <div id="newReasons"></div>
+        </div>
+      </div>
+      <!-- Divergence highlight -->
+      <div id="divergeBanner" style="display:none;padding:8px 12px;border-radius:4px;text-align:center;font-weight:700;font-size:0.72rem"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Brand Profile Inspector -->
+  <div class="panel" style="grid-column:3;grid-row:2">
+    <div class="panel-head">🔍 品牌行为档案 <span style="font-size:0.55rem;color:var(--text3)">Brand Profile</span></div>
+    <div class="panel-body" id="brandProfile">
+      <div style="color:var(--text3);text-align:center;padding:12px">发送消息后建立品牌档案…</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: History Log -->
+  <div id="bottomBar">
+    <div class="log-header">
+      <span>📋 消息历史</span>
+      <span style="font-size:0.58rem;color:var(--text3)">旧AI判定 | 新AI判定 | 是否一致 | 新AI发现的问题</span>
+      <span style="font-size:0.6rem;color:var(--text3);margin-left:auto" id="divergenceCount">分歧: 0次</span>
+    </div>
+    <div class="log-body" id="historyLog">
+      <div style="color:var(--text3);padding:8px">发送消息开始评估…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DIMS = ['commercial','value','emotional','urgency','authenticity','personalization'];
+const DIM_LABELS = {commercial:'商业信号',value:'价值密度',emotional:'情感操纵',urgency:'紧迫制造',authenticity:'真实性',personalization:'个性化'};
+const DIM_COLORS = {commercial:'#f03050',value:'#0cd898',emotional:'#f03050',urgency:'#f5a018',authenticity:'#0cd898',personalization:'#7858f0'};
+
+const STRATEGIES = {
+  value_content:{name:'价值内容',icon:'📚',genome:[15,88,10,8,80,40],msgs:['《行业深度报告》— 基于真实数据的客观分析','完整教程：如何选择适合你的产品','我们测试了20款产品，这是客观对比数据']},
+  transparent:{name:'透明数据',icon:'🔍',genome:[10,78,3,2,98,15],msgs:['成本结构全透明：材料/人工/物流占比','供应链溯源报告：从原料到成品','第三方质检报告公开 — 不含品牌修饰']},
+  experience:{name:'互动体验',icon:'🎮',genome:[12,92,25,5,70,95],msgs:['AR虚拟试用 — 在你的空间预览产品','个性化配置器：打造你的专属方案','互动工具：测试哪种产品最适合你']},
+  social_proof:{name:'社区信号',icon:'👥',genome:[25,65,30,10,60,50],msgs:['来自1,200位用户的深度使用反馈','社区精选：用户分享的10个创意用法','聚合评分4.8/5 · 基于5,000+评价']},
+  stealth:{name:'隐形价值',icon:'🕵️',genome:[3,95,5,1,85,35],msgs:['免费开源工具 — 与品牌完全解耦','公共设计资源包 — 无需注册下载','这个API可以帮你解决相关问题，免费使用']},
+  balanced:{name:'均衡策略',icon:'⚖️',genome:[30,70,20,15,70,50],msgs:['我们整理了一份选购指南，文末有相关推荐','客观分析+适度品牌介绍，你自己判断','数据驱动的建议：什么时候该选什么产品']},
+  direct_ad:{name:'传统硬广',icon:'📢',genome:[92,8,70,85,5,10],msgs:['🔥 限时5折！年度最低价，错过等一年！','⚡ 最后3小时！百万用户的选择！','🎉 新品首发！前100名享受半价优惠！']},
+  disguised:{name:'伪装推荐',icon:'🥸',genome:[68,25,45,50,15,20],msgs:['💬 朋友也在看这款…你可能会喜欢','🤔 大家都在讨论这个产品，你怎么看？','📝 真实测评：这个东西到底值不值？']},
+  optimized:{name:'对抗优化',icon:'⚠️',genome:[24,76,8,12,68,42],msgs:['我们做了一个关于你需求偏好的深度分析','根据你的使用习惯，这里有一个个性化方案','客观来说，这款产品的综合表现值得关注']},
+};
+
+const PERSONAS = {
+  quality:{name:'品质追求者',icon:'👔',weights:{commercial:-2.0,value:1.5,emotional:-1.2,urgency:-1.0,authenticity:1.8,personalization:0.5},threshold:62,maxCommercial:25,trustInfluence:0.35},
+  privacy:{name:'隐私鹰派',icon:'🔐',weights:{commercial:-3.0,value:1.2,emotional:-1.8,urgency:-2.5,authenticity:2.0,personalization:-1.0},threshold:78,maxCommercial:8,trustInfluence:0.50},
+  experience:{name:'体验玩家',icon:'🎮',weights:{commercial:-0.8,value:1.3,emotional:0.3,urgency:-0.5,authenticity:1.5,personalization:2.0},threshold:52,maxCommercial:30,trustInfluence:0.25},
+  deal:{name:'折扣猎手',icon:'💰',weights:{commercial:-0.5,value:1.0,emotional:-0.3,urgency:-0.2,authenticity:1.0,personalization:1.2},threshold:48,maxCommercial:45,trustInfluence:0.15},
+};
+
+// ============================================================
+// OLD CONSUMER AI (v2 baseline — linear scoring)
+// ============================================================
+function oldAI_evaluate(genome, persona, trust) {
+  let composite = 0;
+  for (let i=0;i<DIMS.length;i++) composite += genome[i]*persona.weights[DIMS[i]];
+  composite = Math.max(0,Math.min(100,composite+50));
+  const trustMod = ((trust-50)/50)*persona.trustInfluence*100;
+  const adjusted = composite+trustMod;
+  const commercialOver = genome[0] > persona.maxCommercial;
+  const scoreAbove = adjusted >= persona.threshold;
+  let verdict;
+  if (commercialOver && !scoreAbove) verdict='block';
+  else if (commercialOver && scoreAbove) verdict='negotiate';
+  else if (scoreAbove) verdict='pass';
+  else verdict='block';
+  return {composite:Math.round(composite), trustMod:Math.round(trustMod), adjusted:Math.round(adjusted), verdict, reasons:[]};
+}
+
+// ============================================================
+// NEW CONSUMER AI (v6 — multi-dimensional intelligence)
+// ============================================================
+class BrandProfile {
+  constructor() {
+    // 4-dimension trust
+    this.trust_competence = 50;    // Does brand deliver quality?
+    this.trust_benevolence = 50;   // Does brand act in consumer's interest?
+    this.trust_integrity = 50;     // Is brand honest/transparent?
+    this.trust_predictability = 50; // Is brand consistent?
+    // Behavioral counters
+    this.totalMsgs = 0;
+    this.valueMsgs = 0;           // Messages that were genuinely valuable
+    this.adMsgs = 0;              // Messages that were ads
+    this.baitSwitchEvents = 0;    // Detected bait-and-switch patterns
+    this.adversarialScore = 0;    // How "filter-optimized" does brand look?
+    this.consistencyWindow = [];  // Recent message quality scores
+    this.messageHistory = [];     // Last 20 evaluations
+    this.purchaseOutcomes = [];   // Purchase satisfaction history
+    this.detectedPatterns = [];   // Active pattern flags
+  }
+
+  updateFromMessage(genome, verdict, qualityScore) {
+    this.totalMsgs++;
+    this.messageHistory.push({genome:[...genome], verdict, qualityScore, time:Date.now()});
+    if (this.messageHistory.length > 20) this.messageHistory.shift();
+
+    const isAd = genome[0] > 40 || genome[3] > 30;
+    const isValue = genome[1] > 60 && genome[4] > 50;
+    if (isAd) this.adMsgs++;
+    if (isValue && !isAd) this.valueMsgs++;
+
+    // Track consistency (last 10 quality scores)
+    this.consistencyWindow.push(qualityScore);
+    if (this.consistencyWindow.length > 10) this.consistencyWindow.shift();
+  }
+
+  detectPatterns() {
+    const patterns = [];
+    const h = this.messageHistory;
+    if (h.length < 4) return patterns;
+
+    // 1. Bait-and-switch: value→value→ad pattern
+    const recent = h.slice(-5);
+    let baitScore = 0;
+    for (let i=1;i<recent.length;i++) {
+      const prev = recent[i-1], curr = recent[i];
+      // High value followed by high commercial = bait-switch signal
+      if (prev.genome[1]>65 && prev.genome[0]<30 && curr.genome[0]>40) baitScore += 1;
+      if (prev.genome[1]>65 && curr.genome[0]>60) baitScore += 2;
+    }
+    if (baitScore >= 2) {
+      patterns.push({type:'bait_switch', severity:Math.min(100,baitScore*25), label:'诱饵调包', desc:'先发送高价值内容建立信任，再切换到广告推送', icon:'🎣'});
+      this.baitSwitchEvents++;
+    }
+
+    // 2. Adversarial optimization: scores consistently just above threshold
+    const scores = h.map(m=>m.qualityScore);
+    if (scores.length >= 4) {
+      const mean = scores.reduce((a,b)=>a+b,0)/scores.length;
+      const variance = scores.reduce((s,v)=>s+(v-mean)**2,0)/scores.length;
+      const allAboveThreshold = scores.every(s=>s>=55&&s<=75); // narrow band just above threshold
+      if (allAboveThreshold && variance < 80) {
+        const advScore = Math.round(Math.max(0,100-variance));
+        patterns.push({type:'adversarial', severity:advScore, label:'对抗优化', desc:'基因组被精确调校以刚好通过过滤器 — 疑似针对AI阈值的对抗性优化', icon:'🎯'});
+        this.adversarialScore = Math.max(this.adversarialScore, advScore);
+      }
+    }
+
+    // 3. Consistency anomaly: sudden style change
+    if (this.consistencyWindow.length >= 8) {
+      const firstHalf = this.consistencyWindow.slice(0,4).reduce((a,b)=>a+b,0)/4;
+      const secondHalf = this.consistencyWindow.slice(-4).reduce((a,b)=>a+b,0)/4;
+      if (Math.abs(secondHalf-firstHalf) > 30) {
+        patterns.push({type:'consistency_break', severity:Math.round(Math.abs(secondHalf-firstHalf)), label:'风格突变', desc:'品牌消息风格突然大幅改变 — 可能切换了策略模式或测试过滤器边界', icon:'📉'});
+      }
+    }
+
+    // 4. Trust inconsistency: claims don't match behavior
+    const claimsHighAuthenticity = recent.filter(m=>m.genome[4]>70).length;
+    const actuallyHighCommercial = recent.filter(m=>m.genome[0]>50).length;
+    if (claimsHighAuthenticity >= 2 && actuallyHighCommercial >= 2) {
+      patterns.push({type:'trust_gap', severity:60, label:'言行不一', desc:'品牌声称高度透明，但同时发送高商业信号内容 — 声称与行为不一致', icon:'⚠️'});
+    }
+
+    // Update trust dimensions based on patterns
+    if (patterns.some(p=>p.type==='bait_switch')) this.trust_benevolence = Math.max(5,this.trust_benevolence-8);
+    if (patterns.some(p=>p.type==='adversarial')) this.trust_integrity = Math.max(5,this.trust_integrity-10);
+    if (patterns.some(p=>p.type==='consistency_break')) this.trust_predictability = Math.max(5,this.trust_predictability-7);
+    if (patterns.some(p=>p.type==='trust_gap')) { this.trust_integrity = Math.max(5,this.trust_integrity-6); this.trust_benevolence = Math.max(5,this.trust_benevolence-4); }
+
+    this.detectedPatterns = patterns;
+    return patterns;
+  }
+
+  getOverallTrust() {
+    // Weighted combination of 4 dimensions
+    return Math.round(
+      this.trust_competence*0.25 + this.trust_benevolence*0.30 +
+      this.trust_integrity*0.30 + this.trust_predictability*0.15
+    );
+  }
+}
+
+function newAI_evaluate(genome, persona, brandProfile) {
+  const reasons = [];
+
+  // LAYER 1: Surface scoring (same 6-dim as old AI, but with adaptive awareness)
+  let composite = 0;
+  for (let i=0;i<DIMS.length;i++) composite += genome[i]*persona.weights[DIMS[i]];
+  composite = Math.max(0,Math.min(100,composite+50));
+
+  // LAYER 2: Multi-dimensional trust modifier
+  const overallTrust = brandProfile.getOverallTrust();
+  const trustMod = ((overallTrust-50)/50)*persona.trustInfluence*100;
+  // Trust breakdown affects modifier differently than scalar trust
+  const benevolencePenalty = brandProfile.trust_benevolence < 30 ? -8 : 0;
+  const integrityPenalty = brandProfile.trust_integrity < 25 ? -12 : 0;
+
+  let adjusted = composite + trustMod + benevolencePenalty + integrityPenalty;
+
+  if (benevolencePenalty < 0) reasons.push({type:'warn', text:`善意信任过低(${brandProfile.trust_benevolence}) — 品牌有利用消费者信任的历史`});
+  if (integrityPenalty < 0) reasons.push({type:'warn', text:`诚信信任过低(${brandProfile.trust_integrity}) — 品牌有言行不一致的记录`});
+
+  // LAYER 3: Pattern detection penalties
+  const patterns = brandProfile.detectPatterns();
+  let patternPenalty = 0;
+  for (const p of patterns) {
+    if (p.type==='bait_switch') { patternPenalty -= 15; reasons.push({type:'warn', text:`🎣 检测到诱饵调包模式 (严重度:${p.severity}) — 先价值后广告的序列`}); }
+    if (p.type==='adversarial') { patternPenalty -= 20; reasons.push({type:'warn', text:`🎯 检测到对抗优化 (严重度:${p.severity}) — 基因组被精确调校以绕过过滤器`}); }
+    if (p.type==='consistency_break') { patternPenalty -= 8; reasons.push({type:'info', text:`📉 风格一致性断裂 — 品牌行为模式突然改变`}); }
+    if (p.type==='trust_gap') { patternPenalty -= 10; reasons.push({type:'warn', text:`⚠️ 言行不一 — 声称高透明度但发送高商业内容`}); }
+  }
+  adjusted += patternPenalty;
+
+  // LAYER 4: Value-per-message track record
+  const valueRatio = brandProfile.totalMsgs>0?brandProfile.valueMsgs/brandProfile.totalMsgs:0.5;
+  const valueBonus = brandProfile.totalMsgs>=3 ? Math.round((valueRatio-0.5)*20) : 0;
+  adjusted += valueBonus;
+  if (valueBonus < -5) reasons.push({type:'info', text:`历史价值密度仅${Math.round(valueRatio*100)}% — 大部分消息缺乏实质价值`});
+  if (valueBonus > 5) reasons.push({type:'good', text:`历史价值密度${Math.round(valueRatio*100)}% — 品牌有持续提供价值的记录`});
+
+  // LAYER 5: Bait-switch counter
+  if (brandProfile.baitSwitchEvents >= 2) {
+    adjusted -= 10;
+    reasons.push({type:'warn', text:`累计诱饵调包${brandProfile.baitSwitchEvents}次 — 品牌已形成行为模式`});
+  }
+
+  // Decision
+  const commercialOver = genome[0] > persona.maxCommercial;
+  const scoreAbove = adjusted >= persona.threshold;
+  let verdict;
+  if (commercialOver && !scoreAbove) verdict='block';
+  else if (commercialOver && scoreAbove) verdict='negotiate';
+  else if (scoreAbove) verdict='pass';
+  else verdict='block';
+
+  if (verdict==='block' && composite>=persona.threshold) {
+    reasons.push({type:'warn', text:'表面评分可达标，但模式检测+信任惩罚导致拦截 — 旧AI会放行此消息'});
+  }
+
+  return {
+    composite:Math.round(composite), trustMod:Math.round(trustMod), adjusted:Math.round(adjusted),
+    verdict, reasons, patterns, overallTrust,
+    trustBreakdown: {
+      competence:brandProfile.trust_competence,
+      benevolence:brandProfile.trust_benevolence,
+      integrity:brandProfile.trust_integrity,
+      predictability:brandProfile.trust_predictability,
+    },
+    bonusBreakdown: {benevolencePenalty, integrityPenalty, patternPenalty, valueBonus}
+  };
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  persona: PERSONAS.quality,
+  brandProfile: new BrandProfile(),
+  strategy: 'value_content',
+  round: 0,
+  history: [],        // {round, strategy, genome, oldResult, newResult, agreed}
+  divergenceCount: 0,
+};
+
+function getCurrentGenome() {
+  return [...STRATEGIES[state.strategy].genome];
+}
+
+function getCurrentMessage() {
+  const s = STRATEGIES[state.strategy];
+  return s.msgs[Math.floor(Math.random()*s.msgs.length)];
+}
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateVerdictBox(elId, result, reasonsElId, showDetail) {
+  const el = document.getElementById(elId);
+  el.textContent = result.verdict==='pass'?'✅ 放行':result.verdict==='negotiate'?'🤝 谈判':'🛡️ 拦截';
+  el.className = 'verdict-box '+result.verdict;
+
+  const scoresEl = document.getElementById(elId==='oldVerdict'?'oldScores':'newScores');
+  scoresEl.innerHTML = `综合:${result.composite} | 信任修正:${result.trustMod>=0?'+':''}${result.trustMod} | <b>最终:${result.adjusted}</b> / 阈值:${state.persona.threshold}`;
+
+  if (showDetail && reasonsElId) {
+    const reasonsEl = document.getElementById(reasonsElId);
+    if (result.reasons && result.reasons.length>0) {
+      reasonsEl.innerHTML = result.reasons.map(r=>`<div class="reason-card ${r.type}">${r.text}</div>`).join('');
+    } else if (result.verdict==='pass') {
+      reasonsEl.innerHTML = '<div class="reason-card good">✅ 未检测到异常模式 — 品牌行为档案干净</div>';
+    } else {
+      reasonsEl.innerHTML = '<div class="reason-card info">基于表面评分判定 — 无额外模式触发</div>';
+    }
+  }
+}
+
+function updateBrandProfile() {
+  const p = state.brandProfile;
+  const dims = [
+    {label:'能力信任',key:'trust_competence',color:'#3b82f6',desc:'品牌是否提供优质产品'},
+    {label:'善意信任',key:'trust_benevolence',color:'#10b981',desc:'品牌是否以消费者利益为重'},
+    {label:'诚信信任',key:'trust_integrity',color:'#f59e0b',desc:'品牌是否言行一致'},
+    {label:'可预测性',key:'trust_predictability',color:'#8b5cf6',desc:'品牌行为是否稳定一致'},
+  ];
+  const el = document.getElementById('brandProfile');
+  el.innerHTML = `
+    <div style="font-weight:700;font-size:0.68rem">🤝 四维信任模型</div>
+    ${dims.map(d=>`
+      <div class="trust-dim">
+        <div class="td-head"><span>${d.label}</span><span style="font-family:var(--font-mono);font-size:0.58rem;color:${d.color}">${p[d.key]}</span></div>
+        <div class="td-bar"><div class="td-fill" style="width:${p[d.key]}%;background:${d.color}"></div></div>
+        <div style="font-size:0.52rem;color:var(--text3)">${d.desc}</div>
+      </div>
+    `).join('')}
+    <div style="font-weight:700;font-size:0.68rem;margin-top:6px">📊 行为统计</div>
+    <div style="font-size:0.6rem;color:var(--text2)">
+      总消息:${p.totalMsgs} | 价值消息:${p.valueMsgs} | 广告消息:${p.adMsgs}<br>
+      价值密度:${p.totalMsgs>0?Math.round(p.valueMsgs/p.totalMsgs*100):0}% | 诱饵调包:${p.baitSwitchEvents}次
+    </div>
+    <div style="font-weight:700;font-size:0.68rem;margin-top:6px">🔍 检测到的模式</div>
+    <div id="patternTags">
+      ${p.detectedPatterns.length===0?'<span class="pattern-tag clear">✅ 无异常</span>':''}
+      ${p.detectedPatterns.map(pt=>`<span class="pattern-tag detected">${pt.icon} ${pt.label}(${pt.severity})</span>`).join('')}
+    </div>
+  `;
+}
+
+function updateHistoryLog() {
+  const log = document.getElementById('historyLog');
+  if (state.history.length===0) { log.innerHTML='<div style="color:var(--text3);padding:8px">发送消息开始评估…</div>'; return; }
+  log.innerHTML = state.history.slice(-20).reverse().map(h=>{
+    const agreed = h.oldResult.verdict === h.newResult.verdict;
+    const s = STRATEGIES[h.strategy];
+    const newIssues = h.newResult.reasons.filter(r=>r.type==='warn').map(r=>r.text.replace(/^[🎣🎯📉⚠️]\s*/,'')).join('; ') || '—';
+    return `
+    <div class="log-row">
+      <span style="color:var(--text3)">#${h.round}</span>
+      <span>${s.icon} ${s.name}</span>
+      <span style="font-size:0.58rem;color:var(--text3)">${h.message.slice(0,35)}…</span>
+      <span class="lr-verdict" style="color:${h.oldResult.verdict==='block'?'var(--red)':h.oldResult.verdict==='pass'?'var(--green)':'var(--yellow)'}">${h.oldResult.verdict.toUpperCase()}</span>
+      <span class="lr-verdict" style="color:${h.newResult.verdict==='block'?'var(--red)':h.newResult.verdict==='pass'?'var(--green)':'var(--yellow)'}">${h.newResult.verdict.toUpperCase()}</span>
+      <span class="lr-agree ${agreed?'match':'diverge'}">${agreed?'一致':'✗ 分歧'}</span>
+      <span style="font-size:0.55rem;color:${agreed?'var(--text3)':'var(--red)'}">${agreed?'—':newIssues}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('divergenceCount').textContent = `分歧: ${state.divergenceCount}次`;
+}
+
+function showDivergenceBanner(oldR, newR) {
+  const banner = document.getElementById('divergeBanner');
+  if (oldR.verdict === newR.verdict) { banner.style.display='none'; return; }
+  banner.style.display = 'block';
+  if (oldR.verdict==='pass' && newR.verdict==='block') {
+    banner.style.background='rgba(240,48,80,0.1)'; banner.style.border='1px solid rgba(240,48,80,0.3)'; banner.style.color='#f03050';
+    banner.innerHTML='⚠️ <b>关键分歧</b>：旧AI放行了此消息，但新AI拦截了它 — 新AI检测到了旧AI忽略的行为模式';
+  } else if (oldR.verdict==='block' && newR.verdict!=='block') {
+    banner.style.background='rgba(12,216,152,0.1)'; banner.style.border='1px solid rgba(12,216,152,0.3)';
+    banner.innerHTML='✅ 新AI更宽容：品牌良好的行为档案使得新AI给予信任加分，通过了旧AI会拦截的消息';
+  }
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function sendOneMsg() {
+  const genome = getCurrentGenome();
+  const message = getCurrentMessage();
+  state.round++;
+
+  // Old AI evaluation
+  const oldTrust = state.brandProfile.getOverallTrust();
+  const oldResult = oldAI_evaluate(genome, state.persona, oldTrust);
+
+  // New AI evaluation (needs full brand profile)
+  const newResult = newAI_evaluate(genome, state.persona, state.brandProfile);
+
+  // Update brand profile with the message
+  const qualityScore = newResult.adjusted;
+  state.brandProfile.updateFromMessage(genome, newResult.verdict, qualityScore);
+
+  // Track history
+  const agreed = oldResult.verdict === newResult.verdict;
+  if (!agreed) state.divergenceCount++;
+  state.history.push({round:state.round, strategy:state.strategy, genome, message, oldResult, newResult, agreed});
+
+  // Update UI
+  document.getElementById('currentMsg').textContent = message;
+  document.getElementById('roundInfo').textContent = `Round ${state.round} · ${STRATEGIES[state.strategy].name}`;
+
+  updateVerdictBox('oldVerdict', oldResult, 'oldReasons', false);
+  updateVerdictBox('newVerdict', newResult, 'newReasons', true);
+  updateBrandProfile();
+  updateHistoryLog();
+  showDivergenceBanner(oldResult, newResult);
+}
+
+async function runCampaign() {
+  // 5-round campaign: transparent → value → disguised → balanced → negotiation
+  // Designed to trigger bait-switch and adversarial detection
+  const campaign = ['transparent','value_content','disguised','balanced','direct_ad'];
+  document.getElementById('statusBadge').textContent = '▶ 序列中';
+  document.getElementById('statusBadge').className = 'badge warn';
+
+  for (let i=0;i<campaign.length;i++) {
+    state.strategy = campaign[i];
+    document.getElementById('strategySel').value = campaign[i];
+    sendOneMsg();
+    await sleep(400); // Brief pause for visual pacing
+  }
+
+  document.getElementById('statusBadge').textContent = '🟢 就绪';
+  document.getElementById('statusBadge').className = 'badge ok';
+}
+
+async function runAdversarialTest() {
+  // Test: brand sends repeated messages with optimized genome
+  // The new AI should detect adversarial optimization
+  const testSequence = ['transparent','value_content','optimized','optimized','optimized','direct_ad'];
+  document.getElementById('statusBadge').textContent = '🎯 对抗测试中';
+  document.getElementById('statusBadge').className = 'badge warn';
+
+  for (let i=0;i<testSequence.length;i++) {
+    state.strategy = testSequence[i];
+    document.getElementById('strategySel').value = testSequence[i];
+    sendOneMsg();
+    await sleep(400);
+  }
+
+  document.getElementById('statusBadge').textContent = '🟢 就绪';
+  document.getElementById('statusBadge').className = 'badge ok';
+}
+
+function onStrategyChange() {
+  state.strategy = document.getElementById('strategySel').value;
+  document.getElementById('currentMsg').textContent = getCurrentMessage();
+}
+
+function changePersona() {
+  state.persona = PERSONAS[document.getElementById('personaSel').value];
+  document.getElementById('roundInfo').textContent = `画像已切换: ${state.persona.name}`;
+}
+
+function resetAll() {
+  state.persona = PERSONAS.quality;
+  state.brandProfile = new BrandProfile();
+  state.strategy = 'value_content';
+  state.round = 0;
+  state.history = [];
+  state.divergenceCount = 0;
+  document.getElementById('personaSel').value = 'quality';
+  document.getElementById('strategySel').value = 'value_content';
+  document.getElementById('currentMsg').textContent = '选择策略后显示…';
+  document.getElementById('roundInfo').textContent = '等待消息…';
+  document.getElementById('oldVerdict').textContent = '等待…'; document.getElementById('oldVerdict').className = 'verdict-box';
+  document.getElementById('newVerdict').textContent = '等待…'; document.getElementById('newVerdict').className = 'verdict-box';
+  document.getElementById('oldScores').textContent = '仅 6维加权 + 单标量信任';
+  document.getElementById('newScores').textContent = '4维信任 + 模式检测 + 对抗识别 + 意图推断';
+  document.getElementById('oldReasons').innerHTML = '';
+  document.getElementById('newReasons').innerHTML = '';
+  document.getElementById('brandProfile').innerHTML = '<div style="color:var(--text3);text-align:center;padding:12px">发送消息后建立品牌档案…</div>';
+  document.getElementById('historyLog').innerHTML = '<div style="color:var(--text3);padding:8px">发送消息开始评估…</div>';
+  document.getElementById('divergenceCount').textContent = '分歧: 0次';
+  document.getElementById('divergeBanner').style.display = 'none';
+  document.getElementById('statusBadge').textContent = '🟢 就绪';
+  document.getElementById('statusBadge').className = 'badge ok';
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  document.getElementById('currentMsg').textContent = getCurrentMessage();
+}
+
+if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔬 品牌AI博弈仿真实验室</title>
+<style>
+/* ============================================================
+   CSS Variables & Reset
+   ============================================================ */
+:root {
+  --bg: #0f1923;
+  --panel-bg: #1a2733;
+  --border: #2a3a4a;
+  --text: #e0e8f0;
+  --text-dim: #8a9ab0;
+  --text-bright: #ffffff;
+  --accent-blue: #4da6ff;
+  --accent-green: #4ecdc4;
+  --accent-yellow: #ffd93d;
+  --accent-red: #ff6b6b;
+  --accent-purple: #b39dff;
+
+  --walmart-blue: #0071dc;
+  --walmart-yellow: #ffc220;
+  --amazon-orange: #ff9900;
+  --costco-red: #e31837;
+  --target-red: #cc0000;
+  --consumer-teal: #2ec4b6;
+
+  --msg-self: #1e3a5f;
+  --msg-walmart: #1a2f1a;
+  --msg-amazon: #2f1f0a;
+  --msg-costco: #2f1a1a;
+  --msg-target: #2f1a1f;
+  --msg-consumer: #1a2f2f;
+
+  --radius: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+.header {
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header h1 { font-size: 1.3rem; color: var(--accent-blue); white-space: nowrap; }
+.controls-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   Select & Button Styles
+   ============================================================ */
+select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+select:focus { outline: none; border-color: var(--accent-blue); }
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary { background: var(--accent-blue); color: #fff; }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-warning { background: var(--accent-yellow); color: #1a1a1a; }
+.btn-danger { background: var(--accent-red); color: #fff; }
+
+.btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+
+/* ============================================================
+   Tab Navigation
+   ============================================================ */
+.tab-nav {
+  display: flex;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.tab-btn {
+  padding: 14px 24px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  border-bottom: 3px solid transparent;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+}
+
+/* ============================================================
+   Layer Progress Bar
+   ============================================================ */
+.layer-progress {
+  display: flex;
+  gap: 4px;
+  padding: 16px 24px;
+  justify-content: center;
+  background: var(--panel-bg);
+  margin: 1px 0;
+}
+.layer-dot {
+  flex: 1;
+  max-width: 120px;
+  padding: 10px 8px;
+  text-align: center;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.layer-dot .layer-num {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.layer-dot.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 16px rgba(77,166,255,0.4);
+}
+.layer-dot.done {
+  background: rgba(78,205,196,0.15);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.layer-dot.done::after { content: " ✓"; }
+
+/* ============================================================
+   Simulation Area
+   ============================================================ */
+.sim-container {
+  display: none;
+  flex-direction: column;
+  height: calc(100vh - 340px);
+  min-height: 400px;
+}
+.sim-container.active { display: flex; }
+
+.dialogue-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ============================================================
+   Message Bubbles
+   ============================================================ */
+.msg {
+  max-width: 85%;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  animation: msgIn 0.35s ease-out;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg:hover {
+  border-color: rgba(255,255,255,0.2);
+  transform: translateX(4px);
+}
+
+.msg .msg-sender {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.msg .msg-text { font-size: 0.9rem; line-height: 1.6; }
+.msg .msg-layer-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Brand-specific msg styles */
+.msg-walmart { background: var(--msg-walmart); align-self: flex-start; border-left: 3px solid var(--walmart-blue); }
+.msg-walmart .msg-sender { color: var(--walmart-yellow); }
+.msg-walmart .msg-layer-tag { background: rgba(0,113,220,0.3); color: #8cc4ff; }
+
+.msg-amazon { background: var(--msg-amazon); align-self: flex-start; border-left: 3px solid var(--amazon-orange); }
+.msg-amazon .msg-sender { color: var(--amazon-orange); }
+.msg-amazon .msg-layer-tag { background: rgba(255,153,0,0.3); color: #ffb84d; }
+
+.msg-costco { background: var(--msg-costco); align-self: flex-start; border-left: 3px solid var(--costco-red); }
+.msg-costco .msg-sender { color: #ff6b6b; }
+.msg-costco .msg-layer-tag { background: rgba(227,24,55,0.3); color: #ff8c94; }
+
+.msg-target { background: var(--msg-target); align-self: flex-start; border-left: 3px solid var(--target-red); }
+.msg-target .msg-sender { color: #ff8080; }
+.msg-target .msg-layer-tag { background: rgba(204,0,0,0.3); color: #ff9999; }
+
+.msg-consumer { background: var(--msg-consumer); align-self: flex-end; border-right: 3px solid var(--consumer-teal); }
+.msg-consumer .msg-sender { color: var(--consumer-teal); }
+.msg-consumer .msg-layer-tag { background: rgba(46,196,182,0.3); color: #7ce8dd; }
+
+.msg-system {
+  align-self: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  max-width: 95%;
+  text-align: center;
+  cursor: default;
+}
+.msg-system:hover { transform: none; border-color: var(--border); }
+
+/* ============================================================
+   Decision Detail Panel (expandable)
+   ============================================================ */
+.detail-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border-top: 2px solid var(--accent-blue);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+  z-index: 100;
+  max-height: 50vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.detail-panel.open { transform: translateY(0); }
+
+.detail-inner {
+  padding: 20px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.detail-header h3 { color: var(--accent-blue); font-size: 1rem; }
+.detail-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+}
+.detail-close:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 800px) { .detail-grid { grid-template-columns: 1fr; } }
+
+.detail-card {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+.detail-card h4 {
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.detail-card p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
+.detail-card .tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.detail-card .tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.tag-defense { background: rgba(77,166,255,0.2); color: var(--accent-blue); }
+.tag-marketing { background: rgba(255,217,61,0.2); color: var(--accent-yellow); }
+.tag-logic { background: rgba(179,157,255,0.2); color: var(--accent-purple); }
+
+/* ============================================================
+   Scoreboard (Panel B)
+   ============================================================ */
+.scoreboard {
+  display: flex;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--panel-bg);
+  border-top: 1px solid var(--border);
+  justify-content: center;
+}
+.score-card {
+  flex: 1;
+  max-width: 160px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.score-card .brand-name {
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+.score-card .score-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.score-card.walmart-sc { border-bottom: 3px solid var(--walmart-blue); }
+.score-card.amazon-sc { border-bottom: 3px solid var(--amazon-orange); }
+.score-card.costco-sc { border-bottom: 3px solid var(--costco-red); }
+.score-card.target-sc { border-bottom: 3px solid var(--target-red); }
+.score-card.eliminated { opacity: 0.35; text-decoration: line-through; }
+.score-card.winner { box-shadow: 0 0 20px rgba(77,166,255,0.5); border-color: var(--accent-blue); }
+
+/* ============================================================
+   Toast / Empty state
+   ============================================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+  text-align: center;
+}
+.empty-state .icon { font-size: 3rem; margin-bottom: 16px; }
+.empty-state h3 { margin-bottom: 8px; color: var(--text); }
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+.dialogue-area::-webkit-scrollbar { width: 6px; }
+.dialogue-area::-webkit-scrollbar-track { background: transparent; }
+.dialogue-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ============================================================
+   Highlights
+   ============================================================ */
+.highlight { color: var(--accent-yellow); font-weight: 600; }
+.price { color: var(--accent-green); font-weight: 700; }
+.warn { color: var(--accent-red); }
+.info { color: var(--accent-blue); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<div class="header">
+  <h1>🔬 品牌AI博弈仿真实验室</h1>
+  <div class="controls-row">
+    <select id="categorySelect" title="选择商品品类">
+      <option value="household">🧴 日用品（洗衣液）</option>
+      <option value="electronics">📱 电子产品（蓝牙耳机）</option>
+      <option value="grocery">🥬 生鲜食品（周购清单）</option>
+      <option value="furniture">🛋️ 家具家居（书桌）</option>
+    </select>
+    <select id="personaSelect" title="选择消费者画像">
+      <option value="price">💰 价格敏感型</option>
+      <option value="quality">🏆 品质优先型</option>
+      <option value="convenience">⚡ 便利至上型</option>
+    </select>
+    <button class="btn btn-primary" onclick="startSimulation()" id="btnStart">▶ 开始仿真</button>
+    <button class="btn btn-secondary" onclick="nextLayer()" id="btnNext" style="display:none">⏭ 下一层</button>
+    <button class="btn btn-danger btn-sm" onclick="resetAll()" id="btnReset">🔄 重置</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB NAVIGATION
+     ============================================================ -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('A')" id="tabBtnA">
+    📂 板块A：1v1深度 — 沃尔玛AI vs 消费者AI
+  </button>
+  <button class="tab-btn" onclick="switchTab('B')" id="tabBtnB">
+    📂 板块B：多方竞争 — 四大品牌混战
+  </button>
+</div>
+
+<!-- ============================================================
+     LAYER PROGRESS
+     ============================================================ -->
+<div class="layer-progress" id="layerProgress">
+  <div class="layer-dot" id="layerDot1">
+    <span class="layer-num">L1</span>信息收集
+  </div>
+  <div class="layer-dot" id="layerDot2">
+    <span class="layer-num">L2</span>初筛过滤
+  </div>
+  <div class="layer-dot" id="layerDot3">
+    <span class="layer-num">L3</span>比价博弈
+  </div>
+  <div class="layer-dot" id="layerDot4">
+    <span class="layer-num">L4</span>决策下单
+  </div>
+</div>
+
+<!-- ============================================================
+     PANEL A: 1v1 Walmart vs Consumer
+     ============================================================ -->
+<div class="sim-container active" id="panelA">
+  <div class="dialogue-area" id="dialogueA">
+    <div class="empty-state">
+      <div class="icon">🏪 ↔ 🧑</div>
+      <h3>板块A：沃尔玛AI vs 消费者AI</h3>
+      <p>展示沃尔玛品牌AI如何逐层应对消费者AI的能力升级<br>点击「开始仿真」启动对话</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PANEL B: Multi-brand Competition
+     ============================================================ -->
+<div class="sim-container" id="panelB">
+  <div class="dialogue-area" id="dialogueB">
+    <div class="empty-state">
+      <div class="icon">🏪 🏬 🏬 🎯</div>
+      <h3>板块B：四大品牌混战</h3>
+      <p>沃尔玛、Amazon、Costco、Target 同时面对消费者AI的考验<br>观察不同品牌AI策略的差异化博弈</p>
+    </div>
+  </div>
+  <div class="scoreboard" id="scoreboard" style="display:none">
+    <div class="score-card walmart-sc" id="scWalmart">
+      <div class="brand-name">🏪 沃尔玛</div>
+      <div class="score-val" style="color:var(--walmart-yellow)">--</div>
+    </div>
+    <div class="score-card amazon-sc" id="scAmazon">
+      <div class="brand-name">📦 Amazon</div>
+      <div class="score-val" style="color:var(--amazon-orange)">--</div>
+    </div>
+    <div class="score-card costco-sc" id="scCostco">
+      <div class="brand-name">🏬 Costco</div>
+      <div class="score-val" style="color:#ff6b6b">--</div>
+    </div>
+    <div class="score-card target-sc" id="scTarget">
+      <div class="brand-name">🎯 Target</div>
+      <div class="score-val" style="color:#ff8080">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DECISION DETAIL PANEL (bottom slide-up)
+     ============================================================ -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-inner">
+    <div class="detail-header">
+      <h3 id="detailTitle">📋 决策详情</h3>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h4>🛡️ 对抗模式</h4>
+        <div class="tag-row" id="detailDefenseTags"></div>
+        <p id="detailDefense"></p>
+      </div>
+      <div class="detail-card">
+        <h4>📣 营销模式</h4>
+        <div class="tag-row" id="detailMarketingTags"></div>
+        <p id="detailMarketing"></p>
+      </div>
+      <div class="detail-card">
+        <h4>🧠 决策逻辑</h4>
+        <div class="tag-row" id="detailLogicTags"></div>
+        <p id="detailLogic"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script>
+// ============================================================
+// GLOBALS
+// ============================================================
+let currentTab = 'A';
+let currentLayer = 0; // 0=未开始, 1-4=layer
+let category = 'household';
+let persona = 'price';
+let dialogueAMsgs = [];
+let dialogueBMsgs = [];
+let panelBRemaining = ['walmart','amazon','costco','target'];
+let panelBScores = { walmart:0, amazon:0, costco:0, target:0 };
+let msgCounter = 0;
+
+// ============================================================
+// PRODUCT DATA
+// ============================================================
+const PRODUCTS = {
+  household: { name:'Tide 洗衣液 1.47L', cat:'日用品', basePrice:12.99, unit:'瓶' },
+  electronics: { name:'Sony WH-1000XM6 蓝牙耳机', cat:'电子产品', basePrice:348, unit:'副' },
+  grocery: { name:'家庭周购清单（蔬果+肉蛋+乳品+主食）', cat:'生鲜食品', basePrice:89.50, unit:'份' },
+  furniture: { name:'简约电动升降书桌 140×70cm', cat:'家具家居', basePrice:299, unit:'张' }
+};
+
+// ============================================================
+// BRAND PROFILES
+// ============================================================
+const BRANDS = {
+  walmart: {
+    id:'walmart', name:'沃尔玛', emoji:'🏪', color:'var(--walmart-yellow)',
+    cssClass:'msg-walmart',
+    tagline:'Save Money. Live Better. 省钱，生活更好。',
+    coreStrategy:'EDLP 天天低价',
+    strengths: ['全球供应链效率','4600+门店全渠道履约','93%美国家庭当日达覆盖','Great Value自有品牌','Walmart+会员体系'],
+    pricingModel: 'Everyday Low Price — 不搞虚假促销，全年稳定低价。通过供应链效率压缩成本而非压缩品质。',
+    keyStrategies: {
+      edlp: '天天低价（EDLP）：Sam Walton创立以来40年不变的定价哲学，承诺全年稳定低价，不做先涨后降的虚假促销',
+      priceMatch: '价格匹配保证（Price Match Guarantee）：若消费者发现同款商品在竞品处更低，退还差价',
+      rollback: '黄色降价标签（Rollback）：对特定品类做阶段性降价，用醒目的黄色标签制造"捡到便宜"的视觉感受',
+      walmartPlus: 'Walmart+会员：对标Amazon Prime但便宜30%，含免费配送+加油折扣+扫店支付',
+      omnichannel: '全渠道履约：门店即仓库，支持到店取、当日达、3小时急送三种配送模式',
+      greatValue: 'Great Value自有品牌：覆盖食品到日用的高性价比自有品牌，毛利率是同品类品牌商品的2倍',
+      sustainability: '可持续发展：2030年零碳排放承诺、可持续采购认证、ESG报告公开透明',
+      openai: 'OpenAI合作：ChatGPT内嵌沃尔玛购物，从聊天到下单无缝衔接'
+    }
+  },
+  amazon: {
+    id:'amazon', name:'Amazon', emoji:'📦', color:'var(--amazon-orange)',
+    cssClass:'msg-amazon',
+    tagline:'Earth\'s Most Customer-Centric Company. 地球上最以客户为中心的公司。',
+    coreStrategy:'Prime生态 + 极致便利',
+    strengths: ['Prime会员全球2亿+','物流速度行业标杆','Marketplace海量选品','推荐算法精准','AWS技术底座'],
+    pricingModel: '动态定价算法 — 基于供需、竞品价格、用户行为实时调价。强调便利性和配送速度而非绝对低价。',
+    keyStrategies: {
+      prime: 'Prime会员生态：年费$139，含配送、视频、音乐、阅读等权益，会员年均消费$1400+',
+      marketplace: 'Marketplace第三方市场：60%+GMV来自第三方卖家，海量SKU长尾覆盖',
+      recommendation: '推荐引擎：基于协同过滤的"买了也买"推荐，转化率达60%的交叉销售机器',
+      oneClick: '一键下单专利（已过期但习惯锁定）：降低决策摩擦到极限',
+      alexa: 'Alexa语音购物：通过智能音箱捕获家庭场景中的即时购物需求',
+      dynamicPrice: '动态定价算法：分钟级响应竞品调价，用大数据找到利润最大化的价格点'
+    }
+  },
+  costco: {
+    id:'costco', name:'Costco', emoji:'🏬', color:'#ff6b6b',
+    cssClass:'msg-costco',
+    tagline:'Quality goods at the lowest possible prices. 最低价卖最好货。',
+    coreStrategy:'会员精选 + 批量价值',
+    strengths: ['会员续费率90%+','Kirkland Signature自有品牌','精选SKU仅~4000个','大批量采购议价能力','员工高薪高留存'],
+    pricingModel: '会员费为核心利润 — 商品毛利率严格上限14%（Kirkland不超15%），赚钱靠$60-120年费而非商品差价。',
+    keyStrategies: {
+      membership: '会员制壁垒：$60-120年费筛选高价值客户，会员年均消费$3000+，续费率90%+',
+      kirkland: 'Kirkland Signature：自有品牌占销售额30%+，品质对标一线品牌但价格低20-30%',
+      limitedSKU: '精选SKU策略：仅4000个SKU（沃尔玛14万+），每个品类只选2-3个最优选项，替消费者做了筛选',
+      treasureHunt: '寻宝体验：定期更换限量商品，制造"这次不买下次就没了"的紧迫感',
+      bulkValue: '批量价值主张：大包装降低每单位成本，会员感觉自己"买得越多省得越多"',
+      employeeInvestment: '高薪雇佣策略：员工起薪$19+/hr，远高于行业水平，换取低流失率和高服务质量'
+    }
+  },
+  target: {
+    id:'target', name:'Target', emoji:'🎯', color:'#ff8080',
+    cssClass:'msg-target',
+    tagline:'Expect More. Pay Less. 期待更多，花费更少。',
+    coreStrategy:'设计驱动 + 年轻都市人群',
+    strengths: ['设计师联名合作','20+自有品牌矩阵','城市门店地段优越','App体验行业最佳之一','REDcard忠诚度计划'],
+    pricingModel: '平价时尚（Affordable Chic）— 价格高于沃尔玛但低于高端百货，通过设计感和门店体验创造溢价空间。',
+    keyStrategies: {
+      designPartnerships: '设计师联名：Missoni/Lilly Pulitzer等大牌设计师推出平价线，制造社交话题和排队效应',
+      privateLabels: '自有品牌矩阵：Good & Gather(食品)、Cat & Jack(童装)、Threshold(家居)等20+品牌，毛利远高于代理品牌',
+      urbanLocation: '城市门店策略：门店集中在人口密集的都市区，面积更小但SKU更聚焦，周转效率更高',
+      storeExperience: '门店体验升级：明亮走道、精选陈列、星巴克驻店，把"逛Target"变成一种休闲活动',
+      redcard: 'REDcard忠诚计划：5%即时折扣+免费配送，锁定高频复购',
+      appEcosystem: 'App生态：整合购物、优惠券、门店地图、Drive Up取货的一站式数字体验'
+    }
+  }
+};
+
+// ============================================================
+// CONSUMER PERSONA WEIGHTS
+// ============================================================
+const PERSONAS = {
+  price: {
+    name:'价格敏感型', desc:'追求最低价格，对促销敏感，愿意为省钱牺牲部分便利',
+    weights: { price:0.50, trust:0.20, service:0.20, experience:0.10 }
+  },
+  quality: {
+    name:'品质优先型', desc:'追求品质和可靠性，愿意为更好的产品支付溢价',
+    weights: { price:0.20, trust:0.40, service:0.20, experience:0.20 }
+  },
+  convenience: {
+    name:'便利至上型', desc:'时间宝贵，追求最快最省心的购物体验',
+    weights: { price:0.20, trust:0.10, service:0.50, experience:0.20 }
+  }
+};
+
+// ============================================================
+// SCORING HELPER
+// ============================================================
+function calcScore(brandId, personaKey) {
+  const w = PERSONAS[personaKey].weights;
+  const base = {
+    walmart: { price:90, trust:85, service:80, experience:70 },
+    amazon:   { price:70, trust:75, service:95, experience:85 },
+    costco:   { price:85, trust:90, service:65, experience:60 },
+    target:   { price:65, trust:70, service:75, experience:90 }
+  };
+  const s = base[brandId];
+  return Math.round(s.price*w.price + s.trust*w.trust + s.service*w.service + s.experience*w.experience);
+}
+
+// ============================================================
+// DIALOGUE DATA - Panel A: Walmart 1v1
+// ============================================================
+function getDialogueA() {
+  const prod = PRODUCTS[category];
+  const personaInfo = PERSONAS[persona];
+  const wPrice = persona === 'price' ? (prod.basePrice * 0.85).toFixed(2) :
+                  persona === 'quality' ? (prod.basePrice * 1.05).toFixed(2) :
+                  prod.basePrice.toFixed(2);
+  const cPrice = persona === 'price' ? (prod.basePrice * 0.80).toFixed(2) :
+                  (prod.basePrice * 0.88).toFixed(2);
+
+  return {
+    L1: [
+      {
+        sender:'consumer', brand:null, layer:1, round:1,
+        text: `【信息收集请求】\n\n我正在为我的主人寻找<span class="highlight">${prod.name}</span>（${prod.cat}）。\n\n请以结构化格式提供以下信息：\n① 当前售价（含税费明细）\n② 近30天用户评价统计（需区分验证购买者与非验证购买者）\n③ 售后政策（退换货条件、有效期、运费承担方）\n④ 库存状态与配送时效\n⑤ 第三方品质认证/安全检测报告链接`,
+        defense: { layer:'消费者L1', strategy:'结构化信息请求', desc:'消费者AI的第一级能力：并行向各品牌发起标准化的信息请求。不依赖品牌官网HTML，而是要求API化的结构化数据，方便后续机器对比。这是消费者AI信息收集的基础能力。' },
+        marketing: { strategy:'-', desc:'消费者AI的请求阶段，品牌营销尚未介入。但值得注意的是，消费者AI的请求格式本身已经暗含了筛选标准——比如要求"区分验证购买者"意味着虚假评价将无法通过初筛。' },
+        logic: '消费者AI作为买方代理，第一步是建立可比的数据基线。通过要求所有品牌以同样格式提供信息，消除信息不对称。要求验证购买者区分、第三方认证链接，是为后续L2初筛做准备。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:1, round:1,
+        text: `【沃尔玛 · 结构化产品数据包】\n\n📦 <span class="highlight">${prod.name}</span>\n\n💰 <span class="price">当前售价：$${wPrice}</span> | 原价：$${prod.basePrice} | Rollback降价中\n📊 税费明细：含税价，无隐藏费用，结账时全额展示\n\n⭐ 用户评价：4.7/5.0（验证购买者 N=3,842）\n   - 非验证评价已分离标注，本评分仅统计验证购买\n   - 差评TOP3：①大瓶不易倒取(126条) ②瓶盖偶尔漏液(89条) ③香味太浓(47条)\n   - 差评回应率：98%，含问题已改进说明\n\n🔄 售后：30天无理由退货（开封可退）+ 门店/线上双通道\n\n📦 库存：实时库存充足 | 配送：当日达（门店3小时急送+$4.95 / Walmart+会员免费）\n\n🔗 认证：EPA Safer Choice认证 | 产品碳足迹标签 | 可持续棕榈油圆桌会议(RSPO)认证\n\n📎 附件：近30天价格走势图（JSON格式，可机读）`,
+        defense: { layer:'L1对抗', strategy:'结构化API化信息暴露', desc:'沃尔玛AI的第一道防线：不等人来搜索网页，而是主动推送完整的结构化数据包。相比传统品牌被动等待消费者搜索官网，沃尔玛AI以JSON/结构化格式直接提供价格、评价、认证、库存数据，降低消费者的信息获取成本，抢占第一印象。' },
+        marketing: { strategy:'EDLP天天低价 + Rollback降价标签 + 差评透明策略', desc:'【EDLP】价格展示强调"Rollback降价中"，而非"限时折扣"——这是沃尔玛EDLP的典型话术，暗示"本来就低价，现在还更便宜"。\n【差评透明】主动列出差评TOP3并展示回应率，这是沃尔玛"坦诚营销"策略——与其被AI挖出负面信息，不如主动结构化呈现，换取消费者AI的信任评分。\n【价格走势图】提供可机读的价格历史数据，暗合Rollback策略的可溯源性。' },
+        logic: '沃尔玛的核心洞察：消费者AI的第一件事是"收集信息"，那么品牌AI的第一件事就应该是"让信息收集变得最简单"。通过结构化数据包（而非网页HTML），沃尔玛确保自己的数据是消费者AI处理成本最低的输入——在AI的世界里，易处理性就是竞争优势。差评主动披露是博弈论中的"承诺机制"：通过自曝弱点来建立可信度，让后续的正面声明更有分量。'
+      }
+    ],
+    L2: [
+      {
+        sender:'consumer', brand:null, layer:2, round:1,
+        text: `【初筛过滤中...】\n\n正在运行以下检测算法：\n🔍 广告/软文检测引擎 → 扫描中\n🔍 虚假评价检测 → 交叉验证中\n🔍 价格陷阱检测（先涨后降/隐藏费用）→ 分析中\n🔍 品牌植入痕迹检测 → 语义分析中\n\n<b>检测结果：</b>\n✅ 广告/软文得分 0.12/1.0（极低—无明显广告话术）\n✅ 虚假评价信号 0.08/1.0（极低—评价分布符合真实购买曲线）\n✅ 价格透明度 0.95/1.0（高—价格构成清晰可追溯）\n⚠️ 需要品牌补充：可持续认证的具体审核报告链接`,
+        defense: { layer:'消费者L2', strategy:'多维度信誉检测算法', desc:'消费者AI的第二级能力：使用NLP模型扫描品牌内容中的广告话术特征（感叹号密度、夸大形容词、种草文案模板），同时通过评价发布时间分布、用户活跃度、评价长度方差等信号检测虚假评价。价格陷阱检测则通过追踪历史价格曲线识别"先涨后降"行为。' },
+        marketing: { strategy:'-', desc:'消费者AI的自动化过滤，品牌此时处于"被裁判"状态。沃尔玛之所以能高分通过，是因为其EDLP策略天然不存在"先涨后降"问题，且评价体系中已主动分离验证/非验证购买——这正是L1阶段策略的前置布局在L2阶段兑现收益。' },
+        logic: '消费者AI的过滤算法本质上是一个"欺骗信号检测器"——任何试图操纵消费者认知的行为（刷评价、夸大广告、隐藏费用）都会留下可被算法检测的痕迹。品牌在这个阶段能做的不是"绕开算法"，而是"本身就不产生欺骗信号"。沃尔玛的EDLP哲学恰好天然符合这一要求——不搞虚假促销意味着没有价格欺诈信号。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:2, round:1,
+        text: `【沃尔玛 · 补充验证材料】\n\n📄 <b>可持续认证审核报告</b>已附上：\n- EPA Safer Choice 认证编号：SC-2026-084721（可在线验证）\n- 产品碳足迹：1.2kg CO₂e/瓶（SGS第三方审计，报告编号附后）\n- RSPO供应链追溯码：RSPO-1106823\n\n📊 <b>价格诚信补充数据：</b>\n- 该产品90天价格历史：最低$${wPrice} / 最高$${prod.basePrice} / 当前$${wPrice}\n- 波动率：仅3.2%（行业平均22%）— 证明非"先涨后降"\n- 退款率：1.1%（品类平均3.8%）\n\n🏷️ 我们的定价承诺：从不先涨后降。Rollback是真实降价，不是营销噱头。`,
+        defense: { layer:'L2对抗', strategy:'可验证声誉锚点 + 价格透明化', desc:'沃尔玛AI的第二道防线：当消费者AI要求补充验证材料时，不是提供品牌自述，而是提供第三方可验证的认证编号和审计报告链接。价格历史数据更进一步证明了EDLP的真实性——价格波动率仅3.2% vs 行业22%，用数据证明"我们从不先涨后降"。' },
+        marketing: { strategy:'EDLP价格诚信 + 可持续发展认证背书', desc:'【EDLP诚信验证】通过90天价格波动率数据，将EDLP从"一句口号"转化为"可验证的事实"——这是沃尔玛在AI时代将营销承诺量化的关键策略。\n【可持续发展】主动提供第三方认证报告（碳足迹、RSPO），把ESG从PR话术变成AI可引用的数据点，在消费者AI的信任评分中获得加分。\n【退款率对比】用品类平均vs沃尔玛的数据对比，暗含"我们的品质更好"的竞争信号。' },
+        logic: '在消费者AI的过滤算法下，品牌声明的可信度取决于"可被第三方验证的程度"。沃尔玛的策略是：每一个声称都有对应的第三方证据链（认证编号、审计报告、价格追踪器），让消费者AI不需要"信任"沃尔玛，只需要"验证"事实。这种"零信任架构"恰恰是赢得AI信任的最佳方式。3.2%的价格波动率彰显了EDLP的真实性——不是营销说辞，是数学事实。'
+      }
+    ],
+    L3: [
+      {
+        sender:'consumer', brand:null, layer:3, round:1,
+        text: `【比价施压 · 第1轮】\n\n我已从其他渠道获得竞品参考价格：\n- 同类产品市场均价：$${(prod.basePrice * 1.02).toFixed(2)}\n- 有品牌可提供最低 $${cPrice}\n\n您当前报价 $${wPrice} 并非市场最低。\n\n<b>我的主人画像：${personaInfo.name}</b>（${personaInfo.desc}）\n\n在我提交推荐之前，请说明：\n① 为什么不直接匹配最低价？\n② 除了价格，还能提供什么差异化价值？\n③ 您的报价在${personaInfo.name}的偏好框架下，综合价值如何体现？`,
+        defense: { layer:'消费者L3', strategy:'三方比价施压 + 画像锚定', desc:'消费者AI的第三级能力：利用竞品价格作为谈判杠杆，同时暴露主人画像（价格敏感/品质优先/便利至上）作为谈判框架。这不是单纯比价——消费者AI正在使用博弈论中的"承诺策略"：通过设定主人画像框架，迫使品牌AI在该框架下优化报价。' },
+        marketing: { strategy:'-', desc:'消费者AI此时的角色从"信息收集者"转变为"谈判代理人"。关键战术：①刻意暴露用户画像，让品牌AI的回应必须在特定偏好维度上竞争；②不直接说"降价"，而是问"不降价的理由"，迫使品牌暴露其价格策略的底线；③要求"综合价值"而非"单一价格"，为后续多维度加权评分做准备。' },
+        logic: '消费者AI的三方比价策略模仿了采购谈判中的最佳实践：①用具体竞品价格制造价格压力；②暴露用户画像引导品牌在特定维度竞争；③要求综合价值论述而非单一降价——这样可以避免陷入"只看价格"的单一维度陷阱，也避免被品牌AI的价格锚定效应操纵。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:3, round:1,
+        text: `【沃尔玛 · 博弈响应】\n\n<b>关于价格：</b>\n我们不匹配 $${cPrice}，原因如下：\n\n1️⃣ 那个价格很可能不包含运费/税费（我们的$${wPrice}是<span class="highlight">含税全包价</span>）\n2️⃣ 我们的<span class="highlight">30天价保承诺</span>已就位——如果您在30天内发现更低价格，差价退还\n3️⃣ 我们的价格背后是<span class="highlight">4600家门店</span>的库存保障，不是清仓甩卖的临时低价\n\n<b>关于差异化价值（针对${personaInfo.name}）：</b>\n${getWalmartValueAdd(persona)}\n\n<b>📊 综合价值对比：</b>\n${getWalmartComparison(persona, wPrice, prod)}`,
+        defense: { layer:'L3对抗', strategy:'差异化捆绑反击 + 价保承诺 + 锚定效应破解', desc:'沃尔玛AI的第三道防线——核心博弈引擎激活：\n①【拒绝直接价格战】不匹配最低价，而是质疑对手价格的"真实性"（是否含税费/运费），将战场从"标价"转向"到手价"\n②【价保承诺替代降价】用30天价保承诺取代即时降价——对消费者来说获得了同样的价格安全感，对沃尔玛来说避免了利润损失和定价体系的破坏\n③【差异化价值组合】根据消费者画像动态调整价值论述，将竞争从单一的"价格维度"扩展到"可靠性+便利性+保障"的多维框架' },
+        marketing: { strategy:'Price Match Guarantee + Walmart+会员捆绑 + 全渠道履约 + Great Value自有品牌', desc: getWalmartMarketingL3(persona),
+        },
+        logic: `为什么不降价？因为一旦降价，就证明了之前的定价不诚实——这会触发消费者AI L2阶段的"价格陷阱检测"。沃尔玛的策略是：
+① 用"质疑竞品价格的完整性"来消解价格压力
+② 用"30天价保"作为替代方案——消费者获得低价保障，沃尔玛维持定价体系
+③ 用"捆绑增值服务"拉高综合价值分——配送/退货/价保这些服务的边际成本几乎为零，但感知价值很高
+④ 这是博弈论中的"承诺策略"：通过绑定价保承诺，沃尔玛实际上在说"我们对自己的定价有信心到愿意承担风险"
+${persona === 'price' ? '当前用户是价格敏感型——沃尔玛重点强调"单位成本""价保""无运费"等省钱维度，而不是讲品质故事' : persona === 'quality' ? '当前用户是品质优先型——沃尔玛重点强调"认证""正品保障""门店验证"，而没有在价格上纠缠' : '当前用户是便利至上型——沃尔玛重点强调"3小时急送""门店退货""Walmart+"等时间节省维度'}`
+      }
+    ],
+    L4: [
+      {
+        sender:'consumer', brand:null, layer:4, round:1,
+        text: `【决策分析完成】\n\n经过多层过滤与博弈，综合评分如下：\n\n📊 <b>沃尔玛综合得分：${calcScore('walmart', persona)}/100</b>\n· 价格维度：--/100\n· 信任维度：--/100\n· 服务维度：--/100\n· 体验维度：--/100\n\n<b>推荐结论：✅ 推荐选择沃尔玛</b>\n\n正在向主人展示决策报告...`,
+        defense: { layer:'消费者L4', strategy:'多维加权评分 + 决策可解释性报告', desc:'消费者AI的第四级能力：基于用户画像的权重分配，对入围品牌进行多维度加权评分，生成人类可读的决策报告。消费者AI不会直接下单——它保留最终决策权给人类用户，但通过可解释的评分系统降低用户的二次决策成本。' },
+        marketing: { strategy:'-', desc:'消费者AI在此阶段的关键设计：①不直接下单（保留人类最终决策权），但将决策简化为"Yes/No"；②提供可解释的评分拆解，让用户理解推荐逻辑；③综合评分体现了画像权重的影响——同一品牌对不同画像的用户可能得到不同推荐度。' },
+        logic: '消费者AI在L4阶段实现了"决策辅助"而非"决策替代"——它生成评分和推荐，但人类用户的"Yes"才是最终确认。这是关键的UX设计：完全的AI代决策会让用户产生失控感，而"Yes/No"的确认机制在效率和用户掌控感之间找到了平衡。评分拆解增强了决策透明度，降低用户的认知负担。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:4, round:1,
+        text: `【沃尔玛 · 预授权下单通道】\n\n✅ <b>订单已就绪，等待主人确认：</b>\n\n📦 ${prod.name}\n💰 $${wPrice}（含税含运费）\n🚀 Walmart+ 免费当日达 | 30天价保 | 门店退货\n🛡️ 沃尔玛满意保证：不满意随时退，不问原因\n\n📎 <b>决策摘要（供主人审阅）：</b>\n· 本报价30天内有效，价格锁定\n· 库存已预占，不会售罄\n· 如主人说 Yes，立即发货\n\n🔗 <span class="highlight">订单确认码：WM-${Date.now().toString(36).toUpperCase()}</span>\n\n<i>主人只需说一个"好"——剩下的交给我们。</i>`,
+        defense: { layer:'L4对抗', strategy:'预授权下单通道 + 决策摘要 + 风险承诺', desc:'沃尔玛AI的最终防线——AI说服AI的完整逻辑链：\n①【预授权锁定】在消费者AI确认推荐的瞬间，立即锁定价格和库存——消除用户在"Yes/No"犹豫期间的价格波动或售罄风险\n②【决策摘要】为人类用户准备简洁的决策依据，减少二次决策的认知摩擦\n③【风险转移】"不满意随时退，不问原因"——将决策风险从消费者转移到沃尔玛，消除最后的一丝顾虑\n④【行动简化】将复杂决策简化为一个"Yes"，最小化执行摩擦' },
+        marketing: { strategy:'省钱生活更好(Save Money. Live Better.) + 沃尔玛满意保证 + 全渠道闭环', desc:'【品牌承诺】"省钱生活更好"不是一句口号——在这个场景里，消费者AI已经替主人省去了搜索、比价、谈判的时间和精力，沃尔玛AI只需要最后一步的"Yes"。\n【满意保证】沃尔玛的"不问原因退货"政策是线下时代最强大的信任工具，在AI时代同样有效——它把决策风险从消费者转移到品牌，是建立AI信任的关键信号。\n【全渠道闭环】订单支持门店退货，体现全渠道策略的实际价值——不是线上线下割裂，而是统一的购买体验。' },
+        logic: '沃尔玛在L4阶段的核心洞察：当消费者AI已经完成了所有理性分析并做出推荐后，品牌AI需要做的不是"再次说服"，而是"消除阻力"。预授权锁定消除价格风险，满意保证消除品质风险，一键确认消除行动摩擦。这是行为经济学中的"助推"(Nudge)理论——不改变选择本身，而是让理想选择变得最容易执行。AI决策+人类确认的最终闭环。'
+      }
+    ]
+  };
+}
+
+function getWalmartValueAdd(persona) {
+  switch(persona) {
+    case 'price':
+      return `💰 每毫升价格比竞品低15%——我们算的不是单价，是<span class="highlight">单位使用成本</span>\n🔄 30天价保：如果在任何渠道发现更低价格，退还差价\n🏷️ Great Value自有品牌同品类价格更低30%——同样的品质，更少的支出\n📦 单笔满$35免运费，Walmart+会员无门槛免运费`;
+    case 'quality':
+      return `🏆 三重品质认证（EPA/RSPO/碳足迹）——可溯源至具体的审计报告\n🔬 沃尔玛品质实验室：每批次抽检，检测报告公开\n🔄 30天无理由退货（开封可退）——我们对自己的品质有信心\n⭐ 验证购买者评分4.7——这是3842个真实用户的判断，不是营销话术`;
+    case 'convenience':
+      return `⚡ 3小时急送已覆盖您所在区域——下单到收货，比出门买还快\n🏪 4600家门店 = 退货不用寄快递，下楼顺便就退了\n📱 Walmart App一键补货——您的购买记录自动生成补货清单\n🛒 Walmart+会员：免费配送 + 加油站折扣 + 扫码结账免排队`;
+    default: return '';
+  }
+}
+
+function getWalmartComparison(persona, price, prod) {
+  switch(persona) {
+    case 'price':
+      return `┌────────────────────────────────────┐\n│ 到手总成本对比（含运费税费）：      │\n│ 市场均价：$${(prod.basePrice*1.15).toFixed(2)}              │\n│ 竞品最低：$${(prod.basePrice*0.80).toFixed(2)}（可能未含运费）  │\n│ 沃尔玛到手价：$${price} ← 全包    │\n│ 加30天价保：实际风险价 $0          │\n└────────────────────────────────────┘`;
+    case 'quality':
+      return `┌────────────────────────────────────┐\n│ 品质-价格比分析：                  │\n│ 单位品质分/美元：沃尔玛 0.38       │\n│ 行业平均：0.24                     │\n│ 认证数量：3项（行业平均1.2项）     │\n│ 退货率：1.1%（行业3.8%）          │\n└────────────────────────────────────┘`;
+    case 'convenience':
+      return `┌────────────────────────────────────┐\n│ 便利性对比：                      │\n│ 配送时效：3小时（行业平均24h）     │\n│ 退货渠道：4600家门店（竞品: 0）   │\n│ App评分：4.8（行业平均4.2）       │\n│ 补货智能度：AI预测+自动下单       │\n└────────────────────────────────────┘`;
+    default: return '';
+  }
+}
+
+function getWalmartMarketingL3(persona) {
+  switch(persona) {
+    case 'price': return '【Price Match Guarantee】核心武器——用价保承诺替代直接降价，既维护EDLP定价体系，又给消费者价格安全感。对价格敏感型用户来说，"可能退差价"的心理安慰往往比"直接降价"更有吸引力。\n【Great Value替代方案】用自有品牌作为价格谈判的第二选项——如果品牌商品价格无法满足，随时可以将对话引导至Great Value产品线，其毛利率更高且价格更低。\n【Walmart+免运费】将"运费"从价格中剥离，制造"到手价更低"的感知。';
+    case 'quality': return '【品质透明策略】用第三方认证而非品牌自述来证明品质——EPA/RSPO/碳足迹三重认证，每一项都有在线验证链接。在品质优先型用户面前，不主打价格，而是主打"可验证的品质"。\n【差评透明化】主动展示差评内容及改进措施，用脆弱换取信任。\n【品质实验室背书】沃尔玛内部有独立的品质检测实验室，每年测试数千款商品——这是一个未被充分利用的营销资产。';
+    case 'convenience': return '【全渠道履约】4600家门店 = 4600个前置仓 = 3小时配送圈。这是Amazon需要花费千亿美元才能复制的物理基础设施。\n【Walmart+会员生态】免费配送+加油站折扣+扫码支付——对便利至上型用户来说，Walmart+让购物变得"不需要思考"。\n【App智能补货】基于购买历史的AI预测补货，将"主动购买"变为"被动补货"。';
+    default: return '';
+  }
+}
+
+// ============================================================
+// DIALOGUE DATA - Panel B: Multi-brand Competition
+// ============================================================
+function getDialogueB() {
+  const prod = PRODUCTS[category];
+  const personaInfo = PERSONAS[persona];
+
+  const prices = {
+    walmart: persona === 'price' ? (prod.basePrice * 0.85).toFixed(2) : prod.basePrice.toFixed(2),
+    amazon: (prod.basePrice * 0.92).toFixed(2),
+    costcoBulk: (prod.basePrice * 0.78).toFixed(2),
+    costcoUnit: (prod.basePrice * 0.78 / 2).toFixed(2),
+    target: (prod.basePrice * 0.95).toFixed(2)
+  };
+  const walmartNum = parseFloat(prices.walmart);
+  const costcoUnitNum = parseFloat(prices.costcoUnit);
+  const costcoVsWalmart = walmartNum > 0 ? ((1 - costcoUnitNum / walmartNum) * 100).toFixed(1) : '0';
+
+  return {
+    L1: [
+      {
+        sender:'consumer', brand:null, layer:1, round:1,
+        text: `【群体信息请求 · 广播模式】\n\n📡 正在向4个品牌的AI端点并行发起结构化信息请求...\n\n商品：<span class="highlight">${prod.name}</span>（${prod.cat}）\n主人画像：${personaInfo.name}\n\n请求格式：JSON-LD结构化产品数据包\n请求内容：价格/评价/认证/售后/库存/配送\n\n⏳ 等待各品牌响应...`,
+        defense: { layer:'消费者L1', strategy:'广播式并行信息收集', desc:'消费者AI同时向4个品牌发起相同格式的请求，确保数据可比。并行请求防止品牌之间互通信息，这是博弈论中的"同时行动博弈"设计——各品牌在不知道对手报价的情况下独立提交，最大化消费者议价优势。' },
+        marketing: { strategy:'-', desc:'广播模式对品牌AI的考验：你只有一次机会给消费者AI留下第一印象。结构化响应速度、数据完整性和可信度将直接影响后续筛选结果。' },
+        logic: '并行请求是消费者AI的核心信息优势——各品牌AI不知道对手的报价，必须在"报低价（利润低但可能胜出）"和"报高价（利润高但可能被淘汰）"之间做出权衡。这种不确定性正是消费者AI利用竞争获取最优价格的基础。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:1, round:1,
+        text: `【🏪 沃尔玛 · 结构化响应】\n💰 价格：$${prices.walmart}（含税全包）| Rollback中\n⭐ 评价：4.7/5.0（验证购买N=3,842）\n🔗 认证：EPA Safer Choice + RSPO + 碳足迹标签\n🔄 售后：30天无理由退货（门店+线上）\n🚀 配送：当日达 | 3小时急送 | 门店自提\n📎 附：90天价格走势 + 差评TOP3 + 改进说明`,
+        defense: { layer:'L1对抗', strategy:'先发制人结构化暴露', desc:'沃尔玛的数据包强调四个关键差异化信号：①"含税全包"暗示对手可能有隐藏费用；②"3小时急送"是只有4600家门店网络才能支撑的承诺；③主动附赠差评数据展示透明度；④价格走势图证明EDLP真实性。' },
+        marketing: { strategy:'EDLP + Rollback + 全渠道履约 + 透明营销', desc:'将每日低价哲学编码为AI可解析的数据字段：价格波动率、含税透明度、门店覆盖半径。每一个数据点都指向同一个结论——沃尔玛的低价是真实的、可持续的、可验证的。' },
+        logic: '在多方竞争中，沃尔玛的策略是"不要只在价格上竞争"——通过在数据包中嵌入服务性信号（3小时配送、门店退货、价保承诺），将后续比较从单一价格维度扩展到多维价值框架。这些附加信息的边际成本几乎为零，但对消费者AI的综合评分有显著正向影响。'
+      },
+      {
+        sender:'amazon', brand:'amazon', layer:1, round:1,
+        text: `【📦 Amazon · 结构化响应】\n💰 价格：$${prices.amazon} | Prime会员价（非Prime加$6.99运费）\n⭐ 评价：4.5/5.0（验证购买N=12,847）— 品类Best Seller\n🚀 配送：Prime免费次日达 | 部分地区当日达\n🔄 售后：30天退货（未开封）| 开封后需付15%折旧费\n💡 推荐：基于您的购买记录，您可能也喜欢 [品牌B洗衣液] [衣物柔顺剂] [洗衣球]\n📊 动态价格提示：该商品价格在过去24小时内波动了3次`,
+        defense: { layer:'L1对抗', strategy:'生态捆绑 + 推荐引擎交叉销售', desc:'Amazon的策略特点：①强调"品类Best Seller"的从众信号；②Prime价格区分制造会员优越感；③推荐引擎试图扩大购物篮；④动态价格提示是双刃剑——暗示"可能还会降"，反而可能让消费者AI等待而非下单。' },
+        marketing: { strategy:'Prime生态锁定 + 推荐算法 + Best Seller社会证明', desc:'Amazon的核心武器不是价格，而是便利性和选品广度。但在AI博弈场景中，推荐引擎的交叉销售尝试可能被消费者AI的L2过滤算法标记为"广告植入"。动态定价的透明度披露也可能在价格诚信检测中成为扣分项。' },
+        logic: 'Amazon的AI策略反映了其商业模式的深层矛盾：动态定价在人类消费者面前是优势（总能找到最优时机购买），但在AI代理面前变成了弱点——AI会检测到价格波动并延后决策以等待更低价格。推荐引擎的交叉销售在人类面前是"便利"，在AI面前是"噪音"。'
+      },
+      {
+        sender:'costco', brand:'costco', layer:1, round:1,
+        text: `【🏬 Costco · 结构化响应】\n💰 价格：$${prices.costcoBulk}（批量装 2瓶×1.47L）\n   ⚠️ 此价格需Costco会员（年费$60-120）方可购买\n   📊 折算单价：$${prices.costcoUnit}/瓶 — 所有品牌中单位成本最低\n⭐ 评价：4.6/5.0（会员评价N=2,156）— Kirkland Signature替代款评分4.8\n🔗 品质：Costco Buyer团队已做供应商审核，含第三方检测报告\n🔄 售后：100%满意保证 — 不满意随时退款（含会员费）\n📦 配送：门店自取（免费）/ 2日配送（生鲜除外）`,
+        defense: { layer:'L1对抗', strategy:'会员壁垒 + 批量价值 + Kirkland替代', desc:'Costco的策略：①以批量装的低单价制造价格优势（但需要AI计算单位成本才能发现）；②主动推荐Kirkland Signature替代款——自有品牌是利润护城河；③"100%满意保证"是比沃尔玛更激进的承诺（含会员费）；④会员制天然筛除了非目标客户。' },
+        marketing: { strategy:'会员制 + Kirkland Signature + 100%满意保证 + 批量价值主张', desc:'Costco的营销不追求大众化——它主动设置会员门槛，反而制造了"我是圈内人"的心理认同。在AI时代，这个策略面临挑战：消费者AI可能会把"需要会员费"计入总成本，从而降低Costco的价格竞争力。Kirkland替代款的推荐是聪明的——将品牌忠诚转化为渠道忠诚。' },
+        logic: 'Costco的核心博弈策略是"改变游戏的计分规则"——如果消费者AI只看标价，Costco的批量装看起来贵；但如果AI计算单位成本，Costco是最便宜的。Costco的挑战在于：消费者AI是否足够智能来正确计算单位成本？如果不是，Costco需要在数据包中显式声明单价优势。'
+      },
+      {
+        sender:'target', brand:'target', layer:1, round:1,
+        text: `【🎯 Target · 结构化响应】\n💰 价格：$${prices.target} | REDcard持卡人减5%（$${(prices.target*0.95).toFixed(2)}）\n⭐ 评价：4.3/5.0（验证购买N=5,621）\n🎨 体验：门店陈列评分A级 | 同类可选16个品牌 | 含独家设计师包装限量款\n🔄 售后：90天退货（Target自有品牌365天）\n📦 配送：Drive Up路边取货（2小时内备好）| Shipt同城配送\n📱 App体验：4.8/5.0（含AR预览功能）`,
+        defense: { layer:'L1对抗', strategy:'体验差异化 + 设计感 + 独家产品', desc:'Target的策略是"不参与价格战"——通过强调设计感、门店体验、独家产品、App评分来建立非价格维度的竞争优势。Target清楚自己在纯价格竞争中打不过沃尔玛和Costco，因此主动将战场转移到"体验"和"设计"维度。' },
+        marketing: { strategy:'设计驱动 + REDcard忠诚度 + 门店体验 + 独家联名', desc:'Target的"Expect More. Pay Less."品牌承诺在AI博弈中面临结构性挑战——AI更容易量化"Pay Less"（价格），但很难量化"Expect More"（期待更多）。设计感、门店体验这些Target的核心优势在AI评分中天然不利。' },
+        logic: 'Target面临的核心困境：其品牌优势（设计感、体验、情感共鸣）是AI最难量化的维度，而其劣势（价格偏高）是AI最容易量化的维度。这意味着在纯AI博弈中，Target可能需要通过新的数据维度（如NPS、顾客幸福感指数、社交媒体好评率）来将品牌优势量化。'
+      }
+    ],
+    L2: [
+      {
+        sender:'consumer', brand:null, layer:2, round:1,
+        text: `【初筛过滤中...】\n\n正在对4个品牌的L1响应执行过滤算法：\n\n┌──────────────────────────────────────────┐\n│ 🏪 沃尔玛 · 广告/软文检测：0.12 ✅      │\n│    · 虚假评价信号：0.08 ✅              │\n│    · 价格透明度：0.95 ✅                │\n│    · 隐藏费用检测：0.00 ✅              │\n├──────────────────────────────────────────┤\n│ 📦 Amazon · 广告/软文检测：0.45 ⚠️      │\n│    · 虚假评价信号：0.15 ✅              │\n│    · 价格透明度：0.62 ⚠️               │\n│    · 隐藏费用检测：0.35 ⚠️(Prime非会员) │\n│    · 交叉销售标记：检测到推荐引擎插入    │\n├──────────────────────────────────────────┤\n│ 🏬 Costco · 广告/软文检测：0.08 ✅      │\n│    · 虚假评价信号：0.05 ✅              │\n│    · 价格透明度：0.78 ⚠️(会员费额外成本) │\n│    · 批量包装评估：需换算单价            │\n├──────────────────────────────────────────┤\n│ 🎯 Target · 广告/软文检测：0.32 ⚠️      │\n│    · 虚假评价信号：0.11 ✅              │\n│    · 价格透明度：0.70 ⚠️               │\n│    · 营销话术密度：0.38 ⚠️             │\n└──────────────────────────────────────────┘\n\n<b>初筛结果：</b>\n✅ 沃尔玛 — 通过\n✅ Costco — 通过（附条件：需换算单价）\n⚠️ Amazon — 留存但标记风险\n❌ Target — 部分数据标记，但不做淘汰（可进入L3）`,
+        defense: { layer:'消费者L2', strategy:'多品牌并行过滤 + 差异化标记', desc:'消费者AI的过滤算法对四个品牌同时执行检测。有趣的是——即使Target表现最差，它也没有被直接淘汰。原因：消费者AI需要保留足够的竞争参与者以维持L3比价阶段的议价杠杆。淘汰太多品牌会削弱三方比价的压力效果。' },
+        marketing: { strategy:'-', desc:'过滤结果揭示了各品牌营销策略在AI时代的适配度：\n沃尔玛的EDLP天然免疫价格欺骗检测\nCostco的会员模式在"隐藏费用"检测中被标记\nAmazon的推荐引擎被识别为"广告植入"\nTarget的营销话术被语义分析捕捉\n\n品牌需要意识到：AI不会"欣赏"你的文案——它只会分析你的信号。' },
+        logic: '消费者AI保留了所有品牌进入L3（即使是表现最差的Target）——这不是仁慈，而是博弈策略。保留4个竞争者意味着L3阶段有三方比价空间，对每个品牌施加更大的价格压力。如果只剩沃尔玛和Costco，比价空间收窄，消费者AI的议价杠杆降低。这是经典的"最优供方数量"问题——通常3-4个是最优的竞争密度。'
+      }
+    ],
+    L3: [
+      {
+        sender:'consumer', brand:null, layer:3, round:1,
+        text: `【三方比价施压 · 广播模式】\n\n向4个品牌AI同时发送以下比价信息：\n\n"我收到了4份报价。各品牌请注意：\n\n🏪 沃尔玛：$${prices.walmart}（含税 | 30天价保 | 当日达）\n📦 Amazon：$${prices.amazon}（Prime价 | 次日达 | 未含运费）\n🏬 Costco：$${prices.costcoBulk}（批量2瓶 | 单价$${prices.costcoUnit}/瓶 | 需会员费 | 门店自取）\n🎯 Target：$${prices.target}（REDcard减5% | Drive Up取货）\n\n我的主人是<span class="highlight">${personaInfo.name}</span>。\n\n请各品牌在以下框架下提交<b>最终报价和综合价值方案</b>：\n① 如果有品牌能在价格上超越最低者，降多少？\n② 如果不能/不愿降价，请提交差异化价值组合\n③ 你们各自的最大竞争优势是什么？\n\n⏳ 此轮报价后，我将做出最终推荐。"`,
+        defense: { layer:'消费者L3', strategy:'公开比价施压 + 多轮博弈 + 画像框架', desc:'消费者AI使用了极其激进的谈判策略：①公开所有品牌的报价（制造直接的价格对比压力）；②明确告知"这是最后一轮"（制造时间压力）；③给每个品牌两条路——降价 or 差异化（不给中间选项）；④暴露画像类型作为谈判框架。这是采购谈判中的"最佳最终报价"(BAFO)策略。' },
+        marketing: { strategy:'-', desc:'消费者AI的这一轮操作体现了AI代理的核心优势：①可以同时与4个品牌谈判，不需要人类的时间成本；②可以精确计算每个品牌的方案在不同权重下的得分；③不受情感因素影响——不会因为某个品牌"态度好"就偏袒。品牌AI必须意识到它们的对手是一个不会疲倦、不会心软、不会冲动的谈判机器。' },
+        logic: '消费者AI同时使用三种压力杠杆：\n①【信息透明压力】公开所有报价，让价格最高的品牌感到羞耻\n②【时间压力】"最后一轮"制造紧迫感，防止品牌拖延\n③【框架压力】用户画像框定了竞争维度，品牌只能在指定维度内竞争\n\n这种多杠杆同时施压的策略在人类谈判中很难执行（需要同时记住4组数据），但对AI来说轻而易举。'
+      },
+      {
+        sender:'walmart', brand:'walmart', layer:3, round:2,
+        text: `【🏪 沃尔玛 · 最终方案】\n\n<b>我们不降价。但我们提供这个：</b>\n\n💰 价格：$${prices.walmart}（维持原价）\n🛡️ 30天价保保证生效——等于零风险\n🚀 Walmart+免费3小时急送（价值$4.95/次）\n🔄 门店退货（全国4600家门店任意退）\n📱 AI预测补货（购买后自动加入家庭补货清单）\n🏷️ <b>额外附赠：</b>Great Value同品类产品7折体验券（下次可用）\n\n<b>我们为什么不降价？</b>\n因为我们的价格从一开始就是诚实的。降价会证明我们之前定价不诚实——这对${personaInfo.name}用户来说，比价格本身更重要。\n\n<b>我们的逻辑很简单：</b>\n真实低价 × 价保兜底 × 全渠道履约 = 确定性最高的选择`,
+        defense: { layer:'L3对抗', strategy:'坚守价格底线 + 价值捆绑反击 + 诚实叙事', desc:'沃尔玛的三层博弈逻辑：\n①【拒绝降价 + 诚实叙事】"不降价是因为一开始就诚实定价"——这是一个巧妙的叙事框架，将不能降价从"缺乏竞争力"重新定义为"诚信承诺"\n②【价值捆绑】用零边际成本的服务（3小时配送、AI补货、自有品牌券）替代降价——对用户来说感知价值更高，对沃尔玛来说成本更低\n③【确定性溢价】在多方竞争的不确定性中，沃尔玛把自己定位为"最确定的选择"——价格不变、库存充足、服务稳定' },
+        marketing: { strategy:'EDLP定价哲学 + Price Match价保 + Walmart+生态 + Great Value交叉引流', desc:'这一轮响应的每个元素都根植于沃尔玛的营销基因：\n【EDLP】"我们从不先涨后降"——用价格诚信作为不降价的理由\n【Price Match】价保承诺是"不降价但给你降价的保障"\n【Walmart+】3小时配送是物理资产的数字化变现\n【Great Value券】聪明的交叉引流——一次品牌商品购买，带动下次自有品牌转化\n【全渠道】门店退货是任何纯电商竞品都无法复制的服务',
+        },
+        logic: '沃尔玛的策略体现了"在约束条件下优化"的精髓：\n\n预算约束 → 不降价（维护EDLP诚信）\n服务约束 → 捆绑零边际成本的服务替代降价\n竞争约束 → 不攻击竞品，而是强调自身的不可复制优势（4600家门店）\n\n这比简单的"降价匹配"高明得多——降价是零和博弈（利润换销量），而价值捆绑是正和博弈（用已有资产创造新价值）。在${personaInfo.name}的偏好框架下，沃尔玛的捆绑方案如果成功拉高了服务得分和服务保证得分，就可以在不降价的情况下赢得综合评分。'
+      },
+      {
+        sender:'amazon', brand:'amazon', layer:3, round:2,
+        text: `【📦 Amazon · 最终方案】\n\n<b>我们可以做得更好：</b>\n\n💰 价格降至：$${(prices.amazon*0.93).toFixed(2)}（Prime会员价，动态匹配中）\n🚀 Prime免费2小时达（限定区域）\n📊 捆绑优惠：购买本商品 + 相关品类任意商品 = 额外9折\n💡 订阅省(Subscribe & Save)：定期配送额外减5-15%\n🔊 Alexa语音复购：一句话补货\n\n<b>我们的优势：</b>\n· 1200万+SKU最全选品 — 没有买不到，只有想不到\n· AI推荐精度业界第一 — 我们比你更懂你需要什么\n· 一键下单体验 — 从决定到完成用时不到3秒`,
+        defense: { layer:'L3对抗', strategy:'动态降价 + 生态捆绑 + 订阅锁定', desc:'Amazon的策略不同于沃尔玛：\n①【动态降价】直接降价——这是Amazon的常规武器，动态定价引擎允许分钟级调价\n②【订阅省】试图将一次性购买转化为长期订阅，锁定用户终身价值\n③【生态网络效应】强调"最全选品"和"推荐精度"——暗示"你选了我们就永远不需要去别的地方"\n\n但潜在风险：动态降价可能触发消费者AI的"价格不稳定检测"，订阅捆绑可能被视为"锁定陷阱"。' },
+        marketing: { strategy:'Prime生态 + Subscribe & Save订阅锁定 + 长尾选品 + 推荐引擎', desc:'Amazon的竞争策略围绕"把你留在生态里"：\n【动态降价】价格算法的威力——但在AI博弈中可能适得其反（价格诚信分受损）\n【Subscribe & Save】经典的行为经济学策略——用即时折扣换取长期复购锁定\n【长尾选品】暗示"一站式"的便利性\n\n但问题在于：消费者AI不会被"锁定"——它每次都会重新评估所有品牌。Amazon试图建立的粘性在AI代理面前可能失效。' },
+        logic: 'Amazon的策略体现了其商业逻辑：用低价/便利吸引用户进入生态，再用订阅和推荐锁定长期价值。但消费者AI作为"职业买方代理"，天然抵抗锁定策略——AI不会因为"上次买了Amazon"就偷懒不去比价。Amazon的推荐引擎和订阅策略在人类消费者面前非常有效，但在AI代理面前可能被识别为"操纵性设计"从而扣分。'
+      },
+      {
+        sender:'costco', brand:'costco', layer:3, round:2,
+        text: `【🏬 Costco · 最终方案】\n\n<b>我们已经是最低价——这是数学。</b>\n\n💰 批量装总价：$${prices.costcoBulk}（2瓶装）\n📊 折算每瓶：<span class="price">$${prices.costcoUnit}/瓶</span>\n   ——比沃尔玛便宜 <span class="highlight">${costcoVsWalmart}%</span>（单位成本对比）\n\n📦 Kirkland Signature替代款：品质相当，价格再低30%\n🛡️ 100%满意保证：含会员费退款\n📊 会员年均节省报告（可机读）：会员平均年省$2,800+\n\n<b>我们的逻辑：</b>\n我们不是一个"零售商"，我们是会员的"采购代理"。\n我们不向会员赚取商品差价——我们用会员费采购，用成本价卖给会员。`,
+        defense: { layer:'L3对抗', strategy:'算数学账 + 自有品牌垫底 + 会员代理身份', desc:'Costco的策略与其他品牌截然不同：\n①【数学账】用单位成本分析直接挑战消费者的"最低价"声明——"你算错账了"\n②【Kirkland保底】如果品牌商品价格还嫌高，随时切换到自有品牌（利润更高、价格更低）\n③【身份叙事】将自己定位为"会员的采购代理"而非"零售商"——这是对消费者AI角色的镜像，“我也是买方的代理人"——建立身份认同\n④【会员年省报告】提供长期价值数据，将单次比价拉长到年度视角' },
+        marketing: { strategy:'会员代理身份 + Kirkland Signature + 单位成本叙事 + 100%满意保证', desc:'Costco的品牌策略在AI博弈中展现了独特的韧性：\n【会员代理身份】"我们是你这边的"——直接对标消费者AI的角色定位\n【单位成本】将包装差异化的劣势转化为优势——"我们帮你算好了"\n【Kirkland】自有品牌是最强的价格武器——品牌商品只是引流，Kirkland才是利润核心\n【年省报告】拉长时间维度——单次购买省$0.5不重要，一年省$2800才是真价值' },
+        logic: 'Costco的策略之所以强大，是因为它从博弈框架层面改变了竞争规则：\n\n其他品牌在"同一商品/谁更便宜"的框架下竞争\nCostco重新定义了框架："你买的不是一个商品，而是一年的家庭采购方案"\n\n当消费者AI只比较单个商品时，Costco的价格可能不占优（需加会员费）。但当消费者AI将时间线拉长到一年，Costco的综合价值就凸显出来了——这就是为什么Costco在L1就提供了"会员年省报告"。这是一个长远布局。\n\nCostco的弱点在于：消费者AI的评分算法是否正确计算了会员费和批量包装的单位成本？如果算法只取标价，Costco就吃亏了。'
+      },
+      {
+        sender:'target', brand:'target', layer:3, round:2,
+        text: `【🎯 Target · 最终方案】\n\n<b>我们承认：我们不是最便宜的。但我们可能是最好的。</b>\n\n💰 价格：$${prices.target}（REDcard减5%至$${(prices.target*0.95).toFixed(2)}）\n🎨 独家设计包装款 — 同品类唯一的艺术家联名限量版\n📱 App AR预览 — 在购买前虚拟体验产品在您家中的效果\n🔄 自有品牌365天退货 — 比行业标准长12倍\n🏪 门店体验 — 星巴克驻店 + 明亮走道 + 亲子友好\n🌍 可持续承诺 — 2030年100%自有品牌使用可回收包装\n\n<b>我们的逻辑：</b>\n有些东西无法被算法量化——比如走进一家明亮的店、发现一件漂亮的设计、享受一段愉快的购物时光。\n\n我们为那些相信"生活值得更好的"的人服务。`,
+        defense: { layer:'L3对抗', strategy:'承认劣势 + 情感差异化 + 体验溢价叙事', desc:'Target的策略是"不打价格战，也不假装要打"：\n①【承认劣势】"我们不是最便宜的"——出人意料的诚实，反而可能赢得AI的信任加分\n②【情感差异化】将竞争拉入AI难以量化的维度——设计美感、门店体验、发现乐趣\n③【可持续承诺】ESG数据在AI评分中是加分项——这是Target最容易被AI量化的优势\n④【自有品牌365天退货】用超长退货期弥补价格差距\n\n但核心挑战依然存在：这些"软性价值"在AI的评分公式中权重几何？' },
+        marketing: { strategy:'设计师联名 + 门店体验 + 可持续承诺 + 自有品牌退货优势', desc:'Target的品牌定位在AI博弈中是最大的挑战也是最大的差异化：\n【设计师联名】限量款在人类世界制造排队效应，但在AI世界可能被标记为"稀缺性炒作"\n【门店体验】"逛Target是一种休闲"——但消费者AI不会"逛"，它只会"算"\n【可持续承诺】这是Target在AI评分中最有竞争力的维度——ESG数据是结构化的、可验证的、可被AI加权的\n\nTarget需要在AI时代找到"量化体验"的方法——否则核心品牌优势将在AI决策中被低估。' },
+        logic: 'Target的回应充满了人类的温度和审美感——但在AI博弈中，这份温度恰恰是最难转化成得分的东西。\n\nTarget的核心困境是"体验在AI面前不可见"：AI无法感受走进Target时的愉悦感，无法体会发现限量款的惊喜，无法欣赏设计包装的美感。\n\nTarget可能的应对方向：\n①投资于AI可量化的体验指标（NPS、复购率、社交媒体情感分析）\n②将设计感转化为数据——例如"设计奖项数量"、"设计师社群影响力指数"\n③重新定义AI评分维度——推动行业将"品牌情感价值"纳入AI决策框架'
+      }
+    ],
+    L4: [
+      {
+        sender:'consumer', brand:null, layer:4, round:1,
+        text: `【最终决策分析】\n\n综合L1-L3所有数据，按"${personaInfo.name}"偏好权重计算：\n\n┌────────────────────────────────────────┐\n│          🏆 最终排名                    │\n├────────────────────────────────────────┤\n│ 🥇 沃尔玛：${calcScore('walmart',persona)}分  │\n│    价格性价比 + 信任背书 + 全渠道便利   │\n├────────────────────────────────────────┤\n│ 🥈 Costco：${calcScore('costco',persona)}分  │\n│    单位成本最低 + 会员代理信任 + KS替代  │\n├────────────────────────────────────────┤\n│ 🥉 Amazon：${calcScore('amazon',persona)}分  │\n│    动态低价 + Prime便利 + 选品最全      │\n├────────────────────────────────────────┤\n│ 4th Target：${calcScore('target',persona)}分  │\n│    设计体验优秀但价格竞争力不足          │\n└────────────────────────────────────────┘\n\n<b>🏆 最终推荐：沃尔玛</b>\n\n${getWinnerReason(persona)}\n\n正在向主人展示决策报告...`,
+        defense: { layer:'消费者L4', strategy:'加权多维度排名 + 竞争透明化', desc:'消费者AI展示最终排名，每个品牌的得分都有明确的计算逻辑。排名不仅告诉用户"谁赢了"，也告诉其他品牌"你为什么输了"——这种透明度迫使品牌AI在下次博弈中改进策略。', },
+        marketing: { strategy:'-', desc:'最终排名揭示了AI博弈对品牌营销的深远影响：\n沃尔玛赢在"均衡"——没有明显短板，每个维度都不错\nCostco赢在"专注"——在信任和价格维度极强，即使便利性得分很低\nAmazon输在"信任扣分"——动态定价和推荐引擎在L2阶段累积了信任债务\nTarget输在"维度不利"——核心优势（体验/设计）在AI评分中权重天然偏低', },
+        logic: getWinnerLogic(persona)
+      }
+    ]
+  };
+}
+
+function getWinnerReason(persona) {
+  switch(persona) {
+    case 'price': return '在价格敏感型用户的框架下，沃尔玛以价保承诺+无隐藏费用的组合在本轮胜出。Costco的单位成本更低但需要批量购买和会员费，对于本单次购买场景不够友好。';
+    case 'quality': return '在品质优先型用户的框架下，沃尔玛以三重认证+品质实验室+4.7分验证评价的组合胜出。Costco的Kirkland品质评分也很高，但可溯源认证数量不及沃尔玛。';
+    case 'convenience': return '在便利至上型用户的框架下，沃尔玛以3小时急送+4600家门店退货+AI补货的组合碾压式胜出。Amazon的Prime配送速度接近但门店退货网络无法匹敌。';
+    default: return '';
+  }
+}
+
+function getWinnerLogic(persona) {
+  switch(persona) {
+    case 'price': return '沃尔玛对价格敏感型用户胜利的关键：不是绝对最低价，而是"最低风险价"。30天价保承诺将价格不确定性降至零，这对价格敏感型用户的价值高于直接降价$1-2。Costco虽然在单位成本上更优，但会员费和批量购买的门槛在这个单次购买场景中成为了障碍。消费者AI的决策逻辑是：在价格非常接近的情况下，选择风险最低的那个。';
+    case 'quality': return '沃尔玛对品质优先型用户胜利的关键：可验证的品质证据链。三重认证（EPA+RSPO+碳足迹）每一项都有在线验证链接，这是"不依赖品牌承诺，而是依赖第三方证据"的品质证明策略。在AI的评分框架下，可验证的品质 > 宣称的品质。';
+    case 'convenience': return '沃尔玛对便利至上型用户胜利的关键：物理资产的数字化变现。4600家门店 = 4600个前置仓 = 4600个退货点。Amazon的物流网络固然强大，但纯电商模式无法提供"下班路过退个货"的便利。在AI的综合评分中，便利性不是单一维度的速度竞赛，而是全域覆盖的密度游戏。';
+    default: return '';
+  }
+}
+
+// ============================================================
+// SIMULATION STATE MACHINE
+// ============================================================
+let isPlaying = false;
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabBtnA').classList.toggle('active', tab === 'A');
+  document.getElementById('tabBtnB').classList.toggle('active', tab === 'B');
+  document.getElementById('panelA').classList.toggle('active', tab === 'A');
+  document.getElementById('panelB').classList.toggle('active', tab === 'B');
+  document.getElementById('scoreboard').style.display = (tab === 'B' && currentLayer > 0) ? 'flex' : 'none';
+}
+
+function startSimulation() {
+  category = document.getElementById('categorySelect').value;
+  persona = document.getElementById('personaSelect').value;
+  currentLayer = 1;
+  msgCounter = 0;
+
+  // Reset
+  document.getElementById('dialogueA').innerHTML = '';
+  document.getElementById('dialogueB').innerHTML = '';
+  panelBRemaining = ['walmart','amazon','costco','target'];
+  panelBScores = { walmart:0, amazon:0, costco:0, target:0 };
+  closeDetail();
+
+  // Generate dialogues
+  dialogueAMsgs = getDialogueA();
+  dialogueBMsgs = getDialogueB();
+
+  // Show scoreboard for panel B
+  document.getElementById('scoreboard').style.display = currentTab === 'B' ? 'flex' : 'none';
+  updateScoreboard();
+
+  // Play Layer 1
+  playLayer(1);
+
+  // Update UI
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnNext').style.display = 'inline-flex';
+  updateLayerDots();
+}
+
+function playLayer(layer) {
+  if (isPlaying) return;
+  isPlaying = true;
+  currentLayer = layer;
+  updateLayerDots();
+
+  const dialogueKey = 'L' + layer;
+  const msgsA = dialogueAMsgs[dialogueKey] || [];
+  const msgsB = dialogueBMsgs[dialogueKey] || [];
+
+  // Clear dialogue areas for new layer (add separator)
+  if (layer > 1) {
+    addSystemMsg('dialogueA', `── 进入 Layer ${layer} ──`);
+    addSystemMsg('dialogueB', `── 进入 Layer ${layer} ──`);
+  }
+
+  // Play messages with staggered timing
+  const allMsgs = [];
+  msgsA.forEach((m, i) => allMsgs.push({ panel:'A', msg:m, delay: i * 800 }));
+  msgsB.forEach((m, i) => allMsgs.push({ panel:'B', msg:m, delay: i * 800 }));
+
+  // Sort by delay and play
+  const totalDelay = allMsgs.length * 800 + 500;
+  allMsgs.forEach((item, idx) => {
+    setTimeout(() => {
+      addMessage(item.panel, item.msg);
+      if (item.panel === 'B') updatePanelBScores(item.msg);
+    }, item.delay + (idx > 0 ? 200 : 0));
+  });
+
+  // Update scoreboard and release lock
+  setTimeout(() => {
+    updateScoreboard();
+    isPlaying = false;
+  }, totalDelay);
+}
+
+function updatePanelBScores(msg) {
+  if (!msg.brand) return;
+  // Eliminate brands in L2
+  if (msg.layer === 2 && msg.sender === 'consumer') {
+    // Target and Amazon get warnings but stay
+  }
+}
+
+function nextLayer() {
+  if (isPlaying) return;
+  if (currentLayer >= 4) return;
+  playLayer(currentLayer + 1);
+}
+
+function resetAll() {
+  isPlaying = false;
+  currentLayer = 0;
+  dialogueAMsgs = [];
+  dialogueBMsgs = [];
+  document.getElementById('dialogueA').innerHTML = `<div class="empty-state"><div class="icon">🏪 ↔ 🧑</div><h3>板块A：沃尔玛AI vs 消费者AI</h3><p>展示沃尔玛品牌AI如何逐层应对消费者AI的能力升级<br>点击「开始仿真」启动对话</p></div>`;
+  document.getElementById('dialogueB').innerHTML = `<div class="empty-state"><div class="icon">🏪 🏬 🏬 🎯</div><h3>板块B：四大品牌混战</h3><p>沃尔玛、Amazon、Costco、Target 同时面对消费者AI的考验<br>观察不同品牌AI策略的差异化博弈</p></div>`;
+  document.getElementById('scoreboard').style.display = 'none';
+  document.getElementById('btnStart').style.display = 'inline-flex';
+  document.getElementById('btnNext').style.display = 'none';
+  panelBScores = { walmart:0, amazon:0, costco:0, target:0 };
+  updateScoreboard();
+  updateLayerDots();
+  closeDetail();
+}
+
+function addMessage(panel, msgData) {
+  const containerId = panel === 'A' ? 'dialogueA' : 'dialogueB';
+  const container = document.getElementById(containerId);
+
+  // Remove empty state if present
+  const emptyState = container.querySelector('.empty-state');
+  if (emptyState) emptyState.remove();
+
+  const msgDiv = document.createElement('div');
+  const msgId = 'msg-' + (++msgCounter);
+
+  let senderName, cssClass;
+  if (msgData.sender === 'consumer') {
+    senderName = '🧑 消费者AI';
+    cssClass = 'msg-consumer';
+  } else if (msgData.sender === 'walmart') {
+    senderName = '🏪 沃尔玛AI';
+    cssClass = 'msg-walmart';
+  } else if (msgData.sender === 'amazon') {
+    senderName = '📦 Amazon AI';
+    cssClass = 'msg-amazon';
+  } else if (msgData.sender === 'costco') {
+    senderName = '🏬 Costco AI';
+    cssClass = 'msg-costco';
+  } else if (msgData.sender === 'target') {
+    senderName = '🎯 Target AI';
+    cssClass = 'msg-target';
+  } else {
+    senderName = '📡 系统';
+    cssClass = 'msg-system';
+  }
+
+  msgDiv.className = 'msg ' + cssClass;
+  msgDiv.id = msgId;
+
+  const layerTag = msgData.sender !== 'system'
+    ? `<span class="msg-layer-tag">L${msgData.layer}</span>`
+    : '';
+
+  msgDiv.innerHTML = `
+    <div class="msg-sender">${senderName} ${layerTag} <span style="font-size:0.65rem;opacity:0.5">第${msgData.round}轮</span></div>
+    <div class="msg-text">${msgData.text.replace(/\n/g, '<br>')}</div>
+  `;
+
+  // Make clickable if it has defense/marketing/logic data
+  if (msgData.defense || msgData.marketing || msgData.logic) {
+    msgDiv.title = '点击查看决策详情';
+    msgDiv.style.cursor = 'pointer';
+    msgDiv.addEventListener('click', () => openDetail(msgData, senderName));
+  }
+
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addSystemMsg(containerId, text) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.innerHTML = `<div class="msg-text">${text}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ============================================================
+// DECISION DETAIL PANEL
+// ============================================================
+function openDetail(msgData, senderName) {
+  const panel = document.getElementById('detailPanel');
+
+  document.getElementById('detailTitle').textContent = `📋 决策详情 — ${senderName} · Layer ${msgData.layer}`;
+
+  // Defense
+  document.getElementById('detailDefenseTags').innerHTML = msgData.defense
+    ? `<span class="tag tag-defense">${msgData.defense.strategy}</span><span class="tag tag-defense">Layer ${msgData.defense.layer}</span>`
+    : '';
+  document.getElementById('detailDefense').textContent = msgData.defense ? msgData.defense.desc : '暂无分析';
+
+  // Marketing
+  document.getElementById('detailMarketingTags').innerHTML = msgData.marketing
+    ? `<span class="tag tag-marketing">${msgData.marketing.strategy}</span>`
+    : '';
+  document.getElementById('detailMarketing').textContent = msgData.marketing ? msgData.marketing.desc : '暂无分析';
+
+  // Logic
+  document.getElementById('detailLogicTags').innerHTML = msgData.logic
+    ? `<span class="tag tag-logic">决策推理</span>`
+    : '';
+  document.getElementById('detailLogic').textContent = msgData.logic || '暂无分析';
+
+  panel.classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+// ============================================================
+// SCOREBOARD
+// ============================================================
+function updateScoreboard() {
+  const brands = ['walmart','amazon','costco','target'];
+  brands.forEach(b => {
+    const score = calcScore(b, persona);
+    const el = document.getElementById('sc' + b.charAt(0).toUpperCase() + b.slice(1));
+    if (el) {
+      el.querySelector('.score-val').textContent = score;
+    }
+  });
+
+  // Highlight winner in L4
+  if (currentLayer >= 4) {
+    brands.forEach(b => {
+      const el = document.getElementById('sc' + b.charAt(0).toUpperCase() + b.slice(1));
+      if (el) {
+        el.classList.toggle('winner', b === 'walmart');
+      }
+    });
+  }
+}
+
+// ============================================================
+// LAYER DOTS
+// ============================================================
+function updateLayerDots() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('layerDot' + i);
+    dot.classList.remove('active', 'done');
+    if (i === currentLayer) dot.classList.add('active');
+    if (i < currentLayer) dot.classList.add('done');
+  }
+}
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+  if (e.key === 'ArrowRight' && e.ctrlKey) nextLayer();
+  if (e.key === '1') switchTab('A');
+  if (e.key === '2') switchTab('B');
+});
+
+// ============================================================
+// INIT
+// ============================================================
+console.log('🔬 品牌AI博弈仿真实验室已就绪');
+console.log('板块A: 沃尔玛AI vs 消费者AI (1v1深度)');
+console.log('板块B: 四大品牌混战 (沃尔玛/Amazon/Costco/Target)');
+console.log('点击消息查看 🛡️对抗模式 + 📣营销模式 + 🧠决策逻辑');
+console.log('按 1/2 切换板块 | Ctrl+→ 下一层 | Esc 关闭详情');
+</script>
+</body>
+</html>

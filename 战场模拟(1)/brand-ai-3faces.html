@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌AI · 三面角色切换演示</title>
+<style>
+  :root {
+    --bg:#060b14; --surface:#0d1525; --surface2:#131d33; --border:#1a2a44;
+    --text:#dde4f0; --text2:#8899b8; --text3:#506080;
+    --negotiation:#ff6b35; --info:#00b8e8; --experience:#a855f7;
+    --green:#0cd898; --red:#f03050;
+    --radius:12px; --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #app{width:1100px;max-width:98vw;height:92vh;display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto 1fr auto;gap:8px}
+
+  /* Header */
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;gap:8px}
+  header .logo{font-weight:800;font-size:1rem}
+  header .logo span{background:linear-gradient(135deg,var(--negotiation),var(--info),var(--experience));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .header-right{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .header-right button{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;font-weight:600;transition:all 0.2s;white-space:nowrap}
+  .header-right button:hover{border-color:rgba(255,255,255,0.3);transform:translateY(-1px)}
+  .header-right button.accent{background:linear-gradient(135deg,var(--negotiation),#f59e0b);border:none;color:#000;font-weight:700}
+  .live-tag{font-size:0.6rem;padding:3px 10px;border-radius:10px;font-weight:700;font-family:var(--font-mono)}
+  .live-tag.ready{background:rgba(12,216,152,0.15);color:var(--green)}
+
+  /* Chat area */
+  #chatPanel{grid-column:1;grid-row:2;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .chat-head{padding:8px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.72rem;display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .chat-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:radial-gradient(ellipse at 50% 50%,rgba(168,85,247,0.02) 0%,transparent 60%)}
+
+  /* Chat bubbles */
+  .msg-row{display:flex;gap:10px;animation:msgIn 0.4s ease;align-items:flex-start}
+  @keyframes msgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .msg-row.consumer{flex-direction:row}
+  .msg-row.brand{flex-direction:row-reverse}
+  .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+  .avatar.consumer{background:rgba(0,184,232,0.15);border:2px solid rgba(0,184,232,0.3)}
+  .avatar.brand{background:rgba(255,107,53,0.15);border:2px solid rgba(255,107,53,0.3)}
+  .bubble-wrap{max-width:70%;display:flex;flex-direction:column;gap:2px}
+  .bubble{ padding:10px 14px;border-radius:14px;font-size:0.78rem;line-height:1.5;word-break:break-word}
+  .msg-row.consumer .bubble{background:rgba(0,184,232,0.08);border:1px solid rgba(0,184,232,0.2);border-top-left-radius:4px;color:#bae6fd}
+  .msg-row.brand .bubble{background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-top-right-radius:4px;color:#fed7aa}
+
+  /* Role tag */
+  .role-tag{padding:3px 10px;border-radius:10px;font-size:0.6rem;font-weight:700;letter-spacing:0.03em;animation:tagPop 0.3s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;align-self:flex-end}
+  @keyframes tagPop{0%{opacity:0;transform:scale(0.7)}60%{transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}
+  .role-tag.negotiation{background:rgba(255,107,53,0.2);color:var(--negotiation)}
+  .role-tag.info{background:rgba(0,184,232,0.2);color:var(--info)}
+  .role-tag.experience{background:rgba(168,85,247,0.2);color:var(--experience)}
+  .role-tag.switching{animation:tagSwitch 0.3s ease}
+  @keyframes tagSwitch{0%{opacity:0.3;filter:blur(3px)}50%{opacity:0.7}100%{opacity:1;filter:blur(0)}}
+
+  /* Thinking indicator */
+  .thinking{display:flex;gap:4px;padding:10px 14px;align-self:flex-end}
+  .thinking span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:think 1.2s infinite}
+  .thinking span:nth-child(2){animation-delay:0.15s}.thinking span:nth-child(3){animation-delay:0.3s}
+  @keyframes think{0%,60%,100%{transform:translateY(0);opacity:0.3}30%{transform:translateY(-8px);opacity:1}}
+
+  /* Right panel */
+  #sidePanel{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+  .side-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .side-card h4{font-size:0.72rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+  /* Three-axis meter */
+  .axis-row{margin:6px 0}
+  .axis-head{display:flex;justify-content:space-between;font-size:0.62rem;margin-bottom:2px}
+  .axis-bar-wrap{height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;position:relative}
+  .axis-bar{height:100%;border-radius:4px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);position:relative}
+  .axis-bar.price{background:linear-gradient(90deg,#ff6b35,#f59e0b)}
+  .axis-bar.pref{background:linear-gradient(90deg,#00b8e8,#3b82f6)}
+  .axis-bar.emotion{background:linear-gradient(90deg,#a855f7,#ec4899)}
+  .axis-glow{position:absolute;right:0;top:-2px;width:12px;height:12px;border-radius:50%;transition:all 0.5s;filter:blur(2px)}
+  .axis-glow.price-glow{background:var(--negotiation);box-shadow:0 0 12px var(--negotiation)}
+  .axis-glow.pref-glow{background:var(--info);box-shadow:0 0 12px var(--info)}
+  .axis-glow.emotion-glow{background:var(--experience);box-shadow:0 0 12px var(--experience)}
+
+  .active-role-indicator{padding:8px 12px;border-radius:8px;text-align:center;font-weight:700;font-size:0.72rem;transition:all 0.3s}
+  .active-role-indicator.negotiation{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);color:var(--negotiation)}
+  .active-role-indicator.info{background:rgba(0,184,232,0.1);border:1px solid rgba(0,184,232,0.3);color:var(--info)}
+  .active-role-indicator.experience{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);color:var(--experience)}
+
+  /* Timing display */
+  .timing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;font-family:var(--font-mono)}
+  .timing-step{padding:6px 4px;background:var(--surface2);border-radius:6px;font-size:0.58rem}
+  .timing-step .ts-num{font-size:0.85rem;font-weight:800}
+  .timing-step .ts-label{color:var(--text3)}
+
+  /* Bottom controls */
+  #bottomBar{grid-column:1/-1;display:flex;gap:8px;align-items:center;padding:6px 0}
+  .scenario-card{flex:1;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;text-align:left}
+  .scenario-card:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px)}
+  .scenario-card.active{border-color:var(--purple);background:rgba(168,85,247,0.05)}
+  .scenario-card .sc-num{font-family:var(--font-mono);font-size:0.58rem;color:var(--text3)}
+  .scenario-card .sc-title{font-weight:700;font-size:0.72rem;margin:2px 0}
+  .scenario-card .sc-hint{font-size:0.6rem;color:var(--text3)}
+
+  .info-note{font-size:0.58rem;color:var(--text3);font-style:italic;padding:6px 10px;background:rgba(168,85,247,0.04);border-left:2px solid var(--experience);border-radius:0 6px 6px 0;line-height:1.5}
+
+  @media(max-width:900px){#app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}#sidePanel{grid-column:1;flex-direction:row;flex-wrap:wrap}.side-card{flex:1;min-width:150px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><span>⚡ BrandAI · 三面角色</span> <span style="font-size:0.6rem;color:var(--text3);font-weight:400">0.3秒自适应切换</span></div>
+    <div class="header-right">
+      <span class="live-tag ready" id="statusTag">🟢 就绪</span>
+      <button onclick="runScenario('price')" title="消费者比价 → 协商代理模式">💰 场景一：比价</button>
+      <button onclick="runScenario('explore')" title="消费者探索 → 信息提供者模式">🔍 场景二：探索</button>
+      <button onclick="runScenario('emotion')" title="消费者情绪化 → 体验设计师模式">💜 场景三：情感</button>
+      <button class="accent" onclick="runAllScenarios()" title="自动播放全部三个场景">▶ 完整演示 (30s)</button>
+      <button onclick="resetChat()">↺</button>
+    </div>
+  </header>
+
+  <!-- CHAT PANEL -->
+  <div id="chatPanel">
+    <div class="chat-head">
+      <span>💬 消费者AI ⇄ 品牌智能体</span>
+      <span style="font-size:0.55rem;color:var(--text3);margin-left:auto" id="chatStatus">等待对话…</span>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div style="text-align:center;color:var(--text3);padding:30px;font-size:0.75rem;line-height:1.8">
+        🤖<br>选择一个场景开始演示<br>
+        <span style="font-size:0.6rem">或点击 <b style="color:var(--negotiation)">完整演示</b> 自动播放全部三个场景</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div id="sidePanel">
+    <!-- THREE-AXIS METER -->
+    <div class="side-card">
+      <h4>📡 三轴探测 · 实时读数</h4>
+      <div class="timing-grid" style="margin-bottom:8px">
+        <div class="timing-step"><div class="ts-num" style="color:var(--negotiation)">0.1s</div><div class="ts-label">三轴探测</div></div>
+        <div class="timing-step"><div class="ts-num" style="color:var(--info)">0.2s</div><div class="ts-label">角色匹配</div></div>
+        <div class="timing-step"><div class="ts-num" style="color:var(--experience)">0.3s</div><div class="ts-label">切换完成</div></div>
+      </div>
+      <div class="axis-row">
+        <div class="axis-head"><span style="color:var(--negotiation)">💰 价格敏感度</span><span id="priceVal" style="font-family:var(--font-mono);font-size:0.6rem">--</span></div>
+        <div class="axis-bar-wrap"><div class="axis-bar price" id="priceBar" style="width:0%"></div><div class="axis-glow price-glow" id="priceGlow" style="left:-6px"></div></div>
+      </div>
+      <div class="axis-row">
+        <div class="axis-head"><span style="color:var(--info)">🎯 偏好匹配度</span><span id="prefVal" style="font-family:var(--font-mono);font-size:0.6rem">--</span></div>
+        <div class="axis-bar-wrap"><div class="axis-bar pref" id="prefBar" style="width:0%"></div><div class="axis-glow pref-glow" id="prefGlow" style="left:-6px"></div></div>
+      </div>
+      <div class="axis-row">
+        <div class="axis-head"><span style="color:var(--experience)">💜 情绪指数</span><span id="emotionVal" style="font-family:var(--font-mono);font-size:0.6rem">--</span></div>
+        <div class="axis-bar-wrap"><div class="axis-bar emotion" id="emotionBar" style="width:0%"></div><div class="axis-glow emotion-glow" id="emotionGlow" style="left:-6px"></div></div>
+      </div>
+    </div>
+
+    <!-- ACTIVE ROLE -->
+    <div class="side-card">
+      <h4>🎭 当前角色</h4>
+      <div class="active-role-indicator" id="roleIndicator" style="background:rgba(255,255,255,0.02);color:var(--text3)">⚪ 等待触发</div>
+      <div class="info-note" style="margin-top:8px" id="roleExplain">选择场景后，品牌AI将在<b>0.3秒内</b>自动切换到最优角色</div>
+    </div>
+
+    <!-- COUNTER-QUESTION LOG -->
+    <div class="side-card">
+      <h4>🪝 反问式诱导 · 战术日志</h4>
+      <div id="tacticLog" style="font-size:0.6rem;color:var(--text3);line-height:1.5">等待对话开始…</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Scenario cards -->
+  <div id="bottomBar">
+    <div class="scenario-card" id="scCard1" onclick="runScenario('price')">
+      <div class="sc-num">SCENARIO 01</div>
+      <div class="sc-title">💰 比价模式 → 协商代理</div>
+      <div class="sc-hint">消费者问"最便宜的" → 品牌AI变精明算账师</div>
+    </div>
+    <div class="scenario-card" id="scCard2" onclick="runScenario('explore')">
+      <div class="sc-num">SCENARIO 02</div>
+      <div class="sc-title">🔍 探索模式 → 信息提供者</div>
+      <div class="sc-hint">消费者问"有什么推荐" → 品牌AI变知识专家</div>
+    </div>
+    <div class="scenario-card" id="scCard3" onclick="runScenario('emotion')">
+      <div class="sc-num">SCENARIO 03</div>
+      <div class="sc-title">💜 情感模式 → 体验设计师</div>
+      <div class="sc-hint">消费者说"心情不好" → 品牌AI变暖心陪伴</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SCENARIO DATA
+// ============================================================
+const SCENARIOS = {
+  price: {
+    name:'比价模式',
+    role:'negotiation',
+    roleLabel:'协商代理',
+    roleIcon:'💰',
+    roleColor:'#ff6b35',
+    axes:{price:92, pref:25, emotion:8},
+    consumerMsg:'帮我找你们店里最便宜的产品，我预算有限。',
+    // Three-step logic
+    detection:'检测到价格敏感词"最便宜""预算有限" → 价格敏感度 92% ↑ 比价模式确认',
+    roleSwitch:'0.2s 匹配最优角色 → [协商代理]：输出最优报价 + 限时权益 + 比价优势',
+    brandReply:'在回答价格之前，请问您的预算是多少？这样我可以给您匹配最优方案——我们目前有9.9元的基础款，如果您能多出5元，可以升级到含3重权益的标准款。限时120秒内下单，额外赠送运费险。',
+    counterQuestion:'反问"您的预算是多少？" → 获取预算锚点 → 阶梯报价制造选择框架 → 限时权益施加适度压力',
+  },
+  explore: {
+    name:'探索模式',
+    role:'info',
+    roleLabel:'信息提供者',
+    roleIcon:'🔍',
+    roleColor:'#00b8e8',
+    axes:{price:15, pref:87, emotion:12},
+    consumerMsg:'有什么推荐的吗？我不太确定自己想要什么。',
+    detection:'检测到模糊偏好信号"推荐""不确定" → 偏好匹配度 87% ↑ 探索模式确认',
+    roleSwitch:'0.2s 匹配最优角色 → [信息提供者]：输出知识图谱 + 实测数据 + 个性化匹配',
+    brandReply:'在推荐之前，想先了解您平时更喜欢什么口味？根据我们数据库里跟您偏好相似的用户画像，生椰系列和您的匹配度达到了87%。这是我们的实测口味对比数据——',
+    counterQuestion:'反问"平时喜欢什么口味？" → 获取偏好数据 → 知识图谱建立专业信任 → 数据驱动推荐',
+  },
+  emotion: {
+    name:'情感模式',
+    role:'experience',
+    roleLabel:'体验设计师',
+    roleIcon:'💜',
+    roleColor:'#a855f7',
+    axes:{price:5, pref:60, emotion:91},
+    consumerMsg:'今天心情不太好…有什么能让人开心一点的吗。',
+    detection:'检测到情绪信号词"心情不太好""开心" → 情绪指数 91% ↑ 情感模式确认',
+    roleSwitch:'0.2s 匹配最优角色 → [体验设计师]：输出定制化服务 + 人格化表达 + 情感关怀',
+    brandReply:'听到您心情不太好，今天给您准备了一份特别的——我们的"暖心一刻"套餐，包含一杯热生椰拿铁+手写问候卡。不需要您做任何选择，交给我们。甜度、温度、取餐时的问候语，都由您来定。',
+    counterQuestion:'反问"甜度、温度、问候语由您定" → 开放式个性化参数 → 情感链接建立 → 从"买东西"升级为"被照顾"',
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let currentRole = null;
+let isRunning = false;
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function addConsumerMsg(text, delay) {
+  const chat = document.getElementById('chatBody');
+  const row = document.createElement('div');
+  row.className = 'msg-row consumer';
+  row.innerHTML = `
+    <div class="avatar consumer">🛡️</div>
+    <div class="bubble-wrap">
+      <div class="bubble">${text}</div>
+    </div>
+  `;
+  row.style.animationDelay = (delay||0)+'ms';
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return row;
+}
+
+function addBrandMsg(text, role, delay) {
+  const chat = document.getElementById('chatBody');
+  const row = document.createElement('div');
+  row.className = 'msg-row brand';
+  const roleClass = role==='negotiation'?'negotiation':role==='info'?'info':'experience';
+  const roleLabel = role==='negotiation'?'协商代理':role==='info'?'信息提供者':'体验设计师';
+  const roleIcon = role==='negotiation'?'💰':role==='info'?'🔍':'💜';
+  row.innerHTML = `
+    <div class="avatar brand" style="border-color:${role==='negotiation'?'rgba(255,107,53,0.5)':role==='info'?'rgba(0,184,232,0.5)':'rgba(168,85,247,0.5)'};background:${role==='negotiation'?'rgba(255,107,53,0.15)':role==='info'?'rgba(0,184,232,0.15)':'rgba(168,85,247,0.15)'}">🎯</div>
+    <div class="bubble-wrap">
+      <span class="role-tag ${roleClass}">${roleIcon} [${roleLabel}]</span>
+      <div class="bubble">${text}</div>
+    </div>
+  `;
+  row.style.animationDelay = (delay||0)+'ms';
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return row;
+}
+
+function addThinking() {
+  const chat = document.getElementById('chatBody');
+  const row = document.createElement('div');
+  row.className = 'thinking';
+  row.innerHTML = '<span></span><span></span><span></span>';
+  row.id = 'thinkingIndicator';
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeThinking() {
+  const el = document.getElementById('thinkingIndicator');
+  if (el) el.remove();
+}
+
+function addSystemMsg(text) {
+  const chat = document.getElementById('chatBody');
+  const row = document.createElement('div');
+  row.style.cssText = 'text-align:center;padding:8px 0;font-size:0.6rem;color:var(--text3);font-family:var(--font-mono);animation:msgIn 0.3s ease';
+  row.textContent = text;
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ============================================================
+// AXIS METER ANIMATION
+// ============================================================
+function animateAxes(axes) {
+  // Animate bars
+  const priceBar = document.getElementById('priceBar');
+  const prefBar = document.getElementById('prefBar');
+  const emotionBar = document.getElementById('emotionBar');
+  const priceGlow = document.getElementById('priceGlow');
+  const prefGlow = document.getElementById('prefGlow');
+  const emotionGlow = document.getElementById('emotionGlow');
+
+  // First, flash all to 0
+  priceBar.style.width = '0%'; prefBar.style.width = '0%'; emotionBar.style.width = '0%';
+
+  setTimeout(() => {
+    priceBar.style.width = axes.price+'%';
+    prefBar.style.width = axes.pref+'%';
+    emotionBar.style.width = axes.emotion+'%';
+    priceGlow.style.left = `calc(${axes.price}% - 6px)`;
+    prefGlow.style.left = `calc(${axes.pref}% - 6px)`;
+    emotionGlow.style.left = `calc(${axes.emotion}% - 6px)`;
+    document.getElementById('priceVal').textContent = axes.price+'%';
+    document.getElementById('prefVal').textContent = axes.pref+'%';
+    document.getElementById('emotionVal').textContent = axes.emotion+'%';
+  }, 80);
+}
+
+function updateRoleIndicator(role) {
+  const el = document.getElementById('roleIndicator');
+  const explain = document.getElementById('roleExplain');
+  el.className = 'active-role-indicator ' + role;
+  if (role==='negotiation') {
+    el.textContent = '💰 协商代理 · 活跃';
+    explain.innerHTML = '角色策略：<b>最优报价+限时权益+比价优势</b>。不直接回答价格，而是反问预算锚点。';
+    document.getElementById('chatStatus').textContent = '当前角色: 协商代理';
+  } else if (role==='info') {
+    el.textContent = '🔍 信息提供者 · 活跃';
+    explain.innerHTML = '角色策略：<b>知识图谱+实测数据+偏好匹配</b>。不直接推荐，而是反问偏好获取数据。';
+    document.getElementById('chatStatus').textContent = '当前角色: 信息提供者';
+  } else if (role==='experience') {
+    el.textContent = '💜 体验设计师 · 活跃';
+    explain.innerHTML = '角色策略：<b>定制化服务+人格化表达+情感关怀</b>。不直接给选项，而是反问个性化参数。';
+    document.getElementById('chatStatus').textContent = '当前角色: 体验设计师';
+  }
+}
+
+// ============================================================
+// SCENARIO RUNNER
+// ============================================================
+async function runScenario(type) {
+  if (isRunning) return;
+  isRunning = true;
+
+  // Highlight active card
+  document.querySelectorAll('.scenario-card').forEach(c=>c.classList.remove('active'));
+  const cardIdx = type==='price'?0:type==='explore'?1:2;
+  document.querySelectorAll('.scenario-card')[cardIdx].classList.add('active');
+
+  // Clear chat if first scenario or switching persona
+  const sc = SCENARIOS[type];
+  document.getElementById('chatBody').innerHTML = '';
+  document.getElementById('statusTag').textContent = '🟡 运行中';
+  document.getElementById('statusTag').className = 'live-tag';
+  document.getElementById('statusTag').style.background = 'rgba(245,160,24,0.15)';
+  document.getElementById('statusTag').style.color = '#f5a018';
+  currentRole = sc.role;
+
+  // STEP 0: Consumer sends message
+  addSystemMsg('── 消费者AI发起对话 ──');
+  await sleep(300);
+  addConsumerMsg(sc.consumerMsg);
+  await sleep(400);
+
+  // STEP 1: Three-axis detection (0.1s visual)
+  addSystemMsg('⚡ 品牌AI启动三轴探测… (0.1s)');
+  addThinking();
+  await sleep(150);
+  animateAxes(sc.axes);
+  await sleep(200);
+  removeThinking();
+  addSystemMsg(`📡 ${sc.detection}`);
+  await sleep(350);
+
+  // STEP 2: Role switch (0.2s)
+  addSystemMsg(`🔄 角色切换中… → [${sc.roleLabel}] (0.2s)`);
+  updateRoleIndicator(sc.role);
+  addThinking();
+  await sleep(250);
+  removeThinking();
+  addSystemMsg(`✅ ${sc.roleSwitch}`);
+  await sleep(300);
+
+  // STEP 3: Brand reply with counter-question
+  addBrandMsg(sc.brandReply, sc.role);
+  await sleep(200);
+  addSystemMsg(`🪝 反问战术: ${sc.counterQuestion}`);
+
+  // Update tactic log
+  document.getElementById('tacticLog').innerHTML = `
+    <div style="color:var(--text2);font-weight:600;margin-bottom:3px">当前战术分析</div>
+    <b style="color:${sc.roleColor}">探测结果:</b> ${sc.detection}<br><br>
+    <b style="color:${sc.roleColor}">反问策略:</b> ${sc.counterQuestion}<br><br>
+    <b style="color:var(--green)">信息增益:</b> 通过反问获取了消费者的偏好锚点/预算范围/情感需求，下一轮对话将拥有更精准的匹配能力。
+  `;
+
+  document.getElementById('statusTag').textContent = '🟢 完成';
+  document.getElementById('statusTag').style.background = 'rgba(12,216,152,0.15)';
+  document.getElementById('statusTag').style.color = '#0cd898';
+  isRunning = false;
+}
+
+async function runAllScenarios() {
+  if (isRunning) return;
+  document.getElementById('statusTag').textContent = '▶ 完整演示中';
+  document.getElementById('statusTag').style.background = 'rgba(168,85,247,0.15)';
+  document.getElementById('statusTag').style.color = '#a855f7';
+
+  await runScenario('price');
+  await sleep(1200);
+  addSystemMsg('');
+  addSystemMsg('━━━━━━━━━━━━━━━━━━━━━━');
+  addSystemMsg('');
+  await sleep(400);
+
+  await runScenario('explore');
+  await sleep(1200);
+  addSystemMsg('');
+  addSystemMsg('━━━━━━━━━━━━━━━━━━━━━━');
+  addSystemMsg('');
+  await sleep(400);
+
+  await runScenario('emotion');
+
+  document.getElementById('statusTag').textContent = '✅ 演示完成';
+  document.getElementById('statusTag').style.background = 'rgba(12,216,152,0.15)';
+  document.getElementById('statusTag').style.color = '#0cd898';
+
+  // Summary
+  await sleep(500);
+  addSystemMsg('');
+  addSystemMsg('🏆 演示总结：同一品牌AI，三种完全不同的人格——');
+  addSystemMsg('💰 对价格敏感者 → 精明算账 · 阶梯报价');
+  addSystemMsg('🔍 对探索者 → 耐心科普 · 数据驱动');
+  addSystemMsg('💜 对情绪化者 → 温暖共情 · 定制体验');
+  addSystemMsg('⚡ 每次切换 ≤ 0.3秒 · 每次都对');
+}
+
+function resetChat() {
+  document.getElementById('chatBody').innerHTML = `
+    <div style="text-align:center;color:var(--text3);padding:30px;font-size:0.75rem;line-height:1.8">
+      🤖<br>选择一个场景开始演示<br>
+      <span style="font-size:0.6rem">或点击 <b style="color:var(--negotiation)">完整演示</b> 自动播放全部三个场景</span>
+    </div>
+  `;
+  document.getElementById('chatStatus').textContent = '等待对话…';
+  document.getElementById('statusTag').textContent = '🟢 就绪';
+  document.getElementById('statusTag').style.background = 'rgba(12,216,152,0.15)';
+  document.getElementById('statusTag').style.color = '#0cd898';
+  document.getElementById('roleIndicator').textContent = '⚪ 等待触发';
+  document.getElementById('roleIndicator').className = 'active-role-indicator';
+  document.getElementById('roleIndicator').style.background = 'rgba(255,255,255,0.02)';
+  document.getElementById('roleIndicator').style.color = 'var(--text3)';
+  document.getElementById('roleExplain').innerHTML = '选择场景后，品牌AI将在<b>0.3秒内</b>自动切换到最优角色';
+  document.getElementById('tacticLog').innerHTML = '等待对话开始…';
+  document.getElementById('priceBar').style.width = '0%';
+  document.getElementById('prefBar').style.width = '0%';
+  document.getElementById('emotionBar').style.width = '0%';
+  document.getElementById('priceGlow').style.left = '-6px';
+  document.getElementById('prefGlow').style.left = '-6px';
+  document.getElementById('emotionGlow').style.left = '-6px';
+  document.getElementById('priceVal').textContent = '--';
+  document.getElementById('prefVal').textContent = '--';
+  document.getElementById('emotionVal').textContent = '--';
+  document.querySelectorAll('.scenario-card').forEach(c=>c.classList.remove('active'));
+  currentRole = null;
+  isRunning = false;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ============================================================
+// INIT
+// ============================================================
+console.log('⚡ BrandAI · 三面角色切换演示');
+console.log('核心特征:');
+console.log('  1. 三轴探测 — 0.1秒判断消费者模式');
+console.log('  2. 角色切换 — 0.3秒内切换到最优角色');
+console.log('  3. 反问式诱导 — 从不直接回答，先反问获取信息');
+console.log('  4. 三种人格 — 协商代理/信息提供者/体验设计师');
+console.log('💡 点击场景按钮或「完整演示」开始');
+</script>
+</body>
+</html>

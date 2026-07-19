@@ -89,7 +89,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1001;background:rgba(0,0,0,0.85)
 .gradient-text{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* HERO */
-#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-top:80px;position:relative;overflow:hidden}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-top:100px;position:relative;overflow:hidden}
 #hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 20% 50%,rgba(0,200,240,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 30%,rgba(255,107,53,0.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(124,92,252,0.07) 0%,transparent 50%)}
 .hero-content{position:relative;z-index:1}
 .hero-badge{display:inline-block;padding:6px 16px;border:1px solid var(--purple);border-radius:20px;font-size:0.72rem;font-weight:700;color:var(--purple);margin-bottom:24px;background:rgba(124,92,252,0.08)}
@@ -330,61 +330,135 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1001;background:rgba(0,0,0,0.85)
 .compare-card .compare-content{font-size:0.8rem;color:var(--text2);line-height:1.6}
 
 
-/* TEAM SHOWCASE */
-.team-showcase {
-  display: flex; align-items: center; gap: 32px;
-  margin: 40px 0 0; padding: 24px 32px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); position: relative; overflow: hidden;
+/* TEAM TRIANGLE */
+.team-triangle {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  margin: 48px 0 0; position: relative; z-index: 1;
 }
-.team-showcase::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: linear-gradient(180deg, var(--cyan), var(--purple), var(--orange));
+.team-triangle-top {
+  text-align: center; margin-bottom: -8px; position: relative; z-index: 2;
 }
-.team-label {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
-  color: var(--text3); text-transform: uppercase; writing-mode: vertical-lr;
-  flex-shrink: 0;
-}
-.team-members {
-  display: flex; gap: 36px; align-items: center; flex-wrap: wrap;
-}
-.team-member {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+.team-triangle-bottom {
+  display: flex; gap: 80px; align-items: flex-start; justify-content: center;
   position: relative;
 }
-.team-member .tm-icon {
-  width: 44px; height: 44px; border-radius: 50%;
+.team-triangle-bottom::before {
+  content: ''; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 60px solid transparent;
+  border-right: 60px solid transparent;
+  border-bottom: 20px solid rgba(124,92,252,0.08);
+}
+.team-person {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.team-person:hover { transform: translateY(-4px); }
+.team-person .tp-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; font-weight: 800; font-family: var(--font-mono);
-  background: linear-gradient(135deg, rgba(0,200,240,0.15), rgba(124,92,252,0.15));
-  border: 1.5px solid rgba(124,92,252,0.3);
-  color: var(--text); transition: all 0.3s;
+  font-size: 1.4rem; font-weight: 800;
+  background: linear-gradient(135deg, rgba(0,200,240,0.15), rgba(124,92,252,0.2));
+  border: 2px solid rgba(124,92,252,0.3);
+  color: var(--text); transition: all 0.35s;
+  position: relative;
 }
-.team-member:hover .tm-icon {
-  border-color: var(--purple); box-shadow: 0 0 20px rgba(124,92,252,0.25);
-  transform: translateY(-2px);
+.team-person:hover .tp-avatar {
+  border-color: var(--purple); box-shadow: 0 0 28px rgba(124,92,252,0.3);
 }
-.team-member .tm-name {
-  font-size: 0.82rem; font-weight: 700; color: var(--text);
+.team-person.captain .tp-avatar {
+  width: 72px; height: 72px; font-size: 1.8rem;
+  background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(245,166,35,0.18));
+  border: 2.5px solid rgba(255,107,53,0.45);
+  box-shadow: 0 0 32px rgba(255,107,53,0.15);
 }
-.team-member .tm-role {
-  font-size: 0.62rem; color: var(--text3); letter-spacing: 0.05em;
-  padding: 2px 10px; border-radius: 10px;
-  background: rgba(124,92,252,0.08); border: 1px solid rgba(124,92,252,0.15);
+.team-person.captain:hover .tp-avatar {
+  border-color: var(--orange); box-shadow: 0 0 40px rgba(255,107,53,0.35);
 }
-.team-member.lead .tm-icon {
-  background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(245,166,35,0.15));
-  border-color: rgba(255,107,53,0.4);
+.team-person .tp-name {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  letter-spacing: 0.02em;
 }
-.team-member.lead .tm-role {
-  background: rgba(255,107,53,0.1); border-color: rgba(255,107,53,0.25);
+.team-person .tp-tag {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
+  padding: 3px 12px; border-radius: 12px;
+  background: rgba(124,92,252,0.1); border: 1px solid rgba(124,92,252,0.2);
+  color: var(--purple); text-transform: uppercase;
+}
+.team-person.captain .tp-tag {
+  background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.3);
   color: var(--orange);
 }
+.team-label-row {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.2em;
+  color: var(--text3); text-transform: uppercase; margin-bottom: 20px;
+  opacity: 0.7;
+}
 @media(max-width:700px){
-  .team-showcase { flex-direction: column; gap: 16px; align-items: flex-start; }
-  .team-label { writing-mode: horizontal-tb; }
-  .team-members { gap: 20px; }
+  .team-triangle-bottom { gap: 36px; }
+  .team-person.captain .tp-avatar { width: 60px; height: 60px; font-size: 1.5rem; }
+  .team-person .tp-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
+}
+
+
+/* TEAM TRIANGLE */
+.team-triangle {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  margin: 48px 0 0; position: relative; z-index: 1;
+}
+.team-triangle-top { text-align: center; position: relative; z-index: 2; }
+.team-triangle-bottom {
+  display: flex; gap: 80px; align-items: flex-start; justify-content: center;
+  margin-top: -4px;
+}
+.team-person {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.team-person:hover { transform: translateY(-4px); }
+.team-person .tp-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 800;
+  background: linear-gradient(135deg, rgba(0,200,240,0.15), rgba(124,92,252,0.2));
+  border: 2px solid rgba(124,92,252,0.3);
+  color: var(--text); transition: all 0.35s;
+}
+.team-person:hover .tp-avatar {
+  border-color: var(--purple); box-shadow: 0 0 28px rgba(124,92,252,0.3);
+}
+.team-person.captain .tp-avatar {
+  width: 72px; height: 72px; font-size: 1.8rem;
+  background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(245,166,35,0.18));
+  border: 2.5px solid rgba(255,107,53,0.45);
+  box-shadow: 0 0 32px rgba(255,107,53,0.15);
+}
+.team-person.captain:hover .tp-avatar {
+  border-color: var(--orange); box-shadow: 0 0 40px rgba(255,107,53,0.35);
+}
+.team-person .tp-name {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  letter-spacing: 0.02em;
+}
+.team-person .tp-tag {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
+  padding: 3px 12px; border-radius: 12px;
+  background: rgba(124,92,252,0.1); border: 1px solid rgba(124,92,252,0.2);
+  color: var(--purple); text-transform: uppercase;
+}
+.team-person.captain .tp-tag {
+  background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.3);
+  color: var(--orange);
+}
+.team-label-row {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.2em;
+  color: var(--text3); text-transform: uppercase; margin-bottom: 22px;
+  opacity: 0.7;
+}
+@media(max-width:700px){
+  .team-triangle-bottom { gap: 36px; }
+  .team-person.captain .tp-avatar { width: 60px; height: 60px; font-size: 1.5rem; }
+  .team-person .tp-avatar { width: 46px; height: 46px; font-size: 1.1rem; }
 }
 
 footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text3);font-size:0.72rem;line-height:2}
@@ -414,7 +488,7 @@ footer a{color:var(--purple);text-decoration:none}
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo">⚡ MicroGoals · 品牌智能体 — 2026 AI 先锋未来人才大赛</div>
+    <div class="nav-logo">⚡ MicroGoals · 品牌智能体</div>
   </div>
 </nav>
 
@@ -479,23 +553,48 @@ footer a{color:var(--purple);text-decoration:none}
       </div>
     </div>
         </div>
-    <div class="team-showcase" style="position:relative;z-index:1">
-      <span class="team-label">TEAM</span>
-      <div class="team-members">
-        <div class="team-member lead">
-          <div class="tm-icon">赖</div>
-          <div class="tm-name">赖尚林</div>
-          <div class="tm-role">队长</div>
+    <div class="team-triangle">
+      <div class="team-label-row">— Team MicroGoals —</div>
+      <div class="team-triangle-top">
+        <div class="team-person captain">
+          <div class="tp-avatar">赖</div>
+          <div class="tp-name">赖尚林</div>
+          <div class="tp-tag">Captain</div>
         </div>
-        <div class="team-member">
-          <div class="tm-icon">杨</div>
-          <div class="tm-name">杨梵希</div>
-          <div class="tm-role">核心成员</div>
+      </div>
+      <div class="team-triangle-bottom">
+        <div class="team-person">
+          <div class="tp-avatar">杨</div>
+          <div class="tp-name">杨梵希</div>
+          <div class="tp-tag">Core</div>
         </div>
-        <div class="team-member">
-          <div class="tm-icon">林</div>
-          <div class="tm-name">林志祥</div>
-          <div class="tm-role">核心成员</div>
+        <div class="team-person">
+          <div class="tp-avatar">林</div>
+          <div class="tp-name">林志祥</div>
+          <div class="tp-tag">Core</div>
+        </div>
+      </div>
+    </div>
+        </div>
+    <div class="team-triangle">
+      <div class="team-label-row">— Team MicroGoals —</div>
+      <div class="team-triangle-top">
+        <div class="team-person captain">
+          <div class="tp-avatar">赖</div>
+          <div class="tp-name">赖尚林</div>
+          <div class="tp-tag">Captain</div>
+        </div>
+      </div>
+      <div class="team-triangle-bottom">
+        <div class="team-person">
+          <div class="tp-avatar">杨</div>
+          <div class="tp-name">杨梵希</div>
+          <div class="tp-tag">Core</div>
+        </div>
+        <div class="team-person">
+          <div class="tp-avatar">林</div>
+          <div class="tp-name">林志祥</div>
+          <div class="tp-tag">Core</div>
         </div>
       </div>
     </div>
@@ -1389,7 +1488,7 @@ footer a{color:var(--purple);text-decoration:none}
 
 <!-- FOOTER -->
 <footer>
-  <p>⚡ MicroGoals · 品牌智能体 — 2026 AI 先锋未来人才大赛参赛作品</p>
+  <p>⚡ MicroGoals · 品牌智能体参赛作品</p>
   <p>蓝色光标命题：「当每个消费者都有一个 AI 守门人，品牌如何进化？」</p>
   <p style="margin-top:8px">
     基于 45+ 篇论文 · V1→V4 迭代原型 · 3 线交叉研究 · 飞书原生 A2A 验证 · 双层博弈体系

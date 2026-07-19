@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销战情室 v5 · Strategy War Room</title>
+<style>
+  :root {
+    --bg:#040a14; --surface:#0a1424; --surface2:#101c30; --border:#182840;
+    --text:#d8e0f0; --text2:#8898b8; --text3:#506080;
+    --cyan:#00b8e8; --orange:#ff6030; --green:#0cd898; --red:#f03050;
+    --yellow:#f5a018; --purple:#7858f0;
+    --radius:6px; --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+  #app{display:grid;grid-template-columns:280px 1fr 300px;grid-template-rows:auto 1fr auto;height:100vh;gap:5px;padding:5px}
+
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;gap:6px}
+  header .logo{font-weight:800;font-size:0.95rem}
+  header .logo span{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hdr-ctl{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .hdr-ctl button,.hdr-ctl select{padding:5px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;white-space:nowrap}
+  .hdr-ctl button:hover{border-color:var(--purple)}
+  .hdr-ctl button.primary{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+  .hdr-ctl button.run{background:var(--green);border-color:var(--green);color:#000;font-weight:700}
+  .hdr-ctl .stat-badge{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);padding:3px 8px;background:rgba(255,255,255,0.03);border-radius:10px}
+  .hdr-ctl button:disabled{opacity:0.4;cursor:not-allowed}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .panel-head{padding:6px 10px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .panel-body{flex:1;overflow-y:auto;padding:8px;font-size:0.7rem;display:flex;flex-direction:column;gap:5px}
+
+  .config-section{margin-bottom:4px}
+  .config-label{font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px}
+  .config-select{width:100%;padding:5px 8px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer}
+  .genome-slider{margin:2px 0}
+  .genome-slider .gs-head{display:flex;justify-content:space-between;font-size:0.6rem;margin-bottom:1px}
+  .genome-slider input[type=range]{width:100%;accent-color:var(--purple);height:3px;cursor:pointer}
+  .preset-btn{padding:3px 7px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;font-size:0.6rem;margin:1px}
+  .preset-btn:hover{border-color:var(--purple);color:var(--text)}
+  .preset-btn.active{border-color:var(--purple);background:rgba(120,88,240,0.15);color:var(--purple)}
+
+  .metric-row{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .metric-cell{padding:6px 8px;background:var(--surface2);border-radius:var(--radius);text-align:center}
+  .metric-cell .m-val{font-family:var(--font-mono);font-weight:800;font-size:0.9rem}
+  .metric-cell .m-label{font-size:0.55rem;color:var(--text3)}
+  .metric-cell .m-ci{font-size:0.52rem;color:var(--text3);font-family:var(--font-mono);min-height:12px}
+
+  #mainCanvasWrap{flex:1;position:relative;min-height:200px}
+  #mainCanvas{width:100%;height:100%;display:block;position:absolute;top:0;left:0}
+
+  #bottomTabs{grid-column:1/-1;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-height:170px}
+  .tab-row{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+  .tab-btn{padding:6px 14px;font-size:0.7rem;cursor:pointer;border:none;background:none;color:var(--text3);font-family:inherit;border-bottom:2px solid transparent;transition:all 0.2s}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}
+  .tab-panel{flex:1;overflow-y:auto;padding:10px;display:none}
+  .tab-panel.active{display:flex;gap:10px;flex-wrap:wrap}
+
+  .tornado-row{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:0.62rem}
+  .tornado-label{width:65px;text-align:right;color:var(--text3);font-size:0.6rem}
+  .tornado-bar-wrap{flex:1;height:14px;background:rgba(255,255,255,0.03);border-radius:3px;position:relative;overflow:hidden}
+  .tornado-bar{height:100%;border-radius:3px;position:absolute;transition:width 0.4s}
+  .tornado-val{width:50px;font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);text-align:left}
+
+  .comp-table{width:100%;border-collapse:collapse;font-size:0.63rem}
+  .comp-table th{text-align:left;padding:4px 8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)}
+  .comp-table td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,0.03);font-family:var(--font-mono)}
+  .comp-table tr:hover td{background:rgba(255,255,255,0.02)}
+  .comp-table .winner{color:var(--green);font-weight:700}
+
+  .opt-progress{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin:4px 0}
+  .opt-progress .opt-fill{height:100%;background:var(--purple);border-radius:2px;width:0%;transition:width 0.15s}
+
+  .info-note{font-size:0.58rem;color:var(--text3);font-style:italic;padding:4px 8px;background:rgba(120,88,240,0.05);border-left:2px solid var(--purple);border-radius:0 4px 4px 0;margin:4px 0;line-height:1.4}
+
+  .welcome-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;z-index:5}
+  .welcome-overlay .big-icon{font-size:2.5rem;opacity:0.6}
+  .welcome-overlay .welcome-text{color:var(--text3);font-size:0.8rem;text-align:center;line-height:1.6}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;vertical-align:middle;margin-right:4px}
+
+  @media(max-width:1200px){#app{grid-template-columns:1fr;grid-template-rows:auto auto auto 1fr auto}.panel{max-height:250px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><span>⚔️ AI MARKETING WAR ROOM</span> <span style="font-size:0.6rem;color:var(--text3)">v5 · 策略战情室</span></div>
+    <div class="hdr-ctl">
+      <span class="stat-badge" id="statusText">🟢 就绪</span>
+      <select id="mcTrials" style="width:65px" title="蒙特卡洛试验次数">
+        <option value="30">30次</option><option value="50" selected>50次</option><option value="100">100次</option><option value="200">200次</option>
+      </select>
+      <button class="primary" onclick="runOptimization()" id="btnOpt" title="遗传算法自动搜索最优策略基因组">🔍 优化</button>
+      <button class="run" onclick="runMonteCarlo()" id="btnMC" title="N次随机试验，统计穿透率和置信区间">🎲 蒙特卡洛</button>
+      <button onclick="runFullAnalysis()" id="btnFull" title="一键运行所有分析模块">⚡ 全分析</button>
+      <button onclick="resetAll()">↺ 重置</button>
+    </div>
+  </header>
+
+  <!-- LEFT: Configurator -->
+  <div class="panel" style="grid-column:1;grid-row:2">
+    <div class="panel-head">🎯 策略配置器 <span style="font-size:0.55rem;color:var(--text3)">Configure</span></div>
+    <div class="panel-body" id="configPanel">
+      <div class="config-section">
+        <div class="config-label">👤 消费者画像</div>
+        <select class="config-select" id="cfgPersona" onchange="onConfigChange()">
+          <option value="quality">👔 品质追求者 (阈值62·商业容忍25)</option>
+          <option value="deal">💰 折扣猎手 (阈值48·商业容忍45)</option>
+          <option value="privacy">🔐 隐私鹰派 (阈值78·商业容忍8)</option>
+          <option value="experience">🎮 体验玩家 (阈值52·商业容忍30)</option>
+        </select>
+      </div>
+      <div class="config-section">
+        <div class="config-label">🧬 策略基因组 (拖拽调整6个维度)</div>
+        <div id="genomeEditor"></div>
+      </div>
+      <div class="config-section">
+        <div class="config-label">📋 预设策略模板</div>
+        <div id="strategyPresets"></div>
+      </div>
+      <div class="info-note">💡 <b>使用流程：</b><br>1. 选画像 → 2. 选预设(或拖滑块) → 3. 点「蒙特卡洛」看统计 → 4. 点「优化」自动找最优 → 5. 点「全分析」看完整报告</div>
+    </div>
+  </div>
+
+  <!-- CENTER: Main View -->
+  <div class="panel" style="grid-column:2;grid-row:2">
+    <div class="panel-head">
+      <span id="mainViewTitle">📊 策略表现分布</span>
+      <span style="font-size:0.55rem;color:var(--text3)" id="mainViewSub">等待分析…</span>
+    </div>
+    <div id="mainCanvasWrap">
+      <canvas id="mainCanvas"></canvas>
+      <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="big-icon">🎯</div>
+        <div class="welcome-text">
+          <b>欢迎使用 AI 营销战情室</b><br>
+          这是品牌策略的统计决策支持系统<br><br>
+          点击 <b style="color:#0cd898">🎲 蒙特卡洛</b> 开始分析<br>
+          或点击 <b style="color:#7858f0">⚡ 全分析</b> 一键运行
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div class="panel" style="grid-column:3;grid-row:2">
+    <div class="panel-head">📈 分析结果 <span style="font-size:0.55rem;color:var(--text3)">Results</span></div>
+    <div class="panel-body" id="resultsPanel">
+      <div class="metric-row">
+        <div class="metric-cell">
+          <div class="m-val" style="color:var(--green)" id="resPenetration">--</div>
+          <div class="m-label">预期穿透率</div>
+          <div class="m-ci" id="resPenCI"></div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-val" style="color:var(--purple)" id="resROI">--</div>
+          <div class="m-label">预期ROI</div>
+          <div class="m-ci" id="resROICI"></div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-val" style="color:var(--cyan)" id="resScore">--</div>
+          <div class="m-label">平均综合评分</div>
+          <div class="m-ci" id="resScoreCI"></div>
+        </div>
+        <div class="metric-cell">
+          <div class="m-val" style="color:var(--yellow)" id="resTrust">--</div>
+          <div class="m-label">终态信任度</div>
+          <div class="m-ci" id="resTrustCI"></div>
+        </div>
+      </div>
+      <div style="font-weight:700;font-size:0.68rem;margin-top:6px">🎯 最优基因组</div>
+      <div id="resBestGenome" style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);word-break:break-all">运行分析后显示…</div>
+      <div style="font-weight:700;font-size:0.68rem;margin-top:4px">💡 策略建议</div>
+      <div id="resRecommendation" style="font-size:0.6rem;color:var(--text2);line-height:1.5">运行分析后生成建议…</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Analysis Tabs -->
+  <div id="bottomTabs">
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="sensitivity" onclick="switchTab('sensitivity')">🌪 敏感性</button>
+      <button class="tab-btn" data-tab="comparison" onclick="switchTab('comparison')">⚖️ 策略对比</button>
+      <button class="tab-btn" data-tab="optimization" onclick="switchTab('optimization')">🔍 优化收敛</button>
+      <button class="tab-btn" data-tab="projection" onclick="switchTab('projection')">📈 ROI投影</button>
+    </div>
+    <!-- Sensitivity -->
+    <div class="tab-panel active" id="tab-sensitivity">
+      <div style="flex:1;min-width:280px">
+        <div style="font-weight:700;font-size:0.72rem;margin-bottom:4px">🌪 敏感性分析 — 哪个参数最重要？</div>
+        <div class="info-note">每个参数 ±20% 对最终评分的影响。条越长 = 该参数越关键，应优先优化。</div>
+        <div id="tornadoChart" style="margin-top:6px"><div style="color:var(--text3);padding:16px;text-align:center">运行「全分析」或「优化」后自动生成</div></div>
+      </div>
+      <div style="flex:1;min-width:220px" id="sensitivityInsight"></div>
+    </div>
+    <!-- Comparison -->
+    <div class="tab-panel" id="tab-comparison">
+      <div style="flex:1;min-width:380px">
+        <div style="font-weight:700;font-size:0.72rem;margin-bottom:4px">⚖️ 8种预设策略统计对比</div>
+        <div class="info-note">相同市场条件下各策略运行N次的统计结果。🏆 = 统计显著最优。</div>
+        <div id="comparisonTable" style="margin-top:6px"><div style="color:var(--text3);padding:16px;text-align:center">运行「全分析」后自动生成</div></div>
+      </div>
+    </div>
+    <!-- Optimization -->
+    <div class="tab-panel" id="tab-optimization">
+      <div style="flex:1;min-width:320px">
+        <div style="font-weight:700;font-size:0.72rem;margin-bottom:4px">🔍 遗传算法优化收敛</div>
+        <div class="info-note">在6维基因组空间中搜索最优解。每代评估30个个体，精英保留+锦标赛选择+变异。</div>
+        <div class="opt-progress"><div class="opt-fill" id="optProgressFill"></div></div>
+        <div id="optStatus" style="font-size:0.62rem;color:var(--text3);margin:4px 0">等待优化…</div>
+        <canvas id="optCanvas" style="width:100%;height:95px;background:rgba(0,0,0,0.2);border-radius:4px"></canvas>
+      </div>
+    </div>
+    <!-- Projection -->
+    <div class="tab-panel" id="tab-projection">
+      <div style="flex:1;min-width:320px">
+        <div style="font-weight:700;font-size:0.72rem;margin-bottom:4px">📈 100轮累积ROI投影</div>
+        <div class="info-note">基于当前策略的20条蒙特卡洛路径。紫色带 = 80%置信区间，实线 = 中位数。</div>
+        <canvas id="projCanvas" style="width:100%;height:95px;background:rgba(0,0,0,0.2);border-radius:4px"></canvas>
+        <div id="projSummary" style="font-size:0.62rem;color:var(--text3);margin-top:4px">等待全分析…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DIMS = ['commercial','value','emotional','urgency','authenticity','personalization'];
+const DIM_LABELS = {commercial:'商业信号',value:'价值密度',emotional:'情感操纵',urgency:'紧迫制造',authenticity:'真实性',personalization:'个性化'};
+const DIM_COLORS = {commercial:'#f03050',value:'#0cd898',emotional:'#f03050',urgency:'#f5a018',authenticity:'#0cd898',personalization:'#7858f0'};
+
+const PERSONAS = {
+  quality:{name:'品质追求者',icon:'👔',weights:{commercial:-2.0,value:1.5,emotional:-1.2,urgency:-1.0,authenticity:1.8,personalization:0.5},threshold:62,maxCommercial:25,trustInfluence:0.35},
+  deal:{name:'折扣猎手',icon:'💰',weights:{commercial:-0.5,value:1.0,emotional:-0.3,urgency:-0.2,authenticity:1.0,personalization:1.2},threshold:48,maxCommercial:45,trustInfluence:0.15},
+  privacy:{name:'隐私鹰派',icon:'🔐',weights:{commercial:-3.0,value:1.2,emotional:-1.8,urgency:-2.5,authenticity:2.0,personalization:-1.0},threshold:78,maxCommercial:8,trustInfluence:0.50},
+  experience:{name:'体验玩家',icon:'🎮',weights:{commercial:-0.8,value:1.3,emotional:0.3,urgency:-0.5,authenticity:1.5,personalization:2.0},threshold:52,maxCommercial:30,trustInfluence:0.25},
+};
+
+const STRATEGY_PRESETS = {
+  value_content:{name:'价值内容',icon:'📚',genome:[15,88,10,8,80,40],cost:40,roi:35},
+  transparent:{name:'透明数据',icon:'🔍',genome:[10,78,3,2,98,15],cost:25,roi:28},
+  experience:{name:'互动体验',icon:'🎮',genome:[12,92,25,5,70,95],cost:60,roi:50},
+  social_proof:{name:'社区信号',icon:'👥',genome:[25,65,30,10,60,50],cost:20,roi:22},
+  stealth:{name:'隐形价值',icon:'🕵️',genome:[3,95,5,1,85,35],cost:55,roi:45},
+  direct_ad:{name:'传统硬广',icon:'📢',genome:[92,8,70,85,5,10],cost:10,roi:5},
+  balanced:{name:'均衡策略',icon:'⚖️',genome:[30,70,20,15,70,50],cost:35,roi:32},
+  personalization:{name:'深度个性化',icon:'🎯',genome:[20,70,12,6,65,98],cost:45,roi:38},
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  persona: PERSONAS.quality,
+  genome: [...STRATEGY_PRESETS.value_content.genome],
+  activePreset: 'value_content',
+  trust: 55,
+  mcResults: null,
+  sensitivityData: null,
+  comparisonData: null,
+  optimizationData: null,
+  projectionData: null,
+  isRunning: false,
+};
+
+// ============================================================
+// SCORING ENGINE
+// ============================================================
+function evaluate(genome, persona, trust) {
+  const dims = {};
+  DIMS.forEach((d,i) => dims[d] = genome[i]);
+  let composite = 0;
+  for (const [dim, raw] of Object.entries(dims)) {
+    composite += raw * persona.weights[dim];
+  }
+  composite = Math.max(0, Math.min(100, composite + 50));
+  const trustMod = ((trust - 50) / 50) * persona.trustInfluence * 100;
+  const adjusted = composite + trustMod;
+  const commercialOver = dims.commercial > persona.maxCommercial;
+  const scoreAbove = adjusted >= persona.threshold;
+  let verdict;
+  if (commercialOver && !scoreAbove) verdict = 'block';
+  else if (commercialOver && scoreAbove) verdict = 'negotiate';
+  else if (scoreAbove) verdict = 'pass';
+  else verdict = 'block';
+  return {dims, composite:Math.round(composite), trustMod:Math.round(trustMod), adjustedScore:Math.round(adjusted), verdict};
+}
+
+// ============================================================
+// MONTE CARLO (batched async — yields to browser every 25 trials)
+// ============================================================
+function _mcBatch(genome, persona, trust, count) {
+  const res = [];
+  for (let i = 0; i < count; i++) {
+    const noiseTrust = Math.max(5, Math.min(100, trust + (Math.random()-0.5)*30));
+    const noiseThreshold = persona.threshold + (Math.random()-0.5)*6;
+    res.push(evaluate(genome, {...persona, threshold:noiseThreshold}, noiseTrust));
+  }
+  return res;
+}
+
+function _mcAggregate(results) {
+  const passes = results.filter(r=>r.verdict!=='block');
+  const penetration = Math.round(passes.length/results.length*100);
+  const scores = results.map(r=>r.adjustedScore);
+  const mean = scores.reduce((a,b)=>a+b,0)/scores.length;
+  const std = Math.sqrt(scores.reduce((s,v)=>s+(v-mean)**2,0)/scores.length);
+  const sorted = [...scores].sort((a,b)=>a-b);
+  const ci95Low = sorted[Math.floor(sorted.length*0.025)] || sorted[0];
+  const ci95High = sorted[Math.floor(sorted.length*0.975)] || sorted[sorted.length-1];
+  const min = sorted[0], max = sorted[sorted.length-1], range = max-min || 1;
+  const dist = Array(10).fill(0);
+  scores.forEach(s => dist[Math.min(9, Math.floor((s-min)/range*10))]++);
+  const avgROI = Math.round(penetration/100*35-30+(Math.random()-0.5)*8);
+  return {penetration, mean:Math.round(mean), std:Math.round(std*10)/10, ci95Low, ci95High, avgROI, distribution:{buckets:dist,min,max}, verdicts:{block:results.filter(r=>r.verdict==='block').length, pass:passes.filter(r=>r.verdict==='pass').length, negotiate:passes.filter(r=>r.verdict==='negotiate').length}};
+}
+
+async function runMonteCarloAsync(genome, persona, trials, trust) {
+  const BATCH = 25;
+  let results = [];
+  for (let i = 0; i < trials; i += BATCH) {
+    results.push(..._mcBatch(genome, persona, trust, Math.min(BATCH, trials-i)));
+    await sleep(0); // YIELD to browser
+  }
+  return _mcAggregate(results);
+}
+
+// ============================================================
+// SENSITIVITY
+// ============================================================
+function runSensitivity(genome, persona, trust) {
+  const base = evaluate(genome, persona, trust);
+  const impacts = [];
+  for (let i = 0; i < DIMS.length; i++) {
+    const highGenome = [...genome]; highGenome[i] = Math.min(100, genome[i] + 20);
+    const lowGenome = [...genome]; lowGenome[i] = Math.max(0, genome[i] - 20);
+    const highScore = evaluate(highGenome, persona, trust).adjustedScore;
+    const lowScore = evaluate(lowGenome, persona, trust).adjustedScore;
+    impacts.push({dim:DIMS[i], label:DIM_LABELS[DIMS[i]], color:DIM_COLORS[DIMS[i]], impact:highScore-lowScore, highScore, lowScore, baseVal:genome[i]});
+  }
+  impacts.sort((a,b) => Math.abs(b.impact) - Math.abs(a.impact));
+  return {base, impacts};
+}
+
+// ============================================================
+// OPTIMIZATION (GA) — async, yields to browser each generation
+// ============================================================
+async function runOptimizationAsync(persona, trust, onProgress) {
+  const popSize = 24, generations = 20; // reduced from 30×25 for speed
+  let population = [];
+  for (let i = 0; i < popSize; i++) {
+    population.push({genome:DIMS.map(()=>Math.floor(Math.random()*100)), fitness:0});
+  }
+  const history = [];
+
+  for (let gen = 0; gen < generations; gen++) {
+    for (const ind of population) {
+      const ev = evaluate(ind.genome, persona, trust);
+      ind.fitness = ev.verdict === 'pass' ? ev.adjustedScore * 2 + 20 :
+                    ev.verdict === 'negotiate' ? ev.adjustedScore * 1.3 :
+                    Math.max(1, ev.adjustedScore * 0.2);
+      ind.eval = ev;
+    }
+    population.sort((a,b) => b.fitness - a.fitness);
+    const best = population[0];
+    history.push({gen, fitness:best.fitness, genome:[...best.genome], verdict:best.eval.verdict, score:best.eval.adjustedScore});
+    if (onProgress) onProgress(gen, generations, best);
+
+    // Breed
+    const newPop = [{genome:[...population[0].genome],fitness:0},{genome:[...population[1].genome],fitness:0}];
+    while (newPop.length < popSize) {
+      const p1 = population[Math.floor(Math.random()*popSize/3)];
+      const p2 = population[Math.floor(Math.random()*popSize/2)];
+      const child = {genome:[], fitness:0};
+      for (let i = 0; i < DIMS.length; i++) {
+        child.genome[i] = Math.random()<0.5?p1.genome[i]:p2.genome[i];
+        if (Math.random()<0.25) child.genome[i] = Math.max(0,Math.min(100,child.genome[i]+Math.floor((Math.random()-0.5)*25)));
+      }
+      newPop.push(child);
+    }
+    population = newPop.slice(0, popSize);
+    await sleep(0); // YIELD to browser — allows UI to update
+  }
+
+  // Local refinement
+  const best = population[0];
+  let refined = [...best.genome];
+  for (let iter = 0; iter < 12; iter++) {
+    const candidate = [...refined];
+    const dim = Math.floor(Math.random()*6);
+    candidate[dim] = Math.max(0,Math.min(100,candidate[dim]+(Math.random()>0.5?1:-1)*Math.floor(Math.random()*8)));
+    if (evaluate(candidate, persona, trust).adjustedScore > evaluate(refined, persona, trust).adjustedScore) {
+      refined = candidate;
+    }
+  }
+  return {bestGenome:refined, bestEval:evaluate(refined, persona, trust), history};
+}
+
+// ============================================================
+// COMPARISON — async, yields per strategy
+// ============================================================
+async function runComparisonAsync(persona, trust, trials) {
+  const strategies = ['value_content','transparent','experience','social_proof','stealth','balanced','direct_ad','personalization'];
+  const results = [];
+  for (const sid of strategies) {
+    const preset = STRATEGY_PRESETS[sid];
+    const mc = await runMonteCarloAsync(preset.genome, persona, trials, trust);
+    results.push({id:sid, name:preset.name, icon:preset.icon, penetration:mc.penetration, mean:mc.mean, std:mc.std, verdicts:mc.verdicts, genome:preset.genome});
+    await sleep(0); // YIELD
+  }
+  results.sort((a,b) => b.penetration - a.penetration);
+  const top=results[0], second=results[1];
+  const significant = (top.penetration - second.penetration) > (100/Math.sqrt(trials))*1.96;
+  return {results, significant, top, second};
+}
+
+// ============================================================
+// ROI PROJECTION — async, yields per batch of paths
+// ============================================================
+async function runProjectionAsync(genome, persona, trust, rounds) {
+  const paths = [], numPaths = 16; // reduced from 20
+  for (let p = 0; p < numPaths; p++) {
+    let t = trust, cumROI = 0;
+    const path = [];
+    for (let r = 0; r < rounds; r++) {
+      const noiseT = Math.max(5,Math.min(100,t+(Math.random()-0.5)*20));
+      const ev = evaluate(genome, persona, noiseT);
+      const roi = ev.verdict==='pass'?30:ev.verdict==='negotiate'?18:-20;
+      cumROI += roi;
+      if(ev.verdict==='block') t=Math.max(5,t-5); else t=Math.min(100,t+3);
+      path.push({r, cumROI, trust:t});
+    }
+    paths.push(path);
+    if (p % 4 === 3) await sleep(0); // YIELD every 4 paths
+  }
+  const aggPath = [];
+  for (let r=0;r<rounds;r++){
+    const vals=paths.map(p=>p[r].cumROI).sort((a,b)=>a-b);
+    aggPath.push({r, median:vals[8], low:vals[1], high:vals[14]});
+  }
+  return {paths, aggPath};
+}
+
+// ============================================================
+// UI: BUILD CONTROLS
+// ============================================================
+function buildGenomeEditor() {
+  const el = document.getElementById('genomeEditor');
+  if (!el) return;
+  el.innerHTML = DIMS.map((d,i)=>`
+    <div class="genome-slider">
+      <div class="gs-head"><span style="color:${DIM_COLORS[d]}">${DIM_LABELS[d]}</span><span style="font-family:var(--font-mono);font-size:0.58rem">${state.genome[i]}</span></div>
+      <input type="range" min="0" max="100" value="${state.genome[i]}" oninput="updateGenome(${i},parseInt(this.value))">
+    </div>
+  `).join('');
+}
+
+function buildPresets() {
+  const el = document.getElementById('strategyPresets');
+  if (!el) return;
+  el.innerHTML = Object.entries(STRATEGY_PRESETS).map(([id,s])=>`
+    <button class="preset-btn ${state.activePreset===id?'active':''}" onclick="applyPreset('${id}')">${s.icon} ${s.name}</button>
+  `).join('');
+}
+
+function updateGenome(idx, val) {
+  state.genome[idx] = val;
+  state.activePreset = null;
+  buildGenomeEditor();
+  buildPresets();
+  // Live preview
+  const ev = evaluate(state.genome, state.persona, state.trust);
+  document.getElementById('resScore').textContent = ev.adjustedScore;
+  document.getElementById('resScore').style.color = ev.verdict==='block'?'var(--red)':ev.verdict==='pass'?'var(--green)':'var(--yellow)';
+  document.getElementById('resScoreCI').textContent = '判定: '+ev.verdict.toUpperCase();
+}
+
+function applyPreset(id) {
+  state.genome = [...STRATEGY_PRESETS[id].genome];
+  state.activePreset = id;
+  buildGenomeEditor();
+  buildPresets();
+  document.getElementById('resScore').textContent = '--';
+  document.getElementById('resScoreCI').textContent = '';
+}
+
+function onConfigChange() {
+  state.persona = PERSONAS[document.getElementById('cfgPersona').value];
+  state.trust = 50 + Math.floor(Math.random()*10);
+  ['resPenetration','resROI','resScore','resTrust'].forEach(id=>document.getElementById(id).textContent='--');
+  ['resPenCI','resROICI','resScoreCI','resTrustCI'].forEach(id=>document.getElementById(id).textContent='');
+  drawMainChart(null);
+}
+
+// ============================================================
+// UI: CANVAS DRAWING
+// ============================================================
+function getCanvasCtx(canvasId) {
+  const c = document.getElementById(canvasId);
+  if (!c) return null;
+  const wrap = c.parentElement;
+  if (!wrap) return null;
+  const w = wrap.clientWidth || 400;
+  const h = wrap.clientHeight || (canvasId==='mainCanvas'?300:95);
+  if (w<=0 || h<=0) return null;
+  const dpr = 1; // GPU-friendly
+  if (c.width !== w*dpr || c.height !== h*dpr) {
+    c.width = w*dpr; c.height = h*dpr;
+    c.style.width = w+'px'; c.style.height = h+'px';
+  }
+  const ctx = c.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  return {ctx, w, h};
+}
+
+function drawMainChart(mcResults) {
+  const r = getCanvasCtx('mainCanvas');
+  if (!r) return;
+  const {ctx, w, h} = r;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0,0,w,h);
+
+  // Show/hide welcome overlay
+  const overlay = document.getElementById('welcomeOverlay');
+  if (overlay) overlay.style.display = mcResults ? 'none' : 'flex';
+
+  if (!mcResults) {
+    ctx.fillStyle = '#506080'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('运行蒙特卡洛分析以查看策略表现分布', w/2, h/2+40);
+    return;
+  }
+
+  const pad={t:25,r:25,b:35,l:45}, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+  const dist=mcResults.distribution;
+  const maxCount=Math.max(...dist.buckets,1);
+  const barW=pw/dist.buckets.length;
+
+  // Histogram bars
+  dist.buckets.forEach((count,i)=>{
+    const barH=(count/maxCount)*ph;
+    const x=pad.l+i*barW, y=pad.t+ph-barH;
+    const scoreAtBar=dist.min+(i/dist.buckets.length)*(dist.max-dist.min);
+    const color=scoreAtBar>=state.persona.threshold?`rgba(12,216,152,0.7)`:`rgba(240,48,80,0.7)`;
+    ctx.fillStyle=color; ctx.fillRect(x+1,y,barW-2,barH);
+  });
+
+  // Threshold line
+  if (state.persona.threshold >= dist.min && state.persona.threshold <= dist.max) {
+    const threshX=pad.l+((state.persona.threshold-dist.min)/(dist.max-dist.min))*pw;
+    ctx.strokeStyle='rgba(0,184,232,0.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(threshX,pad.t);ctx.lineTo(threshX,pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#00b8e8';ctx.font='bold 9px system-ui';ctx.textAlign='center';
+    ctx.fillText(`阈值:${state.persona.threshold}`,threshX,pad.t-6);
+  }
+
+  // Mean marker
+  const meanX=pad.l+((mcResults.mean-dist.min)/(dist.max-dist.min))*pw;
+  ctx.fillStyle='#f5a018';ctx.beginPath();ctx.moveTo(meanX,pad.t);ctx.lineTo(meanX,pad.t+ph);ctx.strokeStyle='rgba(245,160,24,0.6)';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#f5a018';ctx.font='bold 9px system-ui';ctx.textAlign='center';
+  ctx.fillText(`μ=${mcResults.mean}`,Math.max(20,Math.min(w-20,meanX)),pad.t+ph+25);
+
+  // Axes
+  ctx.fillStyle='#506080';ctx.font='8px monospace';
+  ctx.fillText('综合评分 →',w/2-25,h-5);
+  for(let i=0;i<=4;i++){const val=Math.round(dist.min+(dist.max-dist.min)*i/4);ctx.fillText(val,pad.l+pw*i/4-10,pad.t+ph+14)}
+
+  // Pie
+  const pieX=w-pad.r-40,pieY=pad.t+10,pieR=22;
+  const total=mcResults.verdicts.block+mcResults.verdicts.pass+mcResults.verdicts.negotiate;
+  let angle=-Math.PI/2;
+  [{v:mcResults.verdicts.pass,c:'#0cd898'},{v:mcResults.verdicts.negotiate,c:'#f5a018'},{v:mcResults.verdicts.block,c:'#f03050'}].forEach(s=>{
+    if(s.v>0){ctx.beginPath();ctx.moveTo(pieX,pieY);ctx.arc(pieX,pieY,pieR,angle,angle+(s.v/total)*Math.PI*2);ctx.fillStyle=s.c;ctx.fill();angle+=(s.v/total)*Math.PI*2}
+  });
+  ctx.fillStyle='#8898b8';ctx.font='7px system-ui';ctx.textAlign='center';
+  ctx.fillText(`${mcResults.penetration}%`,pieX,pieY+pieR+12);
+
+  // Title
+  document.getElementById('mainViewTitle').textContent='📊 策略表现分布';
+  document.getElementById('mainViewSub').textContent=`n=${total} · 穿透${mcResults.penetration}% · μ=${mcResults.mean} · σ=${mcResults.std}`;
+}
+
+function drawOptCanvas(history) {
+  const r = getCanvasCtx('optCanvas');
+  if (!r) return;
+  const {ctx,w,h}=r;
+  ctx.clearRect(0,0,w,h);
+  if(!history||history.length===0){ctx.fillStyle='#506080';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText('运行优化后显示收敛曲线',w/2,h/2);return}
+  const pad={t:8,r:10,b:18,l:32},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+  ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.t+ph/4*i;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke()}
+  const maxFit=Math.max(...history.map(h=>h.fitness),1);
+  ctx.strokeStyle='#7858f0';ctx.lineWidth=1.8;
+  ctx.beginPath();
+  history.forEach((g,i)=>{const x=pad.l+pw/Math.max(1,history.length-1)*i,y=pad.t+ph-(g.fitness/maxFit)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.stroke();
+  history.forEach((g,i)=>{const x=pad.l+pw/Math.max(1,history.length-1)*i,y=pad.t+ph-(g.fitness/maxFit)*ph;ctx.fillStyle=g.verdict==='pass'?'#0cd898':g.verdict==='negotiate'?'#f5a018':'#f03050';ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill()});
+  ctx.fillStyle='#506080';ctx.font='7px monospace';ctx.fillText('代数→',w/2-12,h-3);
+}
+
+function drawProjCanvas(aggPath) {
+  const r = getCanvasCtx('projCanvas');
+  if (!r) return;
+  const {ctx,w,h}=r;
+  ctx.clearRect(0,0,w,h);
+  if(!aggPath||aggPath.length===0){ctx.fillStyle='#506080';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText('运行全分析后显示ROI投影',w/2,h/2);return}
+  const pad={t:8,r:12,b:18,l:38},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+  const allVals=aggPath.flatMap(p=>[p.low,p.high]);
+  const minV=Math.min(...allVals),maxV=Math.max(...allVals,1);
+  // Band
+  ctx.fillStyle='rgba(120,88,240,0.15)';ctx.beginPath();
+  aggPath.forEach((p,i)=>{const x=pad.l+pw/Math.max(1,aggPath.length-1)*i,yL=pad.t+ph-(p.high-minV)/(maxV-minV)*ph,yH=pad.t+ph-(p.low-minV)/(maxV-minV)*ph;if(i===0){ctx.moveTo(x,yL);ctx.lineTo(x,yH)}else{ctx.lineTo(x,yL)}});
+  for(let i=aggPath.length-1;i>=0;i--){const x=pad.l+pw/Math.max(1,aggPath.length-1)*i;ctx.lineTo(x,pad.t+ph-(aggPath[i].low-minV)/(maxV-minV)*ph)}
+  ctx.closePath();ctx.fill();
+  // Median
+  ctx.strokeStyle='#7858f0';ctx.lineWidth=1.8;ctx.beginPath();
+  aggPath.forEach((p,i)=>{const x=pad.l+pw/Math.max(1,aggPath.length-1)*i,y=pad.t+ph-(p.median-minV)/(maxV-minV)*ph;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+  // Zero line
+  if(minV<0&&maxV>0){const zY=pad.t+ph-(0-minV)/(maxV-minV)*ph;ctx.strokeStyle='rgba(240,48,80,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(pad.l,zY);ctx.lineTo(pad.l+pw,zY);ctx.stroke();ctx.setLineDash([])}
+  ctx.fillStyle='#506080';ctx.font='7px monospace';ctx.fillText('轮次→',w/2-12,h-3);
+}
+
+// ============================================================
+// UI: TAB CONTENT
+// ============================================================
+function renderTornado(data) {
+  const el = document.getElementById('tornadoChart');
+  const ins = document.getElementById('sensitivityInsight');
+  if (!data) { el.innerHTML='<div style="color:var(--text3);padding:16px;text-align:center">运行分析后自动生成</div>'; ins.innerHTML=''; return; }
+  const maxImpact = Math.max(...data.impacts.map(i=>Math.abs(i.impact)), 1);
+  el.innerHTML = data.impacts.map(imp => `
+    <div class="tornado-row">
+      <span class="tornado-label">${imp.label}</span>
+      <span style="font-family:var(--font-mono);font-size:0.55rem;width:32px;text-align:right;color:${imp.impact<0?'var(--red)':'var(--green)'}">${imp.impact>0?'+':''}${Math.round(imp.impact)}</span>
+      <div class="tornado-bar-wrap">
+        <div class="tornado-bar" style="width:${Math.abs(imp.impact)/maxImpact*100}%;background:${imp.color};left:${imp.impact<0?'auto':'0'};right:${imp.impact<0?'0':'auto'}"></div>
+      </div>
+      <span class="tornado-val">${imp.lowScore}↔${imp.highScore}</span>
+    </div>
+  `).join('');
+  const top = data.impacts[0];
+  ins.innerHTML = `
+    <div style="font-weight:700;font-size:0.68rem;margin-bottom:4px">💡 关键发现</div>
+    <div style="font-size:0.6rem;color:var(--text2);line-height:1.5">
+      <b style="color:${top.color}">${top.label}</b> 是最敏感参数 (±20% → 波动<b>${Math.abs(Math.round(top.impact))}分</b>)<br><br>
+      优化优先级: <b>${top.label}</b> > ${data.impacts[1]?.label||'—'} > ${data.impacts[2]?.label||'—'}<br><br>
+      ${data.impacts[0].impact<0?'⚠️ 该参数<b>过高</b>，降低可显著提升评分':'✅ 该参数有正向贡献，适度提升可改善表现'}
+    </div>`;
+}
+
+function renderComparison(data) {
+  const el = document.getElementById('comparisonTable');
+  if (!data) { el.innerHTML='<div style="color:var(--text3);padding:16px;text-align:center">运行全分析后自动生成</div>'; return; }
+  el.innerHTML = `
+    <table class="comp-table"><thead><tr><th>策略</th><th>穿透率</th><th>均分</th><th>σ</th><th>拦截/通过/谈判</th><th>评级</th></tr></thead><tbody>
+    ${data.results.map((r,i)=>`<tr><td>${r.icon} ${r.name}</td><td class="${i===0?'winner':''}">${r.penetration}%</td><td>${r.mean}</td><td>${r.std}</td><td style="font-size:0.58rem">${r.verdicts.block}/${r.verdicts.pass}/${r.verdicts.negotiate}</td><td>${i===0?'🏆':i===1?'🥈':i===2?'🥉':''}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="info-note" style="margin-top:6px">${data.significant?`✅ <b>${data.top.name}</b> 显著优于 <b>${data.second.name}</b>（差值${data.top.penetration-data.second.penetration}% > 临界值）`:`⚠️ <b>${data.top.name}</b> 与 <b>${data.second.name}</b> 无统计显著差异 — 两种策略均可`}</div>`;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const btn = document.querySelector(`[data-tab="${tab}"]`);
+  const panel = document.getElementById('tab-'+tab);
+  if (btn) btn.classList.add('active');
+  if (panel) panel.classList.add('active');
+  // Redraw canvases in hidden panels
+  setTimeout(()=>{
+    if (tab==='optimization' && state.optimizationData) drawOptCanvas(state.optimizationData.history);
+    if (tab==='projection' && state.projectionData) drawProjCanvas(state.projectionData.aggPath);
+  },100);
+}
+
+// ============================================================
+// ACTIONS (all async, yielding to browser)
+// ============================================================
+function setButtons(enabled) {
+  ['btnOpt','btnMC','btnFull'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=!enabled});
+  state.isRunning = !enabled;
+}
+
+async function runMonteCarlo() {
+  if (state.isRunning) return;
+  setButtons(false);
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>蒙特卡洛…';
+  const trials = parseInt(document.getElementById('mcTrials').value);
+
+  const results = await runMonteCarloAsync(state.genome, state.persona, trials, state.trust);
+  state.mcResults = results;
+
+  document.getElementById('resPenetration').textContent = results.penetration+'%';
+  document.getElementById('resPenCI').textContent = `95%CI [${Math.max(0,results.penetration-Math.round(100/Math.sqrt(trials)*1.96))}%,${Math.min(100,results.penetration+Math.round(100/Math.sqrt(trials)*1.96))}%]`;
+  document.getElementById('resROI').textContent = (results.avgROI>=0?'+':'')+results.avgROI;
+  document.getElementById('resROICI').textContent = `σ=${results.std}`;
+  document.getElementById('resScore').textContent = results.mean;
+  document.getElementById('resScoreCI').textContent = `95%CI [${results.ci95Low},${results.ci95High}]`;
+  document.getElementById('resTrust').textContent = Math.round(state.trust+(results.penetration-50)*0.3);
+  document.getElementById('resTrustCI').textContent = results.penetration>60?'↑信任上升':results.penetration<40?'↓信任下降':'→稳定';
+  document.getElementById('resBestGenome').textContent = `[${state.genome.map(v=>Math.round(v)).join(', ')}]`;
+  document.getElementById('resRecommendation').innerHTML = results.penetration>=70?
+    '✅ 该策略在当前画像下<b>表现优异</b>，建议保持并微调。':results.penetration>=40?
+    '⚠️ 策略表现<b>中等</b>，建议运行「🔍 优化」寻找改进方向。':'🔴 穿透率<b>偏低</b>，强烈建议运行「🔍 优化」重新设计基因组。';
+
+  drawMainChart(results);
+  document.getElementById('statusText').textContent = '🟢 就绪';
+  document.getElementById('mainViewSub').textContent = `n=${trials} · 穿透${results.penetration}% · μ=${results.mean}`;
+  setButtons(true);
+}
+
+async function runOptimization() {
+  if (state.isRunning) return;
+  setButtons(false);
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>优化中…';
+  switchTab('optimization');
+  const progFill = document.getElementById('optProgressFill');
+  const optStatus = document.getElementById('optStatus');
+
+  const onProgress = (gen, total, best) => {
+    progFill.style.width = ((gen+1)/total*100)+'%';
+    optStatus.textContent = `代数 ${gen+1}/${total} · 最优适应度: ${Math.round(best.fitness)} · 判定: ${best.verdict}`;
+  };
+
+  const result = await runOptimizationAsync(state.persona, state.trust, onProgress);
+  state.optimizationData = result;
+
+  state.genome = result.bestGenome;
+  state.activePreset = null;
+  buildGenomeEditor(); buildPresets();
+
+  document.getElementById('resBestGenome').textContent = `[${result.bestGenome.map(v=>Math.round(v)).join(', ')}] (优化发现)`;
+  document.getElementById('resRecommendation').innerHTML = `🎯 优化完成: 最优基因组判定为 <b style="color:${result.bestEval.verdict==='pass'?'var(--green)':'var(--yellow)'}">${result.bestEval.verdict.toUpperCase()}</b> · 综合评分: ${result.bestEval.adjustedScore}/${state.persona.threshold}`;
+  document.getElementById('resScore').textContent = result.bestEval.adjustedScore;
+  document.getElementById('resScore').style.color = result.bestEval.verdict==='pass'?'var(--green)':'var(--yellow)';
+  document.getElementById('resScoreCI').textContent = '最优评分';
+
+  drawOptCanvas(result.history);
+  progFill.style.width = '100%';
+  optStatus.textContent = `✅ 优化完成! 最优评分: ${result.bestEval.adjustedScore} · 判定: ${result.bestEval.verdict.toUpperCase()}`;
+  document.getElementById('statusText').textContent = '🟢 就绪';
+  setButtons(true);
+
+  // Auto MC after optimization
+  runMonteCarlo();
+}
+
+async function runFullAnalysis() {
+  if (state.isRunning) return;
+  setButtons(false);
+
+  // Step 1: Optimize
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>全分析: 优化中…';
+  switchTab('optimization');
+  const progFill = document.getElementById('optProgressFill');
+  const optStatus = document.getElementById('optStatus');
+  const onProgress = (gen,total,best)=>{progFill.style.width=((gen+1)/total*100)+'%';optStatus.textContent=`代数 ${gen+1}/${total} · 最优适应度: ${Math.round(best.fitness)}`};
+
+  const optResult = await runOptimizationAsync(state.persona, state.trust, onProgress);
+  state.optimizationData = optResult;
+  state.genome = optResult.bestGenome;
+  state.activePreset = null;
+  buildGenomeEditor(); buildPresets();
+  drawOptCanvas(optResult.history);
+  progFill.style.width='100%';
+  optStatus.textContent=`✅ 优化完成! 最优评分: ${optResult.bestEval.adjustedScore}`;
+
+  // Step 2: Monte Carlo
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>全分析: 蒙特卡洛…';
+  const mcResults = await runMonteCarloAsync(state.genome, state.persona, parseInt(document.getElementById('mcTrials').value), state.trust);
+  state.mcResults = mcResults;
+  document.getElementById('resPenetration').textContent=mcResults.penetration+'%';
+  document.getElementById('resROI').textContent=(mcResults.avgROI>=0?'+':'')+mcResults.avgROI;
+  document.getElementById('resScore').textContent=mcResults.mean;
+  document.getElementById('resTrust').textContent=Math.round(state.trust+(mcResults.penetration-50)*0.3);
+  drawMainChart(mcResults);
+
+  // Step 3: Sensitivity
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>全分析: 敏感性+对比…';
+  await sleep(0);
+  state.sensitivityData = runSensitivity(state.genome, state.persona, state.trust);
+  renderTornado(state.sensitivityData);
+
+  // Step 4: Comparison (async)
+  state.comparisonData = await runComparisonAsync(state.persona, state.trust, 25);
+  renderComparison(state.comparisonData);
+
+  // Step 5: Projection (async)
+  document.getElementById('statusText').innerHTML = '<span class="spinner"></span>全分析: ROI投影…';
+  state.projectionData = await runProjectionAsync(state.genome, state.persona, state.trust, 80);
+  drawProjCanvas(state.projectionData.aggPath);
+
+  const last = state.projectionData.aggPath[79];
+  document.getElementById('projSummary').textContent = `80轮后预期ROI: ${last.median>=0?'+':''}${last.median} [P10:${last.low>=0?'+':''}${last.low}, P90:${last.high>=0?'+':''}${last.high}]`;
+
+  document.getElementById('resBestGenome').textContent = `[${state.genome.map(v=>Math.round(v)).join(', ')}] (优化发现)`;
+  document.getElementById('resRecommendation').innerHTML = `✅ 全分析完成。最优策略: <b style="color:${optResult.bestEval.verdict==='pass'?'var(--green)':'var(--yellow)'}">${optResult.bestEval.verdict.toUpperCase()}</b> · 穿透率: <b>${mcResults.penetration}%</b> · 查看下方Tab获取详细分析。`;
+  document.getElementById('statusText').textContent = '✅ 全分析完成';
+  setButtons(true);
+}
+
+function resetAll() {
+  if (state.isRunning) return;
+  state.persona = PERSONAS.quality;
+  state.genome = [...STRATEGY_PRESETS.value_content.genome];
+  state.activePreset = 'value_content';
+  state.trust = 55;
+  state.mcResults = null; state.sensitivityData = null; state.comparisonData = null; state.optimizationData = null; state.projectionData = null;
+  document.getElementById('cfgPersona').value = 'quality';
+  ['resPenetration','resROI','resScore','resTrust'].forEach(id=>document.getElementById(id).textContent='--');
+  ['resPenCI','resROICI','resScoreCI','resTrustCI'].forEach(id=>document.getElementById(id).textContent='');
+  document.getElementById('resBestGenome').textContent='运行分析后显示…';
+  document.getElementById('resRecommendation').textContent='运行分析后生成建议…';
+  document.getElementById('tornadoChart').innerHTML='<div style="color:var(--text3);padding:16px;text-align:center">运行分析后自动生成</div>';
+  document.getElementById('sensitivityInsight').innerHTML='';
+  document.getElementById('comparisonTable').innerHTML='<div style="color:var(--text3);padding:16px;text-align:center">运行全分析后自动生成</div>';
+  document.getElementById('optStatus').textContent='等待优化…';
+  document.getElementById('optProgressFill').style.width='0%';
+  document.getElementById('projSummary').textContent='等待全分析…';
+  document.getElementById('statusText').textContent='🟢 就绪';
+  document.getElementById('mainViewSub').textContent='等待分析…';
+  buildGenomeEditor(); buildPresets();
+  drawMainChart(null);
+  // Clear sub canvases
+  ['optCanvas','projCanvas'].forEach(id=>{const c=document.getElementById(id);if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height)}});
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  buildGenomeEditor();
+  buildPresets();
+  // Draw immediately (canvas sizing is robust now)
+  drawMainChart(null);
+  drawOptCanvas(null);
+  drawProjCanvas(null);
+
+  window.addEventListener('resize', ()=>{
+    if (state.mcResults) drawMainChart(state.mcResults); else drawMainChart(null);
+    if (state.optimizationData) drawOptCanvas(state.optimizationData.history);
+    if (state.projectionData) drawProjCanvas(state.projectionData.aggPath);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>

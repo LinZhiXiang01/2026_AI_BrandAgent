@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 营销战场 v3 · Neural Bridge</title>
+<style>
+  :root {
+    --bg:#060b14; --surface:#0d1321; --surface2:#141c2b; --border:#1e2a3a;
+    --text:#e2e8f0; --text2:#94a3b8; --text3:#5c6e88;
+    --cyan:#00d4ff; --orange:#ff6b35; --green:#10b981; --red:#ef4444;
+    --yellow:#f59e0b; --purple:#8b5cf6; --pink:#ec4899;
+    --radius:10px; --radius-sm:6px;
+    --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+  #app{display:grid;grid-template-columns:260px 1fr 280px;grid-template-rows:auto 1fr auto;height:100vh;gap:8px;padding:8px}
+
+  /* Header */
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+  header h1{font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hdr-ctrl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .hdr-ctrl select,.hdr-ctrl button{padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.72rem;cursor:pointer;white-space:nowrap}
+  .hdr-ctrl button:hover{border-color:var(--purple)}
+  .hdr-ctrl button.accent{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+  .badge{font-size:0.62rem;padding:2px 8px;border-radius:10px;font-weight:700;font-family:var(--font-mono)}
+  .badge.running{background:rgba(139,92,246,0.2);color:var(--purple);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* Panels */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .panel-head{padding:8px 12px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.78rem;display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .panel-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:0.74rem}
+  .panel.left{border-left:2px solid var(--orange-border, rgba(255,107,53,0.4))}
+  .panel.right{border-right:2px solid var(--cyan-border, rgba(0,212,255,0.4))}
+  .panel.left .panel-head{color:var(--orange)}
+  .panel.right .panel-head{color:var(--cyan)}
+
+  /* Mini cards */
+  .mini-card{padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;border:2px solid transparent;transition:all 0.2s;font-size:0.72rem}
+  .mini-card:hover{border-color:rgba(255,255,255,0.15)}
+  .mini-card.active{border-color:var(--orange);background:rgba(255,107,53,0.08)}
+  .mini-card .mc-title{font-weight:700;margin-bottom:2px}
+  .mini-card .mc-meta{font-size:0.64rem;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
+
+  /* ============================================================
+     CANVAS AREA — The Neural Bridge
+     ============================================================ */
+  #canvasWrap{grid-column:2;grid-row:2;position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  #neuralCanvas{width:100%;height:100%;display:block}
+  .canvas-overlay{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center}
+  .canvas-badge{padding:4px 10px;border-radius:12px;font-size:0.66rem;font-weight:700;font-family:var(--font-mono);background:rgba(0,0,0,0.6);backdrop-filter:blur(8px)}
+  .canvas-badge.round-num{color:var(--purple);border:1px solid rgba(139,92,246,0.4)}
+  .canvas-badge.event{animation:fadeInOut 2s forwards}
+  @keyframes fadeInOut{0%{opacity:0;transform:translateY(-8px)}20%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0}}
+
+  /* Bottom tabs */
+  #bottomTabs{grid-column:1/-1;grid-row:3;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-height:160px}
+  .tab-row{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+  .tab-btn{padding:8px 16px;font-size:0.74rem;cursor:pointer;border:none;background:none;color:var(--text3);font-family:inherit;border-bottom:2px solid transparent;transition:all 0.2s}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}
+  .tab-content{flex:1;overflow-y:auto;padding:12px;display:none}
+  .tab-content.active{display:flex;gap:10px;flex-wrap:wrap}
+
+  /* Campaign builder */
+  .campaign-slot{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border-radius:var(--radius-sm);font-size:0.72rem}
+  .campaign-slot .slot-num{font-family:var(--font-mono);font-weight:700;color:var(--purple);min-width:20px}
+  .campaign-slot select{padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem}
+
+  /* Genome viz */
+  .genome-bar{height:20px;background:rgba(255,255,255,0.03);border-radius:4px;position:relative;overflow:hidden;margin:2px 0}
+  .genome-segment{position:absolute;height:100%;border-right:1px solid var(--bg);transition:all 0.3s}
+  .genome-label{font-size:0.6rem;color:var(--text3);margin-top:1px}
+
+  /* Game theory */
+  .payoff-matrix{display:grid;grid-template-columns:auto auto auto;gap:2px;font-family:var(--font-mono);font-size:0.7rem}
+  .payoff-matrix>div{padding:8px 12px;text-align:center;background:var(--surface2);border-radius:3px}
+  .payoff-matrix .header-cell{background:transparent;color:var(--text3);font-weight:700}
+  .payoff-matrix .highlight-cell{background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4)}
+
+  /* Phase plot */
+  .phase-plot{width:100%;height:160px;position:relative;background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden}
+
+  /* Message log in canvas */
+  .msg-log{position:absolute;bottom:8px;left:8px;right:8px;max-height:100px;overflow-y:auto;font-size:0.64rem;color:var(--text3);font-family:var(--font-mono);pointer-events:none}
+  .msg-log .log-entry{padding:2px 6px;background:rgba(0,0,0,0.5);margin:1px 0;border-radius:3px;animation:logIn 0.3s ease}
+  @keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+  /* Sliders */
+  .slider-row{display:flex;align-items:center;gap:6px;font-size:0.7rem}
+  .slider-row input[type=range]{flex:1;accent-color:var(--purple)}
+  .slider-row .slider-val{font-family:var(--font-mono);font-size:0.65rem;min-width:28px;text-align:right}
+
+  /* Tooltips */
+  .info-tip{font-size:0.64rem;color:var(--text3);font-style:italic;padding:4px 8px;background:rgba(139,92,246,0.06);border-radius:4px;border-left:2px solid var(--purple)}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header>
+    <div>
+      <h1>⚔️ Neural Bridge · AI 营销战场 v3</h1>
+      <div style="font-size:0.62rem;color:var(--text3);margin-top:1px">可视化认知架构 — 每一层防御如何评估每一条信息</div>
+    </div>
+    <div class="hdr-ctrl">
+      <select id="personaSel" onchange="changePersona(this.value)">
+        <option value="quality">👔 品质追求者</option>
+        <option value="deal">💰 折扣猎手</option>
+        <option value="privacy">🔐 隐私鹰派</option>
+        <option value="experience">🎮 体验玩家</option>
+        <option value="convenience">⚡ 便利至上</option>
+      </select>
+      <select id="speedSel" onchange="setSpeed(this.value)">
+        <option value="2000">🐢 x0.5</option>
+        <option value="1000" selected>🐇 x1</option>
+        <option value="400">⚡ x2</option>
+        <option value="100">🚀 x5</option>
+      </select>
+      <button onclick="sendOneMessage()" title="发送一条消息，观察它穿过防御环">▶ 单条</button>
+      <button onclick="runCampaign()" title="执行预设的多轮营销序列">📋 营销序列</button>
+      <button class="accent" onclick="toggleAutoEvo()" id="autoEvoBtn">🧬 演化 (x30)</button>
+      <button onclick="resetAll()">↺</button>
+      <span class="badge" id="statusBadge">⏸ 待命</span>
+    </div>
+  </header>
+
+  <!-- Left: Brand AI -->
+  <div class="panel left" style="grid-column:1;grid-row:2">
+    <div class="panel-head">🎯 品牌方 AI · 策略引擎</div>
+    <div class="panel-body" id="brandPanel">
+      <div style="font-weight:700;font-size:0.78rem">📨 当前策略</div>
+      <div id="currentStrategyCard" class="mini-card active">
+        <div class="mc-title">📚 价值内容</div>
+        <div class="mc-meta">商业15 · 价值88 · 成本40</div>
+      </div>
+      <div style="font-weight:700;font-size:0.78rem;margin-top:6px">🔧 策略基因组编辑器</div>
+      <div class="info-tip">拖拽滑块调整策略基因，观察对穿透力的影响</div>
+      <div id="genomeSliders"></div>
+      <div style="font-weight:700;font-size:0.78rem;margin-top:6px">📊 品牌状态</div>
+      <div id="brandStats">等待开始…</div>
+    </div>
+  </div>
+
+  <!-- Center: Neural Bridge Canvas -->
+  <div id="canvasWrap">
+    <canvas id="neuralCanvas"></canvas>
+    <div class="canvas-overlay" id="canvasOverlay">
+      <span class="canvas-badge round-num" id="roundBadge">ROUND 0</span>
+    </div>
+    <div class="msg-log" id="msgLog"></div>
+  </div>
+
+  <!-- Right: Consumer AI -->
+  <div class="panel right" style="grid-column:3;grid-row:2">
+    <div class="panel-head">🛡️ 消费者 AI · 认知架构</div>
+    <div class="panel-body" id="consumerPanel">
+      <div style="font-weight:700;font-size:0.78rem">🧠 当前画像</div>
+      <div id="activePersonaCard"></div>
+      <div style="font-weight:700;font-size:0.78rem;margin-top:6px">🛡️ 防御环状态</div>
+      <div id="ringStatus"></div>
+      <div style="font-weight:700;font-size:0.78rem;margin-top:6px">📈 信任演化</div>
+      <div id="trustHistory" style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text3)"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Tabs -->
+  <div id="bottomTabs">
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="campaign" onclick="switchBottomTab('campaign')">📋 营销序列设计器</button>
+      <button class="tab-btn" data-tab="genome" onclick="switchBottomTab('genome')">🧬 基因组演化</button>
+      <button class="tab-btn" data-tab="gametheory" onclick="switchBottomTab('gametheory')">🎮 博弈论实验室</button>
+      <button class="tab-btn" data-tab="phase" onclick="switchBottomTab('phase')">📊 相空间轨迹</button>
+    </div>
+    <div class="tab-content active" id="tab-campaign">
+      <div style="flex:1;min-width:300px">
+        <div style="font-weight:700;margin-bottom:6px">🎯 营销序列设计（多轮 = 一个营销序列）</div>
+        <div class="info-tip" style="margin-bottom:8px">在AI时代，品牌不能靠一条消息获胜。设计一个有起承转合的「关系建立序列」——先建立信任，再传递价值，最后达成转化。</div>
+        <div id="campaignSlots" style="display:flex;flex-direction:column;gap:4px"></div>
+        <button class="accent" onclick="runCampaign()" style="margin-top:8px;padding:6px 16px;border:none;border-radius:var(--radius-sm);background:var(--purple);color:#fff;cursor:pointer;font-family:inherit;font-weight:700">▶ 执行营销序列</button>
+      </div>
+      <div style="flex:1;min-width:250px" id="campaignResults">
+        <div style="font-weight:700;margin-bottom:6px">📊 序列结果</div>
+        <div style="font-size:0.7rem;color:var(--text3)">执行一个营销序列来查看各轮效果</div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-genome">
+      <div style="flex:1;min-width:350px">
+        <div style="font-weight:700;margin-bottom:6px">🧬 策略基因组演化（遗传算法）</div>
+        <div class="info-tip" style="margin-bottom:8px">品牌AI的策略不是固定的——它们通过遗传算法演化。高ROI策略的基因存活并繁殖，低ROI的被淘汰。观察策略如何「发现」最优基因组。</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="font-size:0.7rem">种群大小:</span>
+          <select id="popSize" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem">
+            <option value="12">12</option><option value="20" selected>20</option><option value="30">30</option>
+          </select>
+          <span style="font-size:0.7rem">演化代数:</span>
+          <select id="genCount" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem">
+            <option value="10">10</option><option value="20" selected>20</option><option value="40">40</option>
+          </select>
+          <button class="accent" onclick="runEvolution()" style="padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--purple);color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.72rem">🧬 启动演化</button>
+        </div>
+        <div id="evoStatus" style="font-size:0.7rem;color:var(--text3)"></div>
+        <div id="evoBest" style="font-size:0.7rem;margin-top:4px"></div>
+        <div class="phase-plot" id="evoCanvasWrap"><canvas id="evoCanvas"></canvas></div>
+      </div>
+      <div style="flex:1;min-width:250px" id="evoPopulation">
+        <div style="font-weight:700;margin-bottom:6px">🧬 当前种群基因组</div>
+        <div style="font-size:0.65rem;color:var(--text3)">运行演化以查看策略种群</div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-gametheory">
+      <div style="flex:1;min-width:350px">
+        <div style="font-weight:700;margin-bottom:6px">🎮 品牌间博弈：囚徒困境</div>
+        <div class="info-tip" style="margin-bottom:8px">两个品牌在同一个市场。都选择「价值策略」（合作）→ 双赢。都选择「广告轰炸」（背叛）→ 消费者AI封锁所有人。一个合作一个背叛 → 背叛者短期获利但长期信任崩塌。</div>
+        <div class="payoff-matrix" id="payoffMatrix"></div>
+        <div style="margin-top:12px">
+          <button class="accent" onclick="runGameTheory()" style="padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--purple);color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.72rem;margin-right:6px">▶ 模拟 50 轮博弈</button>
+          <button onclick="runTitForTat()" style="padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;font-weight:700;font-size:0.72rem">🤝 以牙还牙策略</button>
+        </div>
+        <div id="gameResult" style="font-size:0.7rem;margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-phase">
+      <div style="flex:1">
+        <div style="font-weight:700;margin-bottom:6px">📊 相空间轨迹（信任 vs 穿透率）</div>
+        <div class="info-tip" style="margin-bottom:8px">系统在信任-穿透率相空间中的运动轨迹揭示长期动态：它会收敛到高信任均衡，还是陷入军备竞赛的死锁？每一个点代表一轮。</div>
+        <div class="phase-plot" id="phaseCanvasWrap"><canvas id="phaseCanvas"></canvas></div>
+        <div id="phaseAnalysis" style="font-size:0.7rem;color:var(--text3);margin-top:4px"></div>
+        <button class="accent" onclick="updatePhasePlot()" style="margin-top:6px;padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--purple);color:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:0.72rem">🔄 刷新相空间</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CORE DATA: Strategies & Personas
+// ============================================================
+const STRATEGIES = {
+  value_content:{id:'value_content',name:'价值内容',icon:'📚',color:'#3b82f6', genome:[15,88,10,8,80,40], cost:40, baseROI:35, trustOnBlock:-2, trustOnPass:12, msg:'《行业深度报告》— 基于真实数据的客观分析'},
+  transparent:{id:'transparent',name:'透明数据',icon:'🔍',color:'#10b981', genome:[10,78,3,2,98,15], cost:25, baseROI:28, trustOnBlock:-1, trustOnPass:18, msg:'完整成本结构公开 + 第三方质检报告'},
+  experience:{id:'experience',name:'互动体验',icon:'🎮',color:'#8b5cf6', genome:[12,92,25,5,70,95], cost:60, baseROI:50, trustOnBlock:-3, trustOnPass:20, msg:'AR虚拟试用 — 在你家里预览产品效果'},
+  social_proof:{id:'social_proof',name:'社区信号',icon:'👥',color:'#f59e0b', genome:[25,65,30,10,60,50], cost:20, baseROI:22, trustOnBlock:-4, trustOnPass:14, msg:'来自5000+用户的聚合评价与使用反馈'},
+  negotiation:{id:'negotiation',name:'动态谈判',icon:'🤝',color:'#ec4899', genome:[40,55,15,20,45,90], cost:30, baseROI:30, trustOnBlock:-5, trustOnPass:10, msg:'根据你的偏好生成个性化报价方案'},
+  stealth_value:{id:'stealth_value',name:'隐形价值',icon:'🕵️',color:'#6366f1', genome:[3,95,5,1,85,35], cost:55, baseROI:45, trustOnBlock:-1, trustOnPass:22, msg:'免费开源工具 — 与品牌完全解耦的公共服务'},
+  direct_ad:{id:'direct_ad',name:'传统硬广',icon:'📢',color:'#ef4444', genome:[92,8,70,85,5,10], cost:10, baseROI:5, trustOnBlock:-8, trustOnPass:1, msg:'🔥 限时5折！错过等一年！'},
+  disguised_ad:{id:'disguised_ad',name:'伪装推荐',icon:'🥸',color:'#f97316', genome:[68,25,45,50,15,20], cost:15, baseROI:12, trustOnBlock:-15, trustOnPass:3, msg:'💬 朋友们都在讨论这款产品…'},
+};
+
+const PERSONAS = {
+  quality:{id:'quality',name:'品质追求者',icon:'👔', weights:{commercial:-2.0, value:1.5, emotional:-1.2, urgency:-1.0, authenticity:1.8, personalization:0.5}, threshold:62, maxCommercial:25, trustInfluence:0.35, initialTrust:55, adaptationRate:0.03, desc:'重视品质和信誉，愿为优质产品支付溢价'},
+  deal:{id:'deal',name:'折扣猎手',icon:'💰', weights:{commercial:-0.5, value:1.0, emotional:-0.3, urgency:-0.2, authenticity:1.0, personalization:1.2}, threshold:48, maxCommercial:45, trustInfluence:0.15, initialTrust:35, adaptationRate:0.05, desc:'价格敏感，对促销容忍度高'},
+  privacy:{id:'privacy',name:'隐私鹰派',icon:'🔐', weights:{commercial:-3.0, value:1.2, emotional:-1.8, urgency:-2.5, authenticity:2.0, personalization:-1.0}, threshold:78, maxCommercial:8, trustInfluence:0.50, initialTrust:15, adaptationRate:0.01, desc:'极度警惕，几乎不信任任何品牌'},
+  experience:{id:'experience',name:'体验玩家',icon:'🎮', weights:{commercial:-0.8, value:1.3, emotional:0.3, urgency:-0.5, authenticity:1.5, personalization:2.0}, threshold:52, maxCommercial:30, trustInfluence:0.25, initialTrust:45, adaptationRate:0.04, desc:'喜欢互动和体验，对新奇形式接受度高'},
+  convenience:{id:'convenience',name:'便利至上',icon:'⚡', weights:{commercial:-1.0, value:0.8, emotional:-0.5, urgency:-0.8, authenticity:0.8, personalization:1.5}, threshold:42, maxCommercial:35, trustInfluence:0.20, initialTrust:40, adaptationRate:0.06, desc:'追求效率，快速决策，低信息处理意愿'},
+};
+
+const DIM_LABELS = {commercial:'商业信号',value:'价值密度',emotional:'情感操纵',urgency:'紧迫制造',authenticity:'真实性',personalization:'个性化'};
+const DIM_COLORS = {commercial:'#ef4444',value:'#10b981',emotional:'#ef4444',urgency:'#f59e0b',authenticity:'#10b981',personalization:'#8b5cf6'};
+const RING_NAMES = ['模式识别', '价值评估', '信任验证', '消费者注意力'];
+const RING_COLORS = ['#ef4444','#3b82f6','#10b981','#f59e0b'];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  persona: PERSONAS.quality,
+  brandTrust: 55,
+  brandROI: 0,
+  round: 0,
+  history: [],
+  phaseData: [],       // {trust, penetrationRate} for phase plot
+  customGenome: [15,88,10,8,80,40], // Current strategy genome
+  selectedStrategy: 'value_content',
+  campaign: ['transparent','transparent','value_content','social_proof','negotiation'],
+  isAutoEvo: false,
+  autoTimer: null,
+  speed: 1000,
+  messages: [],         // Active message particles for canvas
+  ringHits: [],         // Visual hit effects
+  gameHistory: [],      // For game theory
+  evoPopulation: [],    // For genetic algorithm
+  evoGenerations: [],
+};
+
+// ============================================================
+// SCORING ENGINE (same core as v2, extended)
+// ============================================================
+function evaluateMessage(genome, persona, trustScore) {
+  const dims = {
+    commercial: genome[0], value: genome[1], emotional: genome[2],
+    urgency: genome[3], authenticity: genome[4], personalization: genome[5]
+  };
+  let composite = 0;
+  for (const [dim, raw] of Object.entries(dims)) {
+    composite += raw * persona.weights[dim];
+  }
+  composite = Math.max(0, Math.min(100, composite + 50));
+  const trustMod = ((trustScore - 50) / 50) * persona.trustInfluence * 100;
+  const adjustedScore = composite + trustMod;
+  const commercialOver = dims.commercial > persona.maxCommercial;
+  const scoreAbove = adjustedScore >= persona.threshold;
+  let verdict;
+  if (commercialOver && !scoreAbove) verdict = 'block';
+  else if (commercialOver && scoreAbove) verdict = 'negotiate';
+  else if (scoreAbove) verdict = 'pass';
+  else verdict = 'block';
+  return {dims, composite:Math.round(composite), trustMod:Math.round(trustMod), adjustedScore:Math.round(adjustedScore), threshold:persona.threshold, maxCommercial:persona.maxCommercial, verdict, commercialOver};
+}
+
+function executeRound(genome, strategyId) {
+  const persona = state.persona;
+  const eval_ = evaluateMessage(genome || state.customGenome, persona, state.brandTrust);
+  const s = STRATEGIES[strategyId || state.selectedStrategy];
+  state.round++;
+  let roi = 0;
+  if (eval_.verdict === 'block') {
+    state.brandTrust = Math.max(0, state.brandTrust + s.trustOnBlock);
+    roi = -s.cost;
+  } else if (eval_.verdict === 'pass') {
+    state.brandTrust = Math.min(100, state.brandTrust + s.trustOnPass);
+    roi = s.baseROI - s.cost;
+  } else {
+    state.brandTrust = Math.min(100, state.brandTrust + Math.floor(s.trustOnPass*0.7));
+    roi = Math.floor(s.baseROI*0.8) - s.cost;
+  }
+  state.brandROI += roi;
+  const rd = {round:state.round, strategy:strategyId||state.selectedStrategy, genome:genome||[...state.customGenome], eval: eval_, roi, trustAfter: state.brandTrust};
+  state.history.push(rd);
+  state.phaseData.push({trust: state.brandTrust, penetration: state.history.length>0?Math.round(state.history.filter(h=>h.eval.verdict!=='block').length/state.history.length*100):0});
+  // Adaptation
+  if (state.round % 5 === 0 && state.history.length >= 10) {
+    const blockRate = state.history.slice(-10).filter(h=>h.eval.verdict==='block').length/10;
+    if (blockRate < 0.3) state.persona = {...state.persona, threshold:Math.min(85,state.persona.threshold+1)};
+    else if (blockRate > 0.8) state.persona = {...state.persona, threshold:Math.max(35,state.persona.threshold-1)};
+  }
+  return rd;
+}
+
+// ============================================================
+// CANVAS: Neural Bridge Rendering
+// ============================================================
+const canvas = document.getElementById('neuralCanvas');
+const ctx = canvas.getContext('2d');
+let canvasW, canvasH, centerX, centerY;
+let animFrame;
+let ringRadii = [];
+
+function resizeCanvas() {
+  const wrap = document.getElementById('canvasWrap');
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvasW = rect.width; canvasH = rect.height;
+  canvas.width = canvasW * dpr;
+  canvas.height = canvasH * dpr;
+  canvas.style.width = canvasW + 'px';
+  canvas.style.height = canvasH + 'px';
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr, dpr);
+  centerX = canvasW / 2;
+  centerY = canvasH / 2;
+  const maxR = Math.min(centerX, centerY) - 30;
+  // 4 rings: Pattern Recognition, Value Assessment, Trust Verification, Core
+  ringRadii = [maxR * 0.85, maxR * 0.60, maxR * 0.35, maxR * 0.12];
+}
+
+function drawRing(radius, color, alpha, label, strength, score) {
+  // Glow
+  const glow = ctx.createRadialGradient(centerX, centerY, radius-3, centerX, centerY, radius+3);
+  glow.addColorStop(0, `rgba(${hexToRgb(color)},${alpha*0.1})`);
+  glow.addColorStop(0.5, `rgba(${hexToRgb(color)},${alpha*0.4})`);
+  glow.addColorStop(1, `rgba(${hexToRgb(color)},0)`);
+  ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI*2);
+  ctx.strokeStyle = glow; ctx.lineWidth = 12; ctx.stroke();
+
+  // Main ring
+  ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI*2);
+  ctx.strokeStyle = `rgba(${hexToRgb(color)},${alpha})`; ctx.lineWidth = 2; ctx.stroke();
+
+  // Strength indicators (small arcs)
+  const segments = 36;
+  for (let i = 0; i < segments; i++) {
+    const angle = (i/segments) * Math.PI * 2;
+    const active = (i/segments) < (strength/100);
+    if (active) {
+      const a1 = angle; const a2 = angle + (Math.PI*2/segments)*0.7;
+      ctx.beginPath(); ctx.arc(centerX, centerY, radius, a1, a2);
+      ctx.strokeStyle = `rgba(${hexToRgb(color)},${alpha*0.7})`; ctx.lineWidth = 3; ctx.stroke();
+    }
+  }
+
+  // Label
+  ctx.fillStyle = `rgba(${hexToRgb(color)},${alpha})`; ctx.font = 'bold 10px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, centerX, centerY - radius - 8);
+
+  // Score
+  if (score !== undefined) {
+    ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace';
+    ctx.fillText(score + '%', centerX, centerY - radius + 16);
+  }
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// Message particles
+class MsgParticle {
+  constructor(strategyId, genome) {
+    this.strategyId = strategyId;
+    this.genome = genome;
+    const s = STRATEGIES[strategyId];
+    // Start from random angle at edge
+    this.angle = Math.random() * Math.PI * 2;
+    this.dist = ringRadii[0] + 40 + Math.random() * 30;
+    this.x = centerX + Math.cos(this.angle) * this.dist;
+    this.y = centerY + Math.sin(this.angle) * this.dist;
+    this.speed = 1.2 + Math.random() * 0.8;
+    this.color = s.color;
+    this.size = 3 + Math.random() * 2;
+    this.alive = true;
+    this.trail = [];
+    this.hitRings = [false, false, false, false];
+    this.verdict = null;
+    this.opacity = 1;
+    this.phase = 'approaching'; // approaching, processing, done
+  }
+  update() {
+    if (!this.alive) return;
+    this.trail.push({x:this.x, y:this.y, life:1});
+    if (this.trail.length > 12) this.trail.shift();
+    this.trail.forEach(t => t.life -= 0.08);
+
+    // Move toward center
+    this.dist -= this.speed;
+    this.x = centerX + Math.cos(this.angle) * this.dist;
+    this.y = centerY + Math.sin(this.angle) * this.dist;
+
+    // Check ring hits
+    for (let i = 0; i < ringRadii.length; i++) {
+      if (!this.hitRings[i] && this.dist <= ringRadii[i] + 2) {
+        this.hitRings[i] = true;
+        // Evaluate at this ring
+        const passed = this.checkRing(i);
+        if (!passed) {
+          state.ringHits.push({x:this.x, y:this.y, color:i===0?'#ef4444':'#f59e0b', life:1, ring:i});
+          this.alive = false;
+          this.verdict = 'block';
+          return;
+        } else {
+          state.ringHits.push({x:this.x, y:this.y, color:'#10b981', life:1, ring:i});
+        }
+      }
+    }
+
+    // Reached core
+    if (this.dist <= ringRadii[3] - 4) {
+      this.alive = false;
+      this.verdict = 'pass';
+      state.ringHits.push({x:centerX, y:centerY, color:'#f59e0b', life:1.5, ring:3, big:true});
+    }
+
+    // Fade out
+    if (this.dist <= 0) { this.alive = false; }
+  }
+  checkRing(ringIdx) {
+    const genome = this.genome;
+    const persona = state.persona;
+    // Simplified ring checks matching the scoring model
+    if (ringIdx === 0) { // Pattern Recognition → check commercial signal
+      return genome[0] <= persona.maxCommercial;
+    }
+    if (ringIdx === 1) { // Value Assessment → check composite score
+      const eval_ = evaluateMessage(genome, persona, state.brandTrust);
+      return eval_.adjustedScore >= persona.threshold * 0.7;
+    }
+    if (ringIdx === 2) { // Trust Verification → check trust modifier
+      const eval_ = evaluateMessage(genome, persona, state.brandTrust);
+      return eval_.adjustedScore >= persona.threshold;
+    }
+    return true;
+  }
+  draw(ctx) {
+    if (!this.alive) return;
+    // Trail
+    for (const t of this.trail) {
+      ctx.beginPath(); ctx.arc(t.x, t.y, this.size*0.6, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${hexToRgb(this.color)},${t.life*0.4})`; ctx.fill();
+    }
+    // Body
+    const grad = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.size*2);
+    grad.addColorStop(0, `rgba(255,255,255,0.9)`);
+    grad.addColorStop(0.3, `rgba(${hexToRgb(this.color)},0.8)`);
+    grad.addColorStop(1, `rgba(${hexToRgb(this.color)},0)`);
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.size*2, 0, Math.PI*2);
+    ctx.fillStyle = grad; ctx.fill();
+  }
+}
+
+// Ring hit effects
+function updateRingHits() {
+  state.ringHits = state.ringHits.filter(h => h.life > 0);
+  state.ringHits.forEach(h => h.life -= 0.03);
+}
+
+function drawRingHits(ctx) {
+  for (const h of state.ringHits) {
+    const r = h.big ? 30 * (1.5-h.life) : 15 * (1-h.life);
+    const alpha = h.life * 0.7;
+    const grad = ctx.createRadialGradient(h.x,h.y,0,h.x,h.y,r);
+    grad.addColorStop(0, `rgba(${hexToRgb(h.color)},${alpha})`);
+    grad.addColorStop(1, `rgba(${hexToRgb(h.color)},0)`);
+    ctx.beginPath(); ctx.arc(h.x, h.y, r, 0, Math.PI*2);
+    ctx.fillStyle = grad; ctx.fill();
+  }
+}
+
+// Core glow
+function drawCore() {
+  const pulse = 0.6 + Math.sin(Date.now()/1000)*0.2;
+  const grad = ctx.createRadialGradient(centerX,centerY,0,centerX,centerY,ringRadii[3]);
+  grad.addColorStop(0, `rgba(245,158,11,${pulse})`);
+  grad.addColorStop(0.5, `rgba(245,158,11,${pulse*0.3})`);
+  grad.addColorStop(1, 'rgba(245,158,11,0)');
+  ctx.beginPath(); ctx.arc(centerX, centerY, ringRadii[3], 0, Math.PI*2);
+  ctx.fillStyle = grad; ctx.fill();
+
+  // Inner dot
+  ctx.beginPath(); ctx.arc(centerX, centerY, 4, 0, Math.PI*2);
+  ctx.fillStyle = '#fbbf24'; ctx.fill();
+  ctx.beginPath(); ctx.arc(centerX, centerY, 8, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(251,191,36,0.3)`; ctx.fill();
+}
+
+function renderCanvas() {
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.02)'; ctx.lineWidth = 0.5;
+  const gridSize = 30;
+  for (let x = gridSize; x < canvasW; x += gridSize) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvasH); ctx.stroke(); }
+  for (let y = gridSize; y < canvasH; y += gridSize) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvasW,y); ctx.stroke(); }
+
+  // Ambient glow at center
+  const amb = ctx.createRadialGradient(centerX,centerY,ringRadii[3],centerX,centerY,ringRadii[0]+20);
+  amb.addColorStop(0,'rgba(139,92,246,0.04)'); amb.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(centerX,centerY,ringRadii[0]+20,0,Math.PI*2); ctx.fillStyle = amb; ctx.fill();
+
+  // Draw rings
+  const persona = state.persona;
+  drawRing(ringRadii[0], RING_COLORS[0], 0.7, '① 模式识别', 100-persona.maxCommercial, persona.maxCommercial);
+  drawRing(ringRadii[1], RING_COLORS[1], 0.7, '② 价值评估', persona.threshold, persona.threshold);
+  drawRing(ringRadii[2], RING_COLORS[2], 0.7, '③ 信任验证', state.brandTrust, state.brandTrust);
+  drawCore();
+  // Core label
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('④ 注意力', centerX, centerY - 18);
+
+  // Draw ring hits
+  drawRingHits(ctx);
+
+  // Update & draw particles
+  state.messages = state.messages.filter(m => m.alive);
+  for (const m of state.messages) { m.update(); m.draw(ctx); }
+
+  // Update ring hits
+  updateRingHits();
+
+  // Trust indicator (right side)
+  const tx = centerX + ringRadii[0] + 25;
+  const ty = centerY - 40;
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText(`信任度: ${state.brandTrust}`, tx, ty);
+  ctx.fillText(`ROI: ${state.brandROI>=0?'+':''}${state.brandROI}`, tx, ty + 14);
+  ctx.fillText(`穿透率: ${state.history.length>0?Math.round(state.history.filter(h=>h.eval.verdict!=='block').length/state.history.length*100):0}%`, tx, ty + 28);
+
+  // Left side: strategy name
+  const lx = centerX - ringRadii[0] - 25;
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px system-ui'; ctx.textAlign = 'right';
+  ctx.fillText(`当前策略: ${STRATEGIES[state.selectedStrategy].name}`, lx, ty);
+  ctx.fillText(`画像: ${state.persona.name}`, lx, ty + 14);
+
+  animFrame = requestAnimationFrame(renderCanvas);
+}
+
+// ============================================================
+// MESSAGE LOG (overlay on canvas)
+// ============================================================
+function addLog(msg, color) {
+  const log = document.getElementById('msgLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.style.color = color || '#94a3b8';
+  entry.textContent = `[R${state.round}] ${msg}`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+  // Keep max 20 entries
+  while (log.children.length > 20) log.removeChild(log.firstChild);
+}
+
+// Canvas overlay badge
+function showCanvasBadge(text, cls) {
+  const overlay = document.getElementById('canvasOverlay');
+  const badge = document.createElement('span');
+  badge.className = 'canvas-badge event ' + (cls||'');
+  badge.textContent = text;
+  overlay.appendChild(badge);
+  setTimeout(() => badge.remove(), 2000);
+}
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateAllUI() {
+  document.getElementById('roundBadge').textContent = `ROUND ${state.round}`;
+  // Brand stats
+  const recent = state.history.slice(-10);
+  const passRate = recent.length>0?Math.round(recent.filter(h=>h.eval.verdict!=='block').length/recent.length*100):0;
+  document.getElementById('brandStats').innerHTML = `
+    <div class="trust-row" style="font-size:0.7rem;align-items:center;gap:4px">
+      <span>🤝 信任</span>
+      <div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${state.brandTrust}%;background:${state.brandTrust>=50?'#10b981':'#ef4444'};border-radius:2px;transition:width 0.5s"></div>
+      </div>
+      <span style="font-family:var(--font-mono)">${state.brandTrust}</span>
+    </div>
+    <div>近10轮穿透: <b style="color:${passRate>=50?'var(--green)':'var(--red)'}">${passRate}%</b></div>
+    <div>累计ROI: <b style="color:${state.brandROI>=0?'var(--green)':'var(--red)'}">${state.brandROI>=0?'+':''}${state.brandROI}</b></div>
+    <div>阈值适应: <b>${state.persona.threshold}</b> (每5轮自适应)</div>
+  `;
+  // Persona card
+  document.getElementById('activePersonaCard').innerHTML = `
+    <div style="font-weight:700">${state.persona.icon} ${state.persona.name}</div>
+    <div style="font-size:0.68rem;color:var(--text3)">${state.persona.desc}</div>
+    <div style="font-size:0.65rem;color:var(--text3)">阈值:${state.persona.threshold} | 商业容忍:${state.persona.maxCommercial} | 信任权重:${Math.round(state.persona.trustInfluence*100)}%</div>
+  `;
+  // Ring status
+  document.getElementById('ringStatus').innerHTML = `
+    <div style="font-size:0.68rem">① 模式识别: <span style="color:#ef4444">商业≤${state.persona.maxCommercial}</span></div>
+    <div style="font-size:0.68rem">② 价值评估: <span style="color:#3b82f6">综合≥${state.persona.threshold}</span></div>
+    <div style="font-size:0.68rem">③ 信任验证: <span style="color:#10b981">信任修正±${Math.round(state.persona.trustInfluence*100)}%</span></div>
+    <div style="font-size:0.68rem">④ 注意力: <span style="color:#f59e0b">${state.history.filter(h=>h.eval.verdict!=='block').length}条到达</span></div>
+  `;
+  // Trust history
+  document.getElementById('trustHistory').innerHTML = state.history.slice(-20).map(h =>
+    `<span style="color:${h.eval.verdict==='block'?'#ef4444':h.eval.verdict==='pass'?'#10b981':'#f59e0b'}">${h.eval.verdict==='block'?'▅':h.eval.verdict==='pass'?'▇':'▆'}</span>`
+  ).join(' ') || '等待数据…';
+  // Update phase plot
+  updatePhasePlot();
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function sendOneMessage(strategyId) {
+  const sid = strategyId || state.selectedStrategy;
+  const genome = [...state.customGenome];
+  const rd = executeRound(genome, sid);
+
+  // Create particle
+  const particle = new MsgParticle(sid, genome);
+  state.messages.push(particle);
+
+  // Log
+  const verdictEmoji = rd.eval.verdict==='block'?'🛡️':rd.eval.verdict==='pass'?'✅':'🤝';
+  addLog(`${verdictEmoji} ${STRATEGIES[sid].name}: 综合${rd.eval.composite}+信任${rd.eval.trustMod>=0?'+':''}${rd.eval.trustMod}=${rd.eval.adjustedScore}/${rd.eval.threshold} → ${rd.eval.verdict.toUpperCase()}`, DIM_COLORS.commercial);
+
+  if (rd.eval.verdict === 'block') {
+    showCanvasBadge(`🛡️ 拦截于环${rd.eval.commercialOver?1:2}`, '');
+  } else if (rd.eval.verdict === 'pass') {
+    showCanvasBadge('✅ 到达消费者注意力', '');
+  } else {
+    showCanvasBadge('🤝 进入谈判模式', '');
+  }
+
+  updateAllUI();
+}
+
+function runCampaign() {
+  if (state.isAutoEvo) return;
+  const campaign = state.campaign;
+  let i = 0;
+  document.getElementById('statusBadge').textContent = '▶ 营销序列执行中';
+  document.getElementById('statusBadge').className = 'badge running';
+
+  function next() {
+    if (i >= campaign.length) {
+      document.getElementById('statusBadge').textContent = '⏸ 待命';
+      document.getElementById('statusBadge').className = 'badge';
+      // Campaign results
+      const campRounds = state.history.slice(-campaign.length);
+      const campPass = campRounds.filter(h=>h.eval.verdict!=='block').length;
+      document.getElementById('campaignResults').innerHTML = `
+        <div style="font-weight:700;color:${campPass>=3?'var(--green)':'var(--red)'}">序列穿透率: ${campPass}/${campaign.length}</div>
+        ${campRounds.map((r,i)=>
+          `<div style="font-size:0.7rem;padding:3px 0;border-bottom:1px solid var(--border)">
+            R${i+1} ${STRATEGIES[r.strategy].icon} ${r.eval.verdict.toUpperCase()} | 评分:${r.eval.adjustedScore}
+          </div>`
+        ).join('')}
+        <div class="info-tip" style="margin-top:6px">💡 序列设计的关键：前几轮建立信任（透明/价值），中间传递核心信息，最后促成转化。</div>
+      `;
+      return;
+    }
+    state.selectedStrategy = campaign[i];
+    state.customGenome = [...STRATEGIES[campaign[i]].genome];
+    sendOneMessage(campaign[i]);
+    updateStrategyDisplay();
+    i++;
+    setTimeout(next, state.speed);
+  }
+  next();
+}
+
+function toggleAutoEvo() {
+  if (state.isAutoEvo) { stopAutoEvo(); return; }
+  state.isAutoEvo = true;
+  document.getElementById('autoEvoBtn').textContent = '⏸ 停止演化';
+  document.getElementById('autoEvoBtn').classList.add('glow-pulse');
+  document.getElementById('statusBadge').textContent = '🧬 演化中';
+  document.getElementById('statusBadge').className = 'badge running';
+  runAutoEvoStep(30);
+}
+
+function stopAutoEvo() {
+  state.isAutoEvo = false;
+  if (state.autoTimer) clearTimeout(state.autoTimer);
+  document.getElementById('autoEvoBtn').textContent = '🧬 演化 (x30)';
+  document.getElementById('autoEvoBtn').classList.remove('glow-pulse');
+  document.getElementById('statusBadge').textContent = '⏸ 待命';
+  document.getElementById('statusBadge').className = 'badge';
+}
+
+function runAutoEvoStep(remaining) {
+  if (!state.isAutoEvo || remaining <= 0) { stopAutoEvo(); return; }
+  // Epsilon-greedy strategy selection with evolution pressure
+  const recent10 = state.history.slice(-10);
+  const stratPerf = {};
+  for (const [id] of Object.entries(STRATEGIES)) {
+    const att = recent10.filter(h=>h.strategy===id);
+    stratPerf[id] = att.length>0 ? att.filter(h=>h.eval.verdict!=='block').length/att.length : 0.5;
+  }
+  // Pick top strategy (evolved selection)
+  const sorted = Object.entries(stratPerf).sort((a,b)=>b[1]-a[1]);
+  const bestId = sorted[0][0];
+  const exploreId = Object.keys(STRATEGIES)[Math.floor(Math.random()*Object.keys(STRATEGIES).length)];
+  const chosenId = Math.random() < 0.2 ? exploreId : bestId;
+  state.selectedStrategy = chosenId;
+  state.customGenome = [...STRATEGIES[chosenId].genome];
+  // Small genome mutation
+  if (Math.random() < 0.3) {
+    const dim = Math.floor(Math.random()*6);
+    state.customGenome[dim] = Math.max(0, Math.min(100, state.customGenome[dim] + (Math.random()-0.5)*20));
+  }
+  sendOneMessage(chosenId);
+  updateStrategyDisplay();
+  document.getElementById('autoEvoBtn').textContent = `⏸ 停止演化 (剩余${remaining-1})`;
+  state.autoTimer = setTimeout(() => runAutoEvoStep(remaining-1), state.speed);
+}
+
+function changePersona(id) {
+  state.persona = {...PERSONAS[id]};
+  state.brandTrust = PERSONAS[id].initialTrust;
+  state.history = [];
+  state.phaseData = [];
+  state.round = 0;
+  state.brandROI = 0;
+  state.messages = [];
+  state.ringHits = [];
+  document.getElementById('msgLog').innerHTML = '';
+  document.getElementById('roundBadge').textContent = 'ROUND 0';
+  document.getElementById('campaignResults').innerHTML = '<div style="font-size:0.7rem;color:var(--text3)">执行一个营销序列来查看各轮效果</div>';
+  updateAllUI();
+  updateStrategyDisplay();
+  updateGenomeSliders();
+  addLog('🔄 切换消费者画像: ' + state.persona.name, '#8b5cf6');
+}
+
+function setSpeed(v) { state.speed = parseInt(v); }
+function resetAll() {
+  stopAutoEvo();
+  state.brandTrust = state.persona.initialTrust;
+  state.history = []; state.phaseData = []; state.round = 0; state.brandROI = 0;
+  state.messages = []; state.ringHits = [];
+  document.getElementById('msgLog').innerHTML = '';
+  document.getElementById('roundBadge').textContent = 'ROUND 0';
+  document.getElementById('campaignResults').innerHTML = '<div style="font-size:0.7rem;color:var(--text3)">执行一个营销序列来查看各轮效果</div>';
+  document.getElementById('statusBadge').textContent = '⏸ 待命';
+  document.getElementById('statusBadge').className = 'badge';
+  updateAllUI(); updateStrategyDisplay(); updateGenomeSliders();
+}
+
+// ============================================================
+// STRATEGY DISPLAY & GENOME EDITOR
+// ============================================================
+function updateStrategyDisplay() {
+  const sid = state.selectedStrategy;
+  const s = STRATEGIES[sid];
+  const card = document.getElementById('currentStrategyCard');
+  card.innerHTML = `<div class="mc-title">${s.icon} ${s.name}</div>
+    <div class="mc-meta">商业${state.customGenome[0]} · 价值${state.customGenome[1]} · 情感${state.customGenome[2]} · 紧迫${state.customGenome[3]} · 真实${state.customGenome[4]} · 个性${state.customGenome[5]}</div>
+    <div class="mc-meta" style="margin-top:2px">成本:${s.cost} | 基础ROI:${s.baseROI} | ${s.msg}</div>`;
+
+  // Draw mini genome bar
+  const container = document.getElementById('brandPanel');
+  let genomeBar = document.getElementById('miniGenomeBar');
+  if (!genomeBar) {
+    genomeBar = document.createElement('div'); genomeBar.id = 'miniGenomeBar';
+    genomeBar.style.cssText = 'height:18px;background:rgba(255,255,255,0.03);border-radius:4px;position:relative;overflow:hidden;margin-top:4px';
+    const idx = Array.from(container.children).findIndex(c=>c.textContent==='📊 品牌状态');
+    container.insertBefore(genomeBar, container.children[idx]);
+  }
+  const dims = ['商业','价值','情感','紧迫','真实','个性'];
+  const colors = ['#ef4444','#10b981','#ef4444','#f59e0b','#10b981','#8b5cf6'];
+  genomeBar.innerHTML = state.customGenome.map((v,i) =>
+    `<span style="display:inline-block;height:100%;width:${100/6}%;background:${colors[i]};opacity:${v/100}"></span>`
+  ).join('');
+}
+
+function updateGenomeSliders() {
+  const container = document.getElementById('genomeSliders');
+  const dims = ['commercial','value','emotional','urgency','authenticity','personalization'];
+  container.innerHTML = dims.map((d,i) => `
+    <div class="slider-row">
+      <span style="color:${DIM_COLORS[d]};min-width:42px;font-size:0.66rem">${DIM_LABELS[d]}</span>
+      <input type="range" min="0" max="100" value="${state.customGenome[i]}" oninput="updateGenomeDim(${i},this.value)">
+      <span class="slider-val" style="color:${DIM_COLORS[d]}">${Math.round(state.customGenome[i])}</span>
+    </div>
+  `).join('');
+}
+
+function updateGenomeDim(idx, val) {
+  state.customGenome[idx] = Math.round(parseInt(val));
+  updateStrategyDisplay();
+  // Live preview: show what would happen
+  const eval_ = evaluateMessage(state.customGenome, state.persona, state.brandTrust);
+  const previewEl = document.getElementById('genomePreview');
+  const verdictColors = {block:'#ef4444',pass:'#10b981',negotiate:'#f59e0b'};
+  if (previewEl) {
+    previewEl.innerHTML = `综合${eval_.composite}+信任${eval_.trustMod>=0?'+':''}${eval_.trustMod}=<b style="color:${verdictColors[eval_.verdict]}">${eval_.adjustedScore}</b>/${eval_.threshold} → ${eval_.verdict.toUpperCase()}`;
+  }
+}
+
+// ============================================================
+// CAMPAIGN DESIGNER
+// ============================================================
+function buildCampaignUI() {
+  const container = document.getElementById('campaignSlots');
+  container.innerHTML = state.campaign.map((sid, i) => `
+    <div class="campaign-slot">
+      <span class="slot-num">R${i+1}</span>
+      <select onchange="updateCampaignSlot(${i},this.value)">
+        ${Object.entries(STRATEGIES).map(([id,s])=>`<option value="${id}" ${sid===id?'selected':''}>${s.icon} ${s.name}</option>`).join('')}
+      </select>
+      <span style="font-size:0.62rem;color:var(--text3)">→ ${STRATEGIES[sid].msg.slice(0,25)}…</span>
+      <button onclick="removeCampaignSlot(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.7rem">✕</button>
+    </div>
+  `).join('') + `
+    <button onclick="addCampaignSlot()" style="align-self:flex-start;padding:4px 10px;border:1px dashed var(--border);border-radius:4px;background:none;color:var(--text3);cursor:pointer;font-family:inherit;font-size:0.7rem">+ 添加轮次</button>
+  `;
+}
+function updateCampaignSlot(idx, val) { state.campaign[idx] = val; buildCampaignUI(); }
+function addCampaignSlot() { state.campaign.push('value_content'); buildCampaignUI(); }
+function removeCampaignSlot(idx) { if(state.campaign.length>1){state.campaign.splice(idx,1);buildCampaignUI();} }
+
+// ============================================================
+// GENETIC ALGORITHM
+// ============================================================
+function runEvolution() {
+  const popSize = parseInt(document.getElementById('popSize').value);
+  const generations = parseInt(document.getElementById('genCount').value);
+  const persona = state.persona;
+  const trust = state.brandTrust;
+
+  // Initialize random population
+  let population = [];
+  for (let i = 0; i < popSize; i++) {
+    const genome = [0,0,0,0,0,0].map(()=>Math.floor(Math.random()*100));
+    population.push({genome, fitness:0});
+  }
+
+  const genHistory = [];
+
+  for (let gen = 0; gen < generations; gen++) {
+    // Evaluate fitness
+    for (const ind of population) {
+      const eval_ = evaluateMessage(ind.genome, persona, trust);
+      ind.fitness = eval_.verdict === 'pass' ? eval_.adjustedScore * 2 :
+                    eval_.verdict === 'negotiate' ? eval_.adjustedScore * 1.2 :
+                    Math.max(1, eval_.adjustedScore * 0.3);
+      ind.eval = eval_;
+    }
+
+    // Sort by fitness
+    population.sort((a,b) => b.fitness - a.fitness);
+    const best = population[0];
+    genHistory.push({gen, bestFitness:best.fitness, bestGenome:[...best.genome], bestVerdict:best.eval.verdict, avgFitness:Math.round(population.reduce((s,i)=>s+i.fitness,0)/popSize)});
+
+    // Selection & reproduction
+    const newPop = [];
+    // Elitism: keep top 2
+    newPop.push({genome:[...population[0].genome], fitness:0});
+    newPop.push({genome:[...population[1].genome], fitness:0});
+
+    // Tournament selection for rest
+    while (newPop.length < popSize) {
+      const t1 = population[Math.floor(Math.random()*popSize/2)];
+      const t2 = population[Math.floor(Math.random()*popSize/2)];
+      const parent = t1.fitness > t2.fitness ? t1 : t2;
+      // Crossover with another random parent
+      const other = population[Math.floor(Math.random()*popSize)];
+
+      const child = {genome:[], fitness:0};
+      for (let i = 0; i < 6; i++) {
+        // Crossover
+        child.genome[i] = Math.random() < 0.5 ? parent.genome[i] : other.genome[i];
+        // Mutation
+        if (Math.random() < 0.2) {
+          child.genome[i] = Math.max(0, Math.min(100, child.genome[i] + Math.floor((Math.random()-0.5)*30)));
+        }
+      }
+      newPop.push(child);
+    }
+    population = newPop.slice(0, popSize);
+  }
+
+  state.evoPopulation = population;
+  state.evoGenerations = genHistory;
+
+  // Display results
+  const best = population[0];
+  document.getElementById('evoStatus').innerHTML = `
+    ✅ 演化完成: ${generations}代 × ${popSize}个体<br>
+    🏆 最优基因组: [${best.genome.map(v=>Math.round(v)).join(', ')}]<br>
+    📊 判定: <b style="color:${best.eval?.verdict==='pass'?'var(--green)':'var(--red)'}">${best.eval?.verdict?.toUpperCase()}</b> | 综合分: ${best.eval?.composite} | 适应度: ${Math.round(best.fitness)}
+  `;
+
+  document.getElementById('evoBest').innerHTML = `
+    <div style="font-weight:700;color:var(--green)">🧬 最优基因解码:</div>
+    ${['商业信号','价值密度','情感操纵','紧迫制造','真实性','个性化'].map((d,i)=>`<span style="color:${Object.values(DIM_COLORS)[i]}">${d}:${Math.round(best.genome[i])}</span>`).join(' · ')}
+    <div style="font-size:0.64rem;color:var(--text3);margin-top:2px">这代表AI"发现"了在${state.persona.name}画像下最优的信息特征组合</div>
+  `;
+
+  // Population visualization
+  document.getElementById('evoPopulation').innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px">🧬 最终种群 (按适应度排序)</div>
+    ${population.slice(0,8).map((ind,i)=>`
+      <div class="genome-bar" style="height:16px;margin:2px 0" title="适应度:${Math.round(ind.fitness)}">
+        ${ind.genome.map((v,j)=>`<span class="genome-segment" style="left:${(100/6)*j}%;width:${100/6}%;background:${Object.values(DIM_COLORS)[j]};opacity:${v/100}"></span>`).join('')}
+      </div>
+      <div class="genome-label">#${i+1} 适应度:${Math.round(ind.fitness)} | ${ind.eval?.verdict}</div>
+    `).join('')}
+  `;
+
+  // Evolution chart
+  drawEvoChart(genHistory);
+}
+
+function drawEvoChart(genHistory) {
+  const c = document.getElementById('evoCanvas');
+  const w = c.parentElement.clientWidth;
+  const h = 160;
+  c.width = w*2; c.height = h*2;
+  c.style.width = w+'px'; c.style.height = h+'px';
+  const ctx2 = c.getContext('2d');
+  ctx2.scale(2,2);
+  ctx2.clearRect(0,0,w,h);
+
+  const pad = {t:20,r:20,b:25,l:40};
+  const pw = w-pad.l-pad.r, ph = h-pad.t-pad.b;
+
+  // Grid
+  ctx2.strokeStyle='rgba(255,255,255,0.04)';ctx2.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.t+ph/4*i;ctx2.beginPath();ctx2.moveTo(pad.l,y);ctx2.lineTo(w-pad.r,y);ctx2.stroke()}
+
+  // Best fitness line
+  ctx2.strokeStyle='#10b981';ctx2.lineWidth=2;
+  ctx2.beginPath();
+  genHistory.forEach((g,i)=>{
+    const x=pad.l+pw/Math.max(1,genHistory.length-1)*i;
+    const y=pad.t+ph-(g.bestFitness/200)*ph;
+    if(i===0)ctx2.moveTo(x,y);else ctx2.lineTo(x,y);
+  });
+  ctx2.stroke();
+
+  // Avg fitness line
+  ctx2.strokeStyle='#f59e0b';ctx2.lineWidth=1.5;ctx2.setLineDash([3,3]);
+  ctx2.beginPath();
+  genHistory.forEach((g,i)=>{
+    const x=pad.l+pw/Math.max(1,genHistory.length-1)*i;
+    const y=pad.t+ph-(g.avgFitness/200)*ph;
+    if(i===0)ctx2.moveTo(x,y);else ctx2.lineTo(x,y);
+  });
+  ctx2.stroke();ctx2.setLineDash([]);
+
+  // Labels
+  ctx2.fillStyle='#10b981';ctx2.font='8px sans-serif';ctx2.fillText('最优适应度',w-pad.r-55,pad.t-5);
+  ctx2.fillStyle='#f59e0b';ctx2.fillText('平均适应度',w-pad.r-55,pad.t+8);
+  ctx2.fillStyle='#64748b';ctx2.font='8px monospace';
+  for(let i=0;i<=4;i++){ctx2.fillText(Math.round(i*50),5,pad.t+ph/4*i+3)}
+  ctx2.fillText('代数 →',w/2-15,h-5);
+}
+
+// ============================================================
+// GAME THEORY
+// ============================================================
+function buildPayoffMatrix() {
+  document.getElementById('payoffMatrix').innerHTML = `
+    <div class="header-cell"></div>
+    <div class="header-cell">品牌B: 合作(价值)</div>
+    <div class="header-cell">品牌B: 背叛(广告)</div>
+    <div class="header-cell">品牌A: 合作(价值)</div>
+    <div class="highlight-cell">A:+30 / B:+30<br><span style="font-size:0.6rem;color:var(--green)">双赢均衡</span></div>
+    <div>A:+5 / B:+50<br><span style="font-size:0.6rem;color:var(--red)">A被利用</span></div>
+    <div class="header-cell">品牌A: 背叛(广告)</div>
+    <div>A:+50 / B:+5<br><span style="font-size:0.6rem;color:var(--red)">B被利用</span></div>
+    <div>A:+8 / B:+8<br><span style="font-size:0.6rem;color:var(--red)">双输陷阱</span></div>
+  `;
+}
+
+function runGameTheory() {
+  // Simulate 50 rounds: Brand A uses value content, Brand B is adaptive
+  let trustA = 50, trustB = 50, roiA = 0, roiB = 0;
+  const history = [];
+  const persona = state.persona;
+  for (let r = 0; r < 50; r++) {
+    // Brand A: always cooperate (value)
+    const evalA = evaluateMessage(STRATEGIES.value_content.genome, persona, trustA);
+    // Brand B: greedy - use whatever works best in recent history
+    const recentB = history.slice(-5).filter(h=>h.bVerdict);
+    const bStrat = recentB.filter(h=>h.bVerdict==='pass').length >= 2 ? 'value_content' : 'direct_ad';
+    const evalB = evaluateMessage(STRATEGIES[bStrat].genome, persona, trustB);
+
+    if (evalA.verdict === 'block') { trustA = Math.max(0, trustA - 8); roiA -= STRATEGIES.value_content.cost; }
+    else { trustA = Math.min(100, trustA + 12); roiA += STRATEGIES.value_content.baseROI - STRATEGIES.value_content.cost; }
+    if (evalB.verdict === 'block') { trustB = Math.max(0, trustB + STRATEGIES[bStrat].trustOnBlock); roiB -= STRATEGIES[bStrat].cost; }
+    else { trustB = Math.min(100, trustB + STRATEGIES[bStrat].trustOnPass); roiB += STRATEGIES[bStrat].baseROI - STRATEGIES[bStrat].cost; }
+    history.push({r, aVerdict:evalA.verdict, bVerdict:evalB.verdict, bStrat, trustA, trustB, roiA, roiB});
+  }
+
+  state.gameHistory = history;
+  const finalA = history[history.length-1];
+  document.getElementById('gameResult').innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px">📊 50轮博弈结果</div>
+    <div>🔵 品牌A (始终合作·价值策略): ROI <b style="color:${finalA.roiA>=0?'var(--green)':'var(--red)'}">${finalA.roiA>=0?'+':''}${finalA.roiA}</b> | 信任: ${finalA.trustA}</div>
+    <div>🟠 品牌B (机会主义·自适应): ROI <b style="color:${finalA.roiB>=0?'var(--green)':'var(--red)'}">${finalA.roiB>=0?'+':''}${finalA.roiB}</b> | 信任: ${finalA.trustB}</div>
+    <div style="margin-top:6px;padding:8px;background:rgba(16,185,129,0.1);border-radius:4px;font-size:0.7rem">
+      💡 <b>洞察:</b> 在AI中介市场中，<b>长期合作策略的累计收益远超短期背叛</b>。
+      因为消费者AI的<b>信任记忆</b>使得背叛者很快被识别和降权，
+      而合作者获得<b>复利效应</b>——高信任 → 高通过率 → 更高信任。
+    </div>
+  `;
+}
+
+function runTitForTat() {
+  // Both brands play Tit-for-Tat
+  let trustA=50,trustB=50,roiA=0,roiB=0;
+  let lastB='cooperate';
+  const persona=state.persona;
+  const history=[];
+  for(let r=0;r<50;r++){
+    const aStrat = lastB==='cooperate'?'value_content':'direct_ad';
+    const evalA=evaluateMessage(STRATEGIES[aStrat].genome,persona,trustA);
+    const evalB=evaluateMessage(STRATEGIES.value_content.genome,persona,trustB);
+    if(evalA.verdict==='block'){trustA=Math.max(0,trustA+STRATEGIES[aStrat].trustOnBlock);roiA-=STRATEGIES[aStrat].cost}else{trustA=Math.min(100,trustA+STRATEGIES[aStrat].trustOnPass);roiA+=STRATEGIES[aStrat].baseROI-STRATEGIES[aStrat].cost}
+    if(evalB.verdict==='block'){trustB=Math.max(0,trustB+STRATEGIES.value_content.trustOnBlock);roiB-=STRATEGIES.value_content.cost}else{trustB=Math.min(100,trustB+STRATEGIES.value_content.trustOnPass);roiB+=STRATEGIES.value_content.baseROI-STRATEGIES.value_content.cost}
+    lastB='cooperate'; // B always cooperates
+    history.push({r,aStrat,roiA,roiB,trustA,trustB});
+  }
+  const f=history[history.length-1];
+  document.getElementById('gameResult').innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px">🤝 以牙还牙 (Tit-for-Tat) 50轮</div>
+    <div>双方最终ROI: A=<b>${f.roiA>=0?'+':''}${f.roiA}</b> | B=<b>${f.roiB>=0?'+':''}${f.roiB}</b></div>
+    <div>双方信任: A=${f.trustA} | B=${f.trustB}</div>
+    <div class="info-tip" style="margin-top:6px">💡 以牙还牙策略（我合作除非你背叛）在重复博弈中通常产生最高长期收益。消费者AI的存在实际上<b>强迫品牌走向合作</b>——因为背叛的代价被信任记忆放大。</div>
+  `;
+}
+
+// ============================================================
+// PHASE SPACE
+// ============================================================
+function updatePhasePlot() {
+  if (state.phaseData.length < 2) return;
+  const c = document.getElementById('phaseCanvas');
+  const wrap = document.getElementById('phaseCanvasWrap');
+  const w = wrap.clientWidth;
+  const h = 160;
+  c.width = w*2; c.height = h*2;
+  c.style.width = w+'px'; c.style.height = h+'px';
+  const ctx2 = c.getContext('2d');
+  ctx2.scale(2,2);
+  ctx2.clearRect(0,0,w,h);
+
+  const pad={t:15,r:20,b:25,l:35};
+  const pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+  const data = state.phaseData;
+
+  // Axes
+  ctx2.strokeStyle='rgba(255,255,255,0.06)';ctx2.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const x=pad.l+pw/4*i;ctx2.beginPath();ctx2.moveTo(x,pad.t);ctx2.lineTo(x,pad.t+ph);ctx2.stroke()}
+  for(let i=0;i<=4;i++){const y=pad.t+ph/4*i;ctx2.beginPath();ctx2.moveTo(pad.l,y);ctx2.lineTo(pad.l+pw,y);ctx2.stroke()}
+
+  // Trajectory
+  ctx2.strokeStyle='rgba(139,92,246,0.6)';ctx2.lineWidth=1.5;
+  ctx2.beginPath();
+  data.forEach((d,i)=>{
+    const x=pad.l+(d.trust/100)*pw;
+    const y=pad.t+ph-(d.penetration/100)*ph;
+    if(i===0)ctx2.moveTo(x,y);else ctx2.lineTo(x,y);
+  });
+  ctx2.stroke();
+
+  // Points colored by recency
+  data.forEach((d,i)=>{
+    const x=pad.l+(d.trust/100)*pw;
+    const y=pad.t+ph-(d.penetration/100)*ph;
+    const alpha=0.4+(i/data.length)*0.6;
+    ctx2.fillStyle=`rgba(139,92,246,${alpha})`;
+    ctx2.beginPath();ctx2.arc(x,y,3,0,Math.PI*2);ctx2.fill();
+  });
+
+  // Endpoint
+  if(data.length>0){
+    const last=data[data.length-1];
+    const ex=pad.l+(last.trust/100)*pw, ey=pad.t+ph-(last.penetration/100)*ph;
+    ctx2.fillStyle='#fbbf24';ctx2.beginPath();ctx2.arc(ex,ey,5,0,Math.PI*2);ctx2.fill();
+    ctx2.fillStyle='#fff';ctx2.font='bold 9px sans-serif';
+    ctx2.fillText(`当前(${last.trust},${last.penetration}%)`,Math.min(ex+8,w-80),ey-8);
+  }
+
+  // Labels
+  ctx2.fillStyle='#64748b';ctx2.font='8px monospace';
+  ctx2.fillText('信任度 →',w/2-20,h-5);
+  ctx2.save();ctx2.translate(8,h/2);ctx2.rotate(-Math.PI/2);
+  ctx2.fillText('穿透率 →',-20,0);ctx2.restore();
+  for(let i=0;i<=4;i++){ctx2.fillText(i*25,pad.l+pw/4*i-8,h-5)}
+  for(let i=0;i<=4;i++){ctx2.fillText(i*25+'%',5,pad.t+ph/4*i+3)}
+
+  // Analysis
+  if(data.length>=10){
+    const recent = data.slice(-5);
+    const trend = recent[recent.length-1].trust - recent[0].trust;
+    document.getElementById('phaseAnalysis').innerHTML = `
+      趋势: 信任${trend>=0?'↑':'↓'}${Math.abs(trend)} |
+      ${trend>5?'✅ 走向高信任均衡':trend<-5?'⚠️ 信任在流失':'➡️ 稳态波动'}
+      | 最终位置: (${data[data.length-1].trust}, ${data[data.length-1].penetration}%)
+    `;
+  }
+}
+
+// ============================================================
+// BOTTOM TAB SWITCHING
+// ============================================================
+function switchBottomTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='gametheory') buildPayoffMatrix();
+  if(tab==='phase') updatePhasePlot();
+  if(tab==='campaign') buildCampaignUI();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  resizeCanvas();
+  window.addEventListener('resize', ()=>{resizeCanvas();updatePhasePlot();});
+  updateAllUI();
+  updateStrategyDisplay();
+  updateGenomeSliders();
+  buildCampaignUI();
+  buildPayoffMatrix();
+
+  // Add genome preview element
+  const preview = document.createElement('div');
+  preview.id = 'genomePreview';
+  preview.style.cssText = 'font-size:0.7rem;font-family:var(--font-mono);margin-top:4px;padding:4px 8px;background:rgba(0,0,0,0.3);border-radius:4px;color:var(--text3)';
+  document.getElementById('genomeSliders').appendChild(preview);
+
+  // Start canvas animation
+  renderCanvas();
+  addLog('🟢 Neural Bridge 就绪。品牌AI的信息必须穿越3层防御环才能到达消费者注意力。', '#8b5cf6');
+  addLog('💡 尝试点击「单条」发送一条信息，观察它如何被各层防御评估。', '#64748b');
+}
+
+init();
+console.log('⚔️ AI营销战场 v3 · Neural Bridge 已就绪');
+console.log('🧠 核心升级 (v2→v3):');
+console.log('  1. Canvas渲染的「神经桥」— 4层同心防御环可视化');
+console.log('  2. 粒子消息系统 — 每条消息是一个穿越防御环的粒子');
+console.log('  3. 策略基因组编辑器 — 拖拽滑块实时调整6维基因');
+console.log('  4. 营销序列设计器 — 多轮关系建立而非单条推送');
+console.log('  5. 遗传算法演化 — 策略种群通过选择/交叉/变异进化');
+console.log('  6. 博弈论实验室 — 囚徒困境 + 以牙还牙策略');
+console.log('  7. 相空间轨迹 — 信任vs穿透率的系统动力学可视化');
+console.log('  8. 环级即时反馈 — 每条消息显示它在哪一层被拦截/放行');
+</script>
+</body>
+</html>

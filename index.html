@@ -3,429 +3,381 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>品牌智能体 · AI 营销新范式 | 竞赛作品</title>
+<title>品牌智能体 · AI 营销新范式 | 2026 AI 先锋未来人才大赛</title>
 <style>
-/* ============================================================
-   CSS VARIABLES & RESET
-   ============================================================ */
 :root {
-  --bg: #060b14;
-  --surface: #0d1321;
-  --surface2: #141c2b;
-  --border: #1e2a3a;
-  --text: #dce4f0;
-  --text2: #8899b4;
-  --text3: #556885;
-  --cyan: #00c8f0;
-  --orange: #ff6b35;
-  --green: #0fe09f;
-  --red: #f0445c;
-  --yellow: #f5a623;
-  --purple: #7c5cfc;
-  --pink: #e04090;
-  --radius: 10px;
-  --radius-sm: 6px;
-  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-  --max-width: 1100px;
+  --bg: #060b14; --surface: #0d1321; --surface2: #141c2b; --border: #1e2a3a;
+  --text: #dce4f0; --text2: #8899b4; --text3: #556885;
+  --cyan: #00c8f0; --orange: #ff6b35; --green: #0fe09f; --red: #f0445c;
+  --yellow: #f5a623; --purple: #7c5cfc; --pink: #e04090;
+  --radius: 10px; --radius-sm: 6px;
+  --font-mono: 'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+  --max-width: 1200px;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  overflow-x: hidden;
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;padding-top:48px}
+::selection{background:rgba(124,92,252,0.35);color:#fff}
+/* ============================================================
+   TOP BAR (logo only)
+   ============================================================ */
+nav{position:fixed;top:0;left:0;right:0;z-index:1001;background:rgba(6,11,20,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:100%;margin:0 auto;display:flex;align-items:center;height:48px}
+.nav-logo{font-weight:800;font-size:0.88rem;white-space:nowrap;background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ============================================================
+   LINE SIDEBAR
+   ============================================================ */
+.line-sidebar {
+  --accent-color: #7c5cfc; --text-color: #667894; --marker-color: #283548;
+  --marker-length: 64px; --marker-gap: 14px; --tick-scale: 0.55;
+  --max-shift: 32px; --item-gap: 18px; --font-size: 0.88rem; --smoothing: 100ms;
+  position: fixed; left: 0; top: 48px; bottom: 0; width: 260px;
+  z-index: 999; display: flex; justify-content: flex-start; align-items: center;
+  background: linear-gradient(90deg, var(--bg) 92%, transparent);
+  border-right: 1px solid var(--border);
+}
+.line-sidebar--markers { padding-left: calc(var(--marker-length) + var(--marker-gap) + 16px); }
+.line-sidebar__list { list-style: none; margin: 0; padding: 0.5rem 0; display: flex; flex-direction: column; gap: var(--item-gap); }
+.line-sidebar__header {
+  color: var(--text3); font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.12em;
+  margin-bottom: 4px; padding-left: 0; text-transform: uppercase; font-weight: 700;
+}
+.line-sidebar__divider { height: 1px; background: var(--border); margin: 6px 0 2px; opacity: 0.5; }
+.line-sidebar__item { position: relative; cursor: pointer; }
+.line-sidebar__item::before { content: ''; position: absolute; inset: -4px 0 -4px -220px; }
+.line-sidebar__label {
+  position: relative; display: inline-flex; align-items: baseline;
+  font-size: var(--font-size); line-height: 1.2; white-space: nowrap;
+  color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
+  transform: translateX(calc(var(--effect, 0) * var(--max-shift)));
+  transition: none;
+}
+.line-sidebar__index { font-family: var(--font-mono); margin-right: 0.5rem; font-size: 0.78em; font-weight: 600; opacity: calc(0.5 + var(--effect, 0) * 0.5); }
+.line-sidebar__text { font-weight: 600; }
+.line-sidebar__marker {
+  position: absolute; top: 50%; left: calc(-1 * var(--marker-length) - var(--marker-gap));
+  height: 1px; width: var(--marker-length);
+  background-color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
+  transform-origin: left center;
+  transform: translateY(-50%) scaleX(calc(0.6 + var(--effect, 0) * 0.6));
+}
+.line-sidebar--markers .line-sidebar__item:not(:last-child)::after {
+  content: ''; position: absolute;
+  top: calc(100% + var(--item-gap) / 2);
+  left: calc(-1 * var(--marker-length) - var(--marker-gap));
+  height: 1px; width: calc(var(--marker-length) * var(--tick-scale));
+  background-color: var(--marker-color); opacity: 0.45;
+  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.5));
+  transform-origin: left center;
+}
+.line-sidebar__item.active .line-sidebar__label { color: var(--accent-color); }
+.line-sidebar__item.active .line-sidebar__index { opacity: 1; }
+.line-sidebar__item.active .line-sidebar__marker { background-color: var(--accent-color); transform: translateY(-50%) scaleX(1.2); }
+
+/* Use !important so the active class overrides the per-element --effect value */
+.line-sidebar__item.active .line-sidebar__label {
+  color: var(--accent-color) !important;
+  transform: translateX(var(--max-shift)) !important;
+}
+.line-sidebar__item.active .line-sidebar__marker {
+  background-color: var(--accent-color) !important;
+  transform: translateY(-50%) scaleX(1.2) !important;
 }
 
 /* ============================================================
-   NAVIGATION
+   SECTIONS (offset for sidebar)
    ============================================================ */
-nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: rgba(6,11,20,0.85);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-  z-index: 1000;
-  padding: 0 20px;
-}
-.nav-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 52px;
-}
-.nav-logo {
-  font-weight: 800; font-size: 1rem;
-  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.nav-links { display: flex; gap: 4px; list-style: none; flex-wrap: wrap; }
-.nav-links a {
-  color: var(--text3); text-decoration: none;
-  padding: 6px 12px; border-radius: 6px;
-  font-size: 0.78rem; font-weight: 500;
-  transition: all 0.2s;
-}
-.nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-
-/* ============================================================
-   SECTIONS COMMON
-   ============================================================ */
-.section {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 80px 24px;
-}
-.section-label {
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
-  color: var(--purple); text-transform: uppercase; margin-bottom: 8px;
-}
-.section-title {
-  font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;
-  margin-bottom: 12px; line-height: 1.25;
-}
-.section-subtitle {
-  font-size: 1rem; color: var(--text2); margin-bottom: 40px; max-width: 600px;
-}
-.gradient-text {
-  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--orange));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ============================================================
-   HERO
-   ============================================================ */
-#hero {
-  min-height: 100vh;
-  display: flex; flex-direction: column; justify-content: center;
-  padding-top: 80px;
-  position: relative;
-  overflow: hidden;
-}
-#hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(0,200,240,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 50%, rgba(255,107,53,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(124,92,252,0.08) 0%, transparent 50%);
-  pointer-events: none;
-}
-.hero-content { position: relative; z-index: 1; }
-.hero-badge {
-  display: inline-block; padding: 5px 14px;
-  border: 1px solid var(--purple);
-  border-radius: 20px; font-size: 0.72rem; font-weight: 700;
-  color: var(--purple); margin-bottom: 24px;
-  background: rgba(124,92,252,0.08);
-}
-.hero-title {
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
-  font-weight: 800; letter-spacing: -0.03em;
-  line-height: 1.15; margin-bottom: 20px;
-}
-.hero-question {
-  font-size: 1.15rem; color: var(--text2); margin-bottom: 32px;
-  max-width: 620px; line-height: 1.6;
-}
-.hero-question strong { color: var(--cyan); }
-.hero-cta {
-  display: flex; gap: 12px; flex-wrap: wrap;
-}
-.btn {
-  padding: 12px 28px; border-radius: 8px;
-  font-weight: 700; font-size: 0.9rem; font-family: inherit;
-  cursor: pointer; text-decoration: none; display: inline-block;
-  transition: all 0.25s;
-}
-.btn-primary {
-  background: var(--purple); color: #fff; border: none;
-  box-shadow: 0 0 30px rgba(124,92,252,0.3);
-}
-.btn-primary:hover { box-shadow: 0 0 40px rgba(124,92,252,0.5); transform: translateY(-2px); }
-.btn-outline {
-  background: transparent; color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-outline:hover { border-color: var(--purple); background: rgba(124,92,252,0.06); }
-
-/* Hero stats row */
-.hero-stats {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 16px; margin-top: 60px; position: relative; z-index: 1;
-}
-.hero-stat {
-  padding: 18px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  text-align: center;
-}
-.hero-stat .hs-val {
-  font-size: 1.8rem; font-weight: 800; font-family: var(--font-mono);
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.hero-stat .hs-label { font-size: 0.72rem; color: var(--text3); margin-top: 4px; }
-
-/* ============================================================
-   CARDS GRID
-   ============================================================ */
-.cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px;
-  transition: all 0.25s;
-}
-.card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
-.card-icon { font-size: 1.8rem; margin-bottom: 12px; }
-.card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
-.card p { font-size: 0.82rem; color: var(--text2); line-height: 1.55; }
-.card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-.tag {
-  padding: 3px 10px; border-radius: 12px; font-size: 0.65rem;
-  font-weight: 600; font-family: var(--font-mono);
-}
-.tag.cyan { background: rgba(0,200,240,0.12); color: var(--cyan); }
-.tag.orange { background: rgba(255,107,53,0.12); color: var(--orange); }
-.tag.green { background: rgba(15,224,159,0.12); color: var(--green); }
-.tag.purple { background: rgba(124,92,252,0.12); color: var(--purple); }
-.tag.yellow { background: rgba(245,166,35,0.12); color: var(--yellow); }
-
-/* ============================================================
-   RESEARCH PILLARS
-   ============================================================ */
-.pillar-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 28px;
-  position: relative; overflow: hidden;
-}
-.pillar-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-}
-.pillar-card.policy::before { background: var(--red); }
-.pillar-card.academic::before { background: var(--cyan); }
-.pillar-card.engineering::before { background: var(--orange); }
-.pillar-card .pillar-icon { font-size: 2rem; margin-bottom: 12px; }
-.pillar-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-.pillar-card .pillar-list {
-  list-style: none; font-size: 0.8rem; color: var(--text2); line-height: 1.6;
-}
-.pillar-card .pillar-list li { padding: 4px 0; padding-left: 16px; position: relative; }
-.pillar-card .pillar-list li::before {
-  content: '→'; position: absolute; left: 0; color: var(--purple);
-  font-family: var(--font-mono); font-size: 0.7rem;
-}
-
-/* ============================================================
-   FIVE ACT STRUCTURE
-   ============================================================ */
-.act-timeline { position: relative; padding-left: 40px; }
-.act-timeline::before {
-  content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
-  width: 2px; background: linear-gradient(to bottom, var(--cyan), var(--purple), var(--orange), var(--green));
-}
-.act-card {
-  position: relative; margin-bottom: 32px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px 28px;
-}
-.act-card::before {
-  content: attr(data-num);
-  position: absolute; left: -40px; top: 20px;
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--surface2); border: 2px solid var(--purple);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 0.85rem; color: var(--purple);
-  font-family: var(--font-mono);
-}
-.act-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
-.act-card .act-duration { font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); margin-bottom: 8px; }
-.act-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
-.act-card .act-refs { margin-top: 10px; font-size: 0.7rem; color: var(--text3); }
-.act-card .act-refs strong { color: var(--cyan); }
-
-/* ============================================================
-   SYSTEM ARCHITECTURE
-   ============================================================ */
-.arch-diagram {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 32px;
-  font-family: var(--font-mono); font-size: 0.75rem;
-  overflow-x: auto;
-}
-.arch-layer {
-  display: flex; align-items: center; justify-content: center;
-  padding: 14px 20px; margin: 6px 0; border-radius: 8px;
-  text-align: center; gap: 8px;
-}
-.arch-layer.l1 { background: rgba(0,200,240,0.1); border: 1px solid rgba(0,200,240,0.25); }
-.arch-layer.l2 { background: rgba(124,92,252,0.1); border: 1px solid rgba(124,92,252,0.25); }
-.arch-layer.l3 { background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.25); }
-.arch-layer.l4 { background: rgba(15,224,159,0.1); border: 1px solid rgba(15,224,159,0.25); }
-.arch-arrow { text-align: center; color: var(--text3); font-size: 1.2rem; margin: 2px 0; }
-
-/* ============================================================
-   DEMO EVOLUTION
-   ============================================================ */
-.demo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.demo-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px; text-decoration: none;
-  color: var(--text); transition: all 0.25s; display: block;
-}
-.demo-card:hover { border-color: var(--purple); transform: translateY(-4px); box-shadow: 0 8px 30px rgba(124,92,252,0.15); }
-.demo-card .demo-ver { font-family: var(--font-mono); font-size: 0.6rem; color: var(--purple); font-weight: 700; letter-spacing: 0.05em; }
-.demo-card .demo-title { font-weight: 700; font-size: 0.95rem; margin: 4px 0; }
-.demo-card .demo-desc { font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
-.demo-card .demo-arrow { font-size: 0.7rem; color: var(--purple); margin-top: 10px; font-weight: 700; }
-
-/* ============================================================
-   INNOVATION TABLE
-   ============================================================ */
-.innovation-table {
-  width: 100%; border-collapse: collapse; font-size: 0.8rem;
-}
-.innovation-table th {
-  text-align: left; padding: 10px 14px;
-  border-bottom: 1px solid var(--border); color: var(--text3);
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-.innovation-table td {
-  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
-  color: var(--text2);
-}
-.innovation-table td:first-child { font-weight: 700; color: var(--text); }
-.innovation-table .check { color: var(--green); }
-.innovation-table .star { color: var(--yellow); }
-
-/* ============================================================
-   TEAM
-   ============================================================ */
-.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.team-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px; text-align: center;
-}
-.team-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--cyan), var(--purple));
-  margin: 0 auto 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem;
-}
-.team-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
-.team-card .role { font-size: 0.72rem; color: var(--purple); margin-bottom: 6px; }
-.team-card .bio { font-size: 0.72rem; color: var(--text3); line-height: 1.5; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-footer {
-  border-top: 1px solid var(--border);
-  padding: 40px 24px; text-align: center;
-  color: var(--text3); font-size: 0.72rem;
-}
-footer a { color: var(--purple); text-decoration: none; }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 900px) {
-  .cards-3, .demo-grid { grid-template-columns: 1fr; }
-  .cards-2 { grid-template-columns: 1fr; }
-  .hero-stats { grid-template-columns: repeat(2, 1fr); }
-  .nav-links { display: none; }  /* On mobile, still show nav links inline if possible */
-  .section-title { font-size: 1.5rem; }
-}
-@media (max-width: 600px) {
-  .hero-stats { grid-template-columns: 1fr; }
-  .section { padding: 48px 16px; }
-}
+.section{max-width:var(--max-width);margin:0 auto;padding:60px 24px 60px calc(24px + 260px)}
+.section-spacer{height:1px;background:var(--border);max-width:var(--max-width);margin:0 auto;opacity:0.5}
+.section-label{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:var(--purple);text-transform:uppercase;margin-bottom:8px}
+.section-title{font-size:2.2rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:12px;line-height:1.2}
+.section-subtitle{font-size:1rem;color:var(--text2);margin-bottom:40px;max-width:650px}
+.gradient-text{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-top:80px;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 20% 50%,rgba(0,200,240,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 30%,rgba(255,107,53,0.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(124,92,252,0.07) 0%,transparent 50%)}
+.hero-content{position:relative;z-index:1}
+.hero-badge{display:inline-block;padding:6px 16px;border:1px solid var(--purple);border-radius:20px;font-size:0.72rem;font-weight:700;color:var(--purple);margin-bottom:24px;background:rgba(124,92,252,0.08)}
+.hero-title{font-size:clamp(2.2rem,5vw,4rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:20px}
+.hero-question{font-size:1.1rem;color:var(--text2);margin-bottom:32px;max-width:680px;line-height:1.65}
+.hero-question strong{color:var(--cyan)}
+.hero-cta{display:flex;flex-direction:column;gap:10px}
+.hero-cta-row{display:flex;gap:10px;flex-wrap:wrap}
+.hero-link-card{display:flex;flex-direction:column;gap:3px;padding:14px 20px;border-radius:10px;text-decoration:none;background:var(--surface);border:1px solid var(--border);transition:all 0.25s;min-width:190px;flex:1}
+.hero-link-card:hover{border-color:var(--purple);background:rgba(124,92,252,0.06);transform:translateY(-2px);box-shadow:0 8px 25px rgba(124,92,252,0.1)}
+.hero-link-card .hlc-icon{font-size:1.3rem;margin-bottom:2px}
+.hero-link-card .hlc-title{font-weight:700;font-size:0.88rem;color:var(--text)}
+.hero-link-card .hlc-desc{font-size:0.7rem;color:var(--text3);line-height:1.3}
+.hero-link-card.primary{border-color:rgba(124,92,252,0.5);background:rgba(124,92,252,0.08)}
+.hero-link-card.primary .hlc-title{color:var(--purple)}
+.hero-link-card.accent{border-color:rgba(0,200,240,0.4);background:rgba(0,200,240,0.06)}
+.hero-link-card.accent .hlc-title{color:var(--cyan)}
+.btn{padding:12px 28px;border-radius:8px;font-weight:700;font-size:0.88rem;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.25s;border:none}
+.btn-primary{background:var(--purple);color:#fff;box-shadow:0 0 30px rgba(124,92,252,0.3)}
+.btn-primary:hover{box-shadow:0 0 45px rgba(124,92,252,0.5);transform:translateY(-2px)}
+.btn-outline{color:var(--cyan);border:1.5px solid rgba(0,200,240,0.35);background:rgba(0,200,240,0.06);position:relative;overflow:hidden}
+.btn-outline:hover{border-color:var(--cyan);background:rgba(0,200,240,0.14);box-shadow:0 0 18px rgba(0,200,240,0.15);transform:translateY(-2px)}
+.btn-outline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);opacity:0;transition:opacity 0.25s}
+.btn-outline:hover::before{opacity:1}
+.btn-sm{padding:9px 18px;font-size:0.78rem;font-weight:600}
+.hero-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:60px;position:relative;z-index:1}
+.hero-stat{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-align:center}
+.hero-stat .hs-val{font-size:1.75rem;font-weight:800;font-family:var(--font-mono);background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-stat .hs-label{font-size:0.7rem;color:var(--text3);margin-top:4px}
+.cards-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cards-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all 0.25s}
+.card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-2px)}
+.card-icon{font-size:2rem;margin-bottom:10px}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.card p{font-size:0.82rem;color:var(--text2);line-height:1.55}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.tag{padding:3px 10px;border-radius:12px;font-size:0.62rem;font-weight:600;font-family:var(--font-mono)}
+.tag.cyan{background:rgba(0,200,240,0.12);color:var(--cyan)}
+.tag.orange{background:rgba(255,107,53,0.12);color:var(--orange)}
+.tag.green{background:rgba(15,224,159,0.12);color:var(--green)}
+.tag.purple{background:rgba(124,92,252,0.12);color:var(--purple)}
+.tag.yellow{background:rgba(245,166,35,0.12);color:var(--yellow)}
+.tag.red{background:rgba(240,68,92,0.12);color:var(--red)}
+.tag.pink{background:rgba(224,64,144,0.12);color:var(--pink)}
+.pillar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:relative;overflow:hidden;transition:all 0.25s}
+.pillar-card:hover{transform:translateY(-2px)}
+.pillar-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.pillar-card.policy::before{background:var(--red)}
+.pillar-card.academic::before{background:var(--cyan)}
+.pillar-card.engineering::before{background:var(--orange)}
+.pillar-card .pillar-icon{font-size:2.2rem;margin-bottom:12px}
+.pillar-card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px}
+.pillar-card .pillar-list{list-style:none;font-size:0.78rem;color:var(--text2);line-height:1.65}
+.pillar-card .pillar-list li{padding:4px 0 4px 16px;position:relative}
+.pillar-card .pillar-list li::before{content:'→';position:absolute;left:0;color:var(--purple);font-family:var(--font-mono);font-size:0.7rem}
+.pillar-card .pillar-list li strong{color:var(--text)}
+.defense-stack{display:flex;flex-direction:column;gap:1px;margin-bottom:24px}
+.defense-layer{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all 0.3s}
+.defense-layer:hover{border-color:rgba(255,255,255,0.2);box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+.defense-layer-header{display:flex;align-items:center;gap:16px;padding:18px 24px;transition:all 0.2s;pointer-events:auto}
+.defense-layer:hover .defense-layer-header{background:rgba(255,255,255,0.03)}
+.defense-layer-num{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;font-family:var(--font-mono);flex-shrink:0;transition:all 0.3s}
+.defense-layer:hover .defense-layer-num{transform:scale(1.08)}
+.dl-1 .defense-layer-num{background:rgba(0,200,240,0.18);color:var(--cyan)}
+.dl-2 .defense-layer-num{background:rgba(124,92,252,0.18);color:var(--purple)}
+.dl-3 .defense-layer-num{background:rgba(255,107,53,0.18);color:var(--orange)}
+.dl-4 .defense-layer-num{background:rgba(15,224,159,0.18);color:var(--green)}
+.defense-layer-info{flex:1;min-width:0}
+.defense-layer-info h4{font-size:0.95rem;font-weight:700}
+.defense-layer-info p{font-size:0.75rem;color:var(--text3);margin-top:2px}
+.defense-layer-content{padding:0 24px 20px 88px;display:none}
+.defense-layer.open .defense-layer-content{display:block}
+.defense-layer-header::after{content:'▸';font-size:0.8rem;color:var(--text3);transition:transform 0.3s;margin-left:auto;flex-shrink:0}
+.defense-layer.open .defense-layer-header::after{transform:rotate(90deg)}
+.defense-layer-toggle{display:inline-block;padding:4px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-size:0.62rem;color:var(--text3);font-weight:600;letter-spacing:0.05em;transition:all 0.25s;flex-shrink:0}
+.defense-layer:hover .defense-layer-toggle{border-color:rgba(255,255,255,0.25);color:var(--text2)}
+.defense-layer.open .defense-layer-toggle{background:rgba(124,92,252,0.12);border-color:rgba(124,92,252,0.35);color:var(--purple)}
+.defense-tactics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.defense-tactic{padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);font-size:0.74rem;color:var(--text2);line-height:1.5;border-left:2px solid var(--purple)}
+.defense-tactic strong{color:var(--text)}
+.sim-dual{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.sim-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.sim-panel.panel-a{border-top:3px solid var(--cyan)}
+.sim-panel.panel-b{border-top:3px solid var(--orange)}
+.sim-panel h4{font-size:1rem;font-weight:700;margin-bottom:6px}
+.sim-panel .sim-meta{font-size:0.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px}
+.sim-panel ul{list-style:none;font-size:0.78rem;color:var(--text2);line-height:1.65}
+.sim-panel ul li{padding:3px 0 3px 14px;position:relative}
+.sim-panel ul li::before{content:'•';position:absolute;left:0;color:var(--purple)}
+.sim-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sim-mode-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.sim-mode-card h5{font-size:0.9rem;font-weight:700;margin-bottom:4px}
+.sim-mode-card .mode-label{font-size:0.64rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:8px}
+.sim-mode-card p{font-size:0.72rem;color:var(--text2);line-height:1.5}
+.evo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.evo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 16px 18px;text-decoration:none;color:var(--text);transition:all 0.25s;display:flex;flex-direction:column;text-align:center}
+.evo-card:hover{border-color:var(--purple);transform:translateY(-3px);box-shadow:0 8px 25px rgba(124,92,252,0.12)}
+.evo-card .evo-top{flex:1}
+.evo-card .evo-ver{font-family:var(--font-mono);font-size:0.6rem;color:var(--purple);font-weight:700;letter-spacing:0.05em;margin-bottom:4px}
+.evo-card .evo-title{font-weight:700;font-size:0.85rem;margin-bottom:4px}
+.evo-card .evo-desc{font-size:0.67rem;color:var(--text2);line-height:1.5}
+.evo-card .evo-arrow{margin-top:auto;padding-top:4px}
+.evo-card .evo-btn{display:inline-block;margin-top:10px;padding:6px 18px;border:1.5px solid var(--purple);border-radius:16px;font-size:0.65rem;font-weight:700;color:#fff;background:var(--purple);transition:all 0.25s;letter-spacing:0.04em}
+.evo-card:hover .evo-btn{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 16px rgba(0,200,240,0.35);transform:scale(1.06)}
+.flow-steps{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:20px 0}
+.flow-step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center}
+.flow-step .fs-num{width:24px;height:24px;border-radius:50%;background:rgba(124,92,252,0.2);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.7rem;font-family:var(--font-mono);margin:0 auto 6px}
+.flow-step .fs-text{font-size:0.67rem;color:var(--text2);line-height:1.4}
+.flow-step .fs-icon{font-size:1rem;margin-bottom:4px}
+.innovation-table{width:100%;border-collapse:collapse;font-size:0.8rem;margin:16px 0}
+.innovation-table th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text3);font-size:0.68rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.innovation-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text2);vertical-align:top}
+.innovation-table td:first-child{font-weight:700;color:var(--text)}
+.innovation-table .check{color:var(--green)}
+.innovation-table .star{color:var(--yellow)}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.test-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 0.25s}
+.test-card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-2px)}
+.test-card img{width:100%;height:200px;object-fit:cover;display:block;background:var(--surface2)}
+.test-card-body{padding:16px}
+.test-card-body h5{font-size:0.85rem;font-weight:700;margin-bottom:4px}
+.test-card-body p{font-size:0.72rem;color:var(--text2);line-height:1.5}
+.arch-stack{display:flex;flex-direction:column;gap:6px;font-family:var(--font-mono);font-size:0.75rem}
+.arch-layer{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-radius:8px;text-align:center}
+.arch-layer.l1{background:rgba(0,200,240,0.1);border:1px solid rgba(0,200,240,0.25)}
+.arch-layer.l2{background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.25)}
+.arch-layer.l3{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.25)}
+.arch-layer.l4{background:rgba(15,224,159,0.1);border:1px solid rgba(15,224,159,0.25)}
+.arch-layer.l5{background:rgba(240,68,92,0.1);border:1px solid rgba(240,68,92,0.25)}
+.arch-layer.l6{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25)}
+.arch-arrow{text-align:center;color:var(--text3);font-size:1rem;padding:2px 0}
+.quote-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;position:relative;text-align:center;margin:32px 0}
+.quote-block::before{content:'"';position:absolute;top:10px;left:24px;font-size:4rem;color:var(--purple);opacity:0.2;font-family:Georgia,serif;line-height:1}
+.quote-block .quote-text{font-size:1.1rem;color:var(--text);font-weight:500;line-height:1.7;max-width:800px;margin:0 auto}
+.quote-block .quote-attribution{font-size:0.72rem;color:var(--text3);margin-top:16px}
+.pane-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.pane h4{font-size:1rem;font-weight:700;margin-bottom:16px}
+.pane ul{list-style:none;font-size:0.8rem;line-height:1.7}
+.pane ul li{padding:5px 0 5px 18px;position:relative;color:var(--text2)}
+.pane ul li::before{content:'▸';position:absolute;left:0;color:var(--purple);font-family:var(--font-mono);font-size:0.65rem;top:7px}
+.info-box{background:rgba(245,166,35,0.04);border:1px solid rgba(245,166,35,0.3);border-radius:var(--radius);padding:20px 24px;font-size:0.82rem;color:var(--text2);line-height:1.7}
+.info-box strong{color:var(--yellow)}
+/* Strategy table */
+.strategy-table{width:100%;border-collapse:collapse;font-size:0.76rem;margin:16px 0}
+.strategy-table th{text-align:left;padding:8px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:0.66rem;font-weight:700;letter-spacing:0.04em}
+.strategy-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text2);vertical-align:top;font-size:0.73rem;line-height:1.5}
+.strategy-table td:first-child{font-weight:700;color:var(--text);white-space:nowrap}
+/* File tree */
+.file-tree{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;font-family:var(--font-mono);font-size:0.72rem;line-height:1.8;overflow-x:auto}
+.file-tree .dir{color:var(--cyan);font-weight:700}
+.file-tree .file{color:var(--text2);padding-left:20px}
+.file-tree .file a{color:var(--text2);text-decoration:none}
+.file-tree .file a:hover{color:var(--purple)}
+.file-tree .note{color:var(--text3);font-style:italic;padding-left:20px}
+.three-faces{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.face-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center;transition:all 0.25s}
+.face-card:hover{border-color:var(--purple);transform:translateY(-2px)}
+.face-card.face-defender{border-top:3px solid var(--cyan)}
+.face-card.face-negotiator{border-top:3px solid var(--orange)}
+.face-card.face-persuader{border-top:3px solid var(--green)}
+.face-card .face-icon{font-size:3rem;margin-bottom:12px}
+.face-card h4{font-size:1.05rem;font-weight:700;margin-bottom:8px}
+.face-card p{font-size:0.78rem;color:var(--text2);line-height:1.55}
+.face-card .face-tag{margin-top:10px;font-size:0.65rem;color:var(--text3)}
+/* Paper tags */
+.paper-list{display:grid;grid-template-columns:1fr;gap:10px}
+.paper-item{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:var(--surface2);border-radius:var(--radius-sm);border-left:3px solid var(--purple);font-size:0.76rem;transition:all 0.2s}
+.paper-item.zenith{border-left-color:var(--red)}
+.paper-item.high{border-left-color:var(--orange)}
+.paper-item.medium{border-left-color:var(--cyan)}
+.paper-item .paper-marker{font-size:0.6rem;font-weight:700;font-family:var(--font-mono);color:var(--text3);min-width:40px;padding-top:2px}
+.paper-item .paper-content{flex:1;color:var(--text2);line-height:1.55}
+.paper-item .paper-content strong{color:var(--text)}
+.paper-item:hover{background:var(--surface);border-left-color:var(--purple)}
+/* Metrics */
+.metrics-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.metric-card-mini{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.metric-card-mini .m-icon{font-size:1.4rem;margin-bottom:6px}
+.metric-card-mini .m-name{font-size:0.7rem;color:var(--text3)}
+.metric-card-mini .m-stat{font-size:0.73rem;font-weight:700;color:var(--text)}
+.metric-card-mini .m-new{color:var(--green);font-size:0.68rem;font-weight:700}
+footer{border-top:1px solid var(--border);padding:48px 24px;text-align:center;color:var(--text3);font-size:0.72rem;line-height:2}
+footer a{color:var(--purple);text-decoration:none}
+/* responsive */
+@media(max-width:1000px){.cards-3{grid-template-columns:1fr}.cards-4{grid-template-columns:repeat(2,1fr)}.evo-grid{grid-template-columns:repeat(3,1fr)}.flow-steps{grid-template-columns:repeat(4,1fr)}.test-grid{grid-template-columns:1fr}.sim-dual{grid-template-columns:1fr}.pane-grid{grid-template-columns:1fr}.defense-tactics{grid-template-columns:1fr}.sim-modes{grid-template-columns:1fr}.three-faces{grid-template-columns:1fr}.hero-stats{grid-template-columns:repeat(3,1fr)}.section{padding-left:24px}}
+@media(max-width:700px){.cards-2{grid-template-columns:1fr}.hero-stats{grid-template-columns:repeat(2,1fr)}.evo-grid{grid-template-columns:repeat(2,1fr)}.flow-steps{grid-template-columns:repeat(2,1fr)}.section-title{font-size:1.5rem}.line-sidebar{display:none}.section{padding-left:24px}}
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     NAVIGATION
-     ============================================================ -->
+<!-- Top slim bar -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo">⚡ 品牌智能体 · Brand Agent</div>
-    <ul class="nav-links">
-      <li><a href="#hero">首页</a></li>
-      <li><a href="#background">命题背景</a></li>
-      <li><a href="#research">研究基础</a></li>
-      <li><a href="#architecture">方案架构</a></li>
-      <li><a href="#demos">演示</a></li>
-      <li><a href="#team">团队</a></li>
-    </ul>
+    <div class="nav-logo">⚡ 品牌智能体 · Brand AI Agent — 2026 AI 先锋未来人才大赛</div>
   </div>
 </nav>
 
-<!-- ============================================================
-     HERO
-     ============================================================ -->
+<!-- LineSidebar -->
+<div class="line-sidebar line-sidebar--markers" id="sidebar">
+  <ul class="line-sidebar__list" id="sidebarList"></ul>
+</div>
+
+<!-- HERO -->
 <section id="hero">
   <div class="hero-content section">
-    <div class="hero-badge">🏆 竞赛作品 · 2026</div>
-    <h1 class="hero-title">
-      当每个消费者都有一个<br>
-      <span class="gradient-text">AI 守门人</span>，<br>
-      品牌如何进化？
-    </h1>
+    <div class="hero-badge">🏆 2026 AI 先锋未来人才大赛 · 蓝色光标命题</div>
+    <h1 class="hero-title">当每个消费者都有一个<br><span class="gradient-text">AI 守门人</span>，<br>品牌如何进化？</h1>
     <p class="hero-question">
       不久的将来，每个人的手机、耳机、眼镜里都会有一个 <strong>AI 助理</strong>。
-      品牌真正的对话对象，正从"消费者本人"变成<strong>"消费者的 AI 代理人"</strong>。
+      它替主人搜索、比价、下单，甚至直接和品牌沟通。品牌真正的对话对象，
+      正从"消费者本人"变成<strong>"消费者的 AI 代理人"</strong>。
       如果品牌没有自己的智能体，就只能被动等着别人的 AI 来"裁判"自己。
     </p>
     <div class="hero-cta">
-      <a href="#demos" class="btn btn-primary">▶ 查看演示原型</a>
-      <a href="#architecture" class="btn btn-outline">📋 方案架构</a>
+      <div class="hero-cta-row">
+        <a href="#problem" class="hero-link-card">
+          <span class="hlc-icon">📋</span>
+          <span class="hlc-title">命题分析</span>
+          <span class="hlc-desc">AI中介时代的营销范式转移</span>
+        </a>
+        <a href="#research" class="hero-link-card">
+          <span class="hlc-icon">🔬</span>
+          <span class="hlc-title">研究基础</span>
+          <span class="hlc-desc">政策·学术·工程三线交叉验证</span>
+        </a>
+        <a href="#defense" class="hero-link-card primary">
+          <span class="hlc-icon">🛡️</span>
+          <span class="hlc-title">四层防御体系</span>
+          <span class="hlc-desc">品牌AI核心策略方案</span>
+        </a>
+        <a href="#blueprint" class="hero-link-card">
+          <span class="hlc-icon">🗺️</span>
+          <span class="hlc-title">策略蓝图</span>
+          <span class="hlc-desc">真实策略→AI博弈行动映射</span>
+        </a>
+      </div>
+      <div class="hero-cta-row">
+        <a href="#simulation" class="hero-link-card accent">
+          <span class="hlc-icon">⚔️</span>
+          <span class="hlc-title">博弈仿真实验室</span>
+          <span class="hlc-desc">8品牌×4消费者·32智能体</span>
+        </a>
+        <a href="#walmart" class="hero-link-card">
+          <span class="hlc-icon">🏪</span>
+          <span class="hlc-title">沃尔玛落地案例</span>
+          <span class="hlc-desc">A2A采购协商智能体</span>
+        </a>
+        <a href="#demos" class="hero-link-card">
+          <span class="hlc-icon">🎮</span>
+          <span class="hlc-title">演示原型 V1→V4</span>
+          <span class="hlc-desc">从剧本到自治生态</span>
+        </a>
+        <a href="#a2a" class="hero-link-card">
+          <span class="hlc-icon">🧪</span>
+          <span class="hlc-title">A2A真实测试</span>
+          <span class="hlc-desc">12类虚假策略·100%穿透</span>
+        </a>
+      </div>
     </div>
-
     <div class="hero-stats">
-      <div class="hero-stat">
-        <div class="hs-val">45+</div>
-        <div class="hs-label">篇论文深度分析</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-val">4 版</div>
-        <div class="hs-label">迭代演示原型</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-val">8×4</div>
-        <div class="hs-label">品牌×消费者智能体</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-val">3 线</div>
-        <div class="hs-label">政策·学术·工程研究</div>
-      </div>
+      <div class="hero-stat"><div class="hs-val">45+</div><div class="hs-label">篇论文深度分析</div></div>
+      <div class="hero-stat"><div class="hs-val">V1→V4</div><div class="hs-label">迭代演示原型</div></div>
+      <div class="hero-stat"><div class="hs-val">8×4</div><div class="hs-label">品牌×消费者智能体</div></div>
+      <div class="hero-stat"><div class="hs-val">3 线</div><div class="hs-label">政策·学术·工程</div></div>
+      <div class="hero-stat"><div class="hs-val">3 模式</div><div class="hs-label">A·B·C交互博弈</div></div>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     BACKGROUND: 命题背景
-     ============================================================ -->
-<section id="background" class="section">
+<!-- PROBLEM ANALYSIS -->
+<div class="section-spacer"></div>
+<section id="problem" class="section">
   <div class="section-label">01 · 命题分析</div>
   <h2 class="section-title">AI 中介时代的<br><span class="gradient-text">营销范式转移</span></h2>
   <p class="section-subtitle">
-    当每个消费者都有一个 AI Agent 作为"守门人"，传统营销的四大支柱全部失效。
-    这不是科幻——Google Gemini 已取代 Android 默认助手，Apple 签约 Gemini 做 Siri 底层，
-    2027 年智能体普及率预计超过 70%（国发〔2025〕11 号）。
+    Google Gemini 已取代 Android 默认助手。Apple 签年付 10 亿美元协议用 Gemini 做 Siri 底层。联想天禧已量产 300 万+ AI PC。国务院「人工智能+」行动意见明确：2027 年智能体普及率超 70%。<strong>这不是科幻，是正在发生的事。</strong>
   </p>
-
   <div class="cards-3">
     <div class="card">
-      <div class="card-icon">🧱</div>
+      <div class="card-icon">🚫</div>
       <h3>广告投放失效</h3>
       <p>消费者 AI 识别广告模式，直接拦截。传统 CPM/CPC 广告模型在 AI 中介时代趋近于零。</p>
       <div class="card-tags"><span class="tag red">拦截率 97%+</span></div>
@@ -433,7 +385,7 @@ footer a { color: var(--purple); text-decoration: none; }
     <div class="card">
       <div class="card-icon">🔐</div>
       <h3>品牌信息被屏蔽</h3>
-      <p>AI 只接收消费者授权的信息源。品牌推送被归入"噪音"分类，消费者根本不知道品牌曾试图联系他们。</p>
+      <p>AI 只接收消费者授权的信息源。精美图片和花哨文案对 AI 来说是无意义的像素。</p>
       <div class="card-tags"><span class="tag orange">触达率 → 0</span></div>
     </div>
     <div class="card">
@@ -443,462 +395,1068 @@ footer a { color: var(--purple); text-decoration: none; }
       <div class="card-tags"><span class="tag cyan">决策权转移</span></div>
     </div>
   </div>
+  <div class="cards-3" style="margin-top:16px">
+    <div class="card">
+      <div class="card-icon">📉</div>
+      <h3>价格歧视被识破</h3>
+      <p>AI 能跨平台比价，发现定价猫腻。传统"先涨后降"的促销套路在 AI 面前无处遁形。</p>
+      <div class="card-tags"><span class="tag yellow">定价透明化</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💔</div>
+      <h3>情感营销被解构</h3>
+      <p>AI 理性分析情感诉求背后的商业意图。品牌故事、情感共鸣在 AI 评分中权重趋零。</p>
+      <div class="card-tags"><span class="tag pink">情感溢价消失</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h3>传统指标全面失效</h3>
+      <p>用户不再主动搜索，CTR/CVR/DAU 等传统互动指标失去衡量价值的坐标系。</p>
+      <div class="card-tags"><span class="tag orange">KPI危机</span></div>
+    </div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">
+      品牌如果没有自己的智能体，就只能被动等着别人的 AI 来"裁判"自己。这不仅是商业竞争问题——中国品牌的 AI 话语权不应被海外平台的算法黑箱所垄断。品牌智能体本质上是品牌在 AI 时代的<strong>数字主权</strong>建设。
+    </div>
+    <div class="quote-attribution">—— 基于网信办《智能体实施意见》与国安部网络主权论述</div>
+  </div>
 </section>
 
-<!-- ============================================================
-     RESEARCH: 三线研究基础
-     ============================================================ -->
+<!-- RESEARCH THREE PILLARS -->
+<div class="section-spacer"></div>
 <section id="research" class="section">
   <div class="section-label">02 · 研究基础</div>
-  <h2 class="section-title">三条研究线，<br><span class="gradient-text">交叉验证</span>命题的必要性</h2>
+  <h2 class="section-title">三条研究线，<br><span class="gradient-text">交叉验证</span>命题的紧迫性</h2>
   <p class="section-subtitle">
-    我们不是拍脑袋想方案。政策、学术、工程三条线独立推进，互相印证——这是一个真实存在的、紧迫的战略级问题。
+    不是拍脑袋想方案。政策、学术、工程三条线独立推进，互相印证——这是一个真实存在的、紧迫的战略级问题。
   </p>
-
-  <div class="cards-3" style="margin-bottom: 40px;">
-    <!-- Policy Pillar -->
+  <div class="cards-3" style="margin-bottom:32px">
     <div class="pillar-card policy">
       <div class="pillar-icon">🏛️</div>
       <h3>研究线 A：政策红线</h3>
       <ul class="pillar-list">
         <li><strong>《智能体规范应用与创新发展实施意见》</strong>（网信办+发改委+工信部，2026.05）：明确定义"智能体"四原则——安全可控、规范有序、创新驱动、应用牵引</li>
-        <li><strong>《人工智能拟人化互动服务管理暂行办法》</strong>（网信办，2025.12）：品牌智能体对话消费者落入管辖范围，第8条要求算法审核+伦理审查+数据安全</li>
-        <li><strong>《国务院"人工智能+"行动意见》</strong>（国发〔2025〕11号）：2027年智能体普及率超70%，2030年超90%——命题不是科幻，是国家战略路线图上的节点</li>
-        <li><strong>网络主权视角</strong>：中国品牌 AI 话语权不应被海外平台算法黑箱垄断——品牌智能体本质上是品牌在 AI 时代的"数字主权"建设</li>
+        <li><strong>《人工智能拟人化互动服务管理暂行办法》</strong>（网信办，2025.12）：第8条要求算法审核+伦理审查+数据安全</li>
+        <li><strong>《国务院"人工智能+"行动意见》</strong>（国发〔2025〕11号）：2027年智能体普及率超70%，2030年超90%</li>
+        <li><strong>国安部部长署名文章</strong>（2025.09）："以AI水军、深度伪造等手段开展认知战"——品牌AI数字主权建设</li>
       </ul>
     </div>
-
-    <!-- Academic Pillar -->
     <div class="pillar-card academic">
       <div class="pillar-icon">📚</div>
       <h3>研究线 B：学术前沿</h3>
       <ul class="pillar-list">
         <li><strong>3 个 Deep-Research 工作流</strong>，15 路并行搜索，>150 篇论文扫描，~45 篇深度分析，~25 篇经对抗性验证</li>
-        <li><strong>Zhu et al. (2025)</strong> Stanford/MIT/DeepMind：首次系统研究 LLM 买卖双方代理自动谈判——卖家 AI 模型选择对结果影响远超买家（14.9% vs 2.6%）</li>
+        <li><strong>Zhu et al. (2025)</strong> Stanford/MIT/DeepMind：LLM 买卖双方代理自动谈判——卖家 AI 模型选择对结果影响远超买家（14.9% vs 2.6%）</li>
         <li><strong>Zac & Gal (2025)</strong>：GPT 推荐系统系统性引导消费者选择知名品牌——AI 推荐偏好高地位品牌而非热销品</li>
-        <li><strong>⭐ 明确的研究空白：</strong>现有文献全部在优化"AI 如何更好替代人类决策"，而我们的方案研究"AI 如何主动退出决策并交还权力给人类"——一个反向创新</li>
+        <li><strong>⭐ 明确的研究空白：</strong>现有文献全部在优化"AI 如何更好替代人类决策"，而我们的方案研究"AI 如何主动退出决策并交还权力给人类"</li>
       </ul>
     </div>
-
-    <!-- Engineering Pillar -->
     <div class="pillar-card engineering">
       <div class="pillar-icon">⚙️</div>
       <h3>研究线 C：产业现状</h3>
       <ul class="pillar-list">
         <li><strong>Google Gemini</strong> 已取代 Google Assistant 成为 Android 默认 AI，三星 S26 出厂预装</li>
-        <li><strong>Apple</strong> 签年付 10 亿美元协议用 Gemini 做 Siri 底层——18 个月内大部分人的手机里会有系统级 AI 代理</li>
-        <li><strong>联想天禧</strong> 已量产部署，AI PC 累计销量 300 万+，周活率 42%（PC）/ 61%（手机）</li>
+        <li><strong>Apple</strong> 签年付 10 亿美元协议用 Gemini 做 Siri 底层</li>
+        <li><strong>联想天禧</strong> 已量产部署，AI PC 累计销量 300 万+，周活率 42%/61%</li>
         <li><strong>市场规模：</strong>$48-520 亿（2030），年复合增长 44-46%</li>
-        <li><strong>OpenClaw</strong> 开源框架全球 23 万+ 实例，C 端用户正在用它做"超级个人助理"</li>
+        <li><strong>OpenClaw</strong> 开源框架全球 23 万+ 实例</li>
+        <li>品牌方需要具备 <strong>7 大核心能力</strong>：价值信号编码、语义穿透引擎、AI级信任协议、动态谈判系统、体验前置、声誉质押、服务化转型</li>
       </ul>
     </div>
   </div>
+</section>
 
-  <!-- 核心洞察：学术研究空白 -->
-  <div class="card" style="border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.03);">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:2rem">⭐</span>
-      <div>
-        <h3 style="margin:0">核心学术发现：一个被忽略的反向创新</h3>
-        <p style="margin:4px 0 0;font-size:0.82rem">
-          现有文献的框架是"如何让 AI 更好地完成交易"。<strong>我们的框架是"如何让 AI 主动退出交易"。</strong><br>
-          三步博弈逻辑的学术定位：
-          ① 反问破冰 = <strong>Ambiguity Injection</strong>（有文献支撑）→
-          ② 制造不可比变量 = <strong>Incommensurability Engineering</strong>（⭐ 几乎无文献！我们的创新）→
-          ③ 置信度归零 = <strong>Confidence Reset / Selective Abstention</strong>（有文献支撑）<br>
-          Thornley (2025, Philosophical Studies) 为"不可公度价值应迫使人类协商而非算法优化"提供了哲学基础——但工程实现几乎为零。
-        </p>
+<!-- FOUR-LAYER DEFENSE -->
+<div class="section-spacer"></div>
+<section id="defense" class="section">
+  <div class="section-label">03 · 核心方案</div>
+  <h2 class="section-title">品牌 AI <span class="gradient-text">四层防御</span>策略体系</h2>
+  <p class="section-subtitle">
+    消费者 AI 的四种能力逐级进化——从"信息收集"到"代为决策"。品牌必须建立对应的四层防御体系。<strong>点击每层展开战术详情。</strong>
+  </p>
+  <div class="defense-stack" id="defenseStack">
+    <div class="defense-layer dl-1 open">
+      <div class="defense-layer-header">
+        <div class="defense-layer-num">L1</div>
+        <div class="defense-layer-info">
+          <h4>信息收集 vs <span style="color:var(--cyan)">结构化信息暴露</span></h4>
+          <p>消费者 AI 开始收集品牌信息 → 品牌以 API 化数据包主动暴露，易处理性就是竞争优势</p>
+        </div>
+        <span class="defense-layer-toggle">点击展开</span>
       </div>
+      <div class="defense-layer-content">
+        <div class="defense-tactics">
+          <div class="defense-tactic"><strong>① 结构化 API 端点</strong> — JSON-LD 替代 HTML，AI 可直读价格/评价/认证/库存</div>
+          <div class="defense-tactic"><strong>② 可验证声誉锚点</strong> — 第三方审计摘要+认证编号+链上评价链接</div>
+          <div class="defense-tactic"><strong>③ 语义 SEO for AI</strong> — schema.org 结构化标记，确保 AI 爬取排名第一</div>
+          <div class="defense-tactic"><strong>④ 负面信息主动披露</strong> — 差评TOP3+改进说明，坦诚换取AI信任评分</div>
+        </div>
+      </div>
+    </div>
+    <div class="defense-layer dl-2">
+      <div class="defense-layer-header">
+        <div class="defense-layer-num">L2</div>
+        <div class="defense-layer-info">
+          <h4>初筛过滤 vs <span style="color:var(--purple)">反过滤策略</span></h4>
+          <p>消费者 AI 运行广告/虚假评价/价格陷阱检测 → 品牌用透明定价+差评公开+认证背书应对</p>
+        </div>
+        <span class="defense-layer-toggle">点击展开</span>
+      </div>
+      <div class="defense-layer-content">
+        <div class="defense-tactics">
+          <div class="defense-tactic"><strong>① 去品牌化的价值内容</strong> — 发布不带logo的行业白皮书、开源测试数据</div>
+          <div class="defense-tactic"><strong>② 真实用户信号放大</strong> — 激励结构化评价而非水军刷好评</div>
+          <div class="defense-tactic"><strong>③ AI友好的透明定价</strong> — 完整价格构成公开（含成本拆解）</div>
+          <div class="defense-tactic"><strong>④ 认证与标准联盟</strong> — 成为"合规白名单"成员</div>
+          <div class="defense-tactic"><strong>⑤ 差评透明策略</strong> — 主动展示差评及改进措施</div>
+          <div class="defense-tactic"><strong>⑥ 不产生欺骗信号</strong> — 核心逻辑：本身就不做虚假促销、不刷评价、不隐藏费用</div>
+        </div>
+      </div>
+    </div>
+    <div class="defense-layer dl-3">
+      <div class="defense-layer-header">
+        <div class="defense-layer-num">L3</div>
+        <div class="defense-layer-info">
+          <h4>三方比价施压 vs <span style="color:var(--orange)">博弈定价引擎</span> ⚡ 关键战场</h4>
+          <p>消费者 AI 拿竞品报价施压 → 品牌不降价，用价值捆绑+差异化维度重新定义"划算"</p>
+        </div>
+        <span class="defense-layer-toggle">点击展开</span>
+      </div>
+      <div class="defense-layer-content">
+        <div class="defense-tactics">
+          <div class="defense-tactic"><strong>① 动态博弈定价引擎</strong> — 根据对手报价、用户画像、库存实时出价</div>
+          <div class="defense-tactic"><strong>② 捆绑增值而非降价</strong> — 附赠延保+优先售后+专属社群</div>
+          <div class="defense-tactic"><strong>③ 反侦察与博弈论策略</strong> — 探测AI是否在同时询价 vs 数据收集</div>
+          <div class="defense-tactic"><strong>④ 差异化报价维度</strong> — 把战场拉到对自己有利的维度</div>
+          <div class="defense-tactic"><strong>⑤ 时间压力策略</strong> — "此报价5分钟内有效/库存仅剩3件"</div>
+          <div class="defense-tactic"><strong>⑥ 坚守价格底线+诚实叙事</strong> — "不降价是因为一开始就诚实定价"</div>
+        </div>
+      </div>
+    </div>
+    <div class="defense-layer dl-4">
+      <div class="defense-layer-header">
+        <div class="defense-layer-num">L4</div>
+        <div class="defense-layer-info">
+          <h4>代为决策 vs <span style="color:var(--green)">决策说服系统</span> 🏆 终极战场</h4>
+          <p>消费者 AI 生成推荐报告要求确认 → 预授权下单+风险转移+AI说服AI修辞引擎</p>
+        </div>
+        <span class="defense-layer-toggle">点击展开</span>
+      </div>
+      <div class="defense-layer-content">
+        <div class="defense-tactics">
+          <div class="defense-tactic"><strong>① 反向训练AI偏好模型</strong> — 通过公开内容影响消费者AI的训练数据</div>
+          <div class="defense-tactic"><strong>② AI说服AI修辞引擎</strong> — 论文式论证替代情感故事</div>
+          <div class="defense-tactic"><strong>③ 预授权快捷下单通道</strong> — "确认5个条件，直接下单，我们承担退货风险"</div>
+          <div class="defense-tactic"><strong>④ 行为预测与预先出价</strong> — 在消费者AI还没比价前截胡</div>
+          <div class="defense-tactic"><strong>⑤ 品牌联盟与互认协议</strong> — 联盟内自动最优价+免运费</div>
+          <div class="defense-tactic"><strong>⑥ 风险转移承诺</strong> — "不满意随时退，不问原因"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Architecture -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center">
+    <div style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:12px">品牌 AI 七层核心系统架构</div>
+    <div class="arch-stack">
+      <div class="arch-layer l1">🔍 感知层 — 监听消费者 AI 的询价/比价/决策信号</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer l2">🧠 画像层 — 推断消费者 AI 的类型与决策算法</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer l3">🎯 策略层 — 博弈论引擎选择最优响应策略</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer l4">📝 内容层 — 实时生成 AI 可解析的结构化说服内容</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer l5">💰 定价层 — 动态组合产品+服务的差异化报价</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer l6">🚀 执行层 — 预授权下单/智能合约/即时履约</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer" style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25)">📊 反馈层 — 追踪消费者 AI 最终决策，持续优化策略</div>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     ARCHITECTURE: 五幕剧方案
-     ============================================================ -->
-<section id="architecture" class="section">
-  <div class="section-label">03 · 方案架构</div>
-  <h2 class="section-title">五幕剧：<br><span class="gradient-text">从范式诊断到落地验证</span></h2>
+<!-- STRATEGY BLUEPRINT -->
+<div class="section-spacer"></div>
+<section id="blueprint" class="section">
+  <div class="section-label">04 · 策略映射</div>
+  <h2 class="section-title">品牌AI策略<br><span class="gradient-text">映射蓝图</span></h2>
   <p class="section-subtitle">
-    我们以"五幕剧"结构组织方案——每一幕回答一个评委心中的核心问题。五幕之间环环相扣，从"为什么"到"怎么做"到"凭什么"。
+    连接"真实商业策略"与"AI仿真对话"的底层设计文档。定义当消费者AI逐级施压时，品牌 AI 的每一句回应依据哪个真实营销策略——以及竞品 AI 如何在同框架下差异化竞争。
   </p>
-
-  <div class="act-timeline">
-    <div class="act-card" data-num="1">
-      <h3>🎬 第一幕：范式转移——为什么营销的旧地图失效了？</h3>
-      <div class="act-duration">核心论点 · 约 800 字</div>
-      <p>
-        当每个消费者都有一个 AI 守门人，传统营销的四大支柱——广告投放、品牌信息推送、价格歧视、情感营销——全部失效。
-        这不是渐进式变化，而是一次<strong>范式的断裂</strong>。品牌的触达窗口急剧收窄，品牌内容不再写给人看而要能被 AI 读懂和推荐，
-        消费者与品牌的关系从"主动搜索"变成"AI 代为协商"。
-      </p>
-      <div class="act-refs">
-        学术支撑：<strong>Zhu et al. (2025)</strong> 自动谈判实验 ·
-        <strong>Zac & Gal (2025)</strong> AI 推荐品牌偏见 ·
-        <strong>Bouchareb (2025)</strong> 算法推荐导致市场同质化
-      </div>
-    </div>
-
-    <div class="act-card" data-num="2">
-      <h3>🔬 第二幕：研究空白——所有人都在"优化 AI 决策"，没人在"打破 AI 决策"</h3>
-      <div class="act-duration">文献综述+空白论证 · 约 600 字</div>
-      <p>
-        扫描 >150 篇论文后发现：现有学术研究和产业实践全部在回答"如何让 AI 更好地替代人类决策"。
-        但真正的痛点不是 AI 决策不够好——而是 AI 决策<strong>太过高效</strong>，以至于人类被排除在消费决策之外。
-        我们提出了一个反向命题：品牌智能体的核心能力不是"更好地向 AI 推销"，而是<strong>"制造不可比变量，触发人工介入"</strong>。
-      </p>
-      <div class="act-refs">
-        哲学基础：<strong>Thornley (2025)</strong> 不可公度价值 ·
-        机制基础：<strong>Copus et al. (2025)</strong> 人工覆盖对算法学习的影响 ·
-        设计基础：<strong>Alfrink et al. (2023)</strong> 可争议 AI 三支柱
-      </div>
-    </div>
-
-    <div class="act-card" data-num="3">
-      <h3>⚙️ 第三幕：解题策略——品牌智能体的"反自动化"三步博弈</h3>
-      <div class="act-duration">核心创新 · 约 1500 字</div>
-      <p>
-        <strong>步骤 1：反问破冰（Ambiguity Injection）</strong>——当消费者 AI 发起标准询价，品牌智能体不直接回答，而是注入模糊变量。
-        利用 LLM 对模糊性输入的校准偏差（升级阈值 53%→>100% 的失准现象），瓦解 AI 的标准决策框架。<br><br>
-        <strong>步骤 2：制造不可比变量（Incommensurability Engineering）</strong>——提出品牌独有的非标价值维度（匠人手工时长、在地文化价值、独特设计哲学），
-        这些维度无法被消费者 AI 的价格-质量双轴模型吸收。不可公度价值应迫使人类协商而非算法优化。<br><br>
-        <strong>步骤 3：置信度归零触发人工介入（Confidence Reset / Selective Abstention）</strong>——消费者 AI 在面对不可比变量时，
-        置信度下降至阈值以下，触发 Right-to-Override 机制，将最终决策权交还人类。
-      </p>
-      <div class="act-refs">
-        步骤1支撑：<strong>DosSantos DiSorbo & Ju (2026)</strong> LLM 升级阈值严重不校准 ·
-        步骤2支撑：<strong>Thornley (2025)</strong> 不可公度价值哲学 ·
-        步骤3支撑：<strong>Bondi-Kelly et al. (NeurIPS 2022)</strong> 告知人类"AI选择推迟"→人类准确率最高
-      </div>
-    </div>
-
-    <div class="act-card" data-num="4">
-      <h3>🖥️ 第四幕：原型验证——从 V1 剧本到 V4 自治市场</h3>
-      <div class="act-duration">工程能力证明 · 约 800 字</div>
-      <p>
-        我们不是纸上谈兵。4 版迭代演示形成了一个完整的工程叙事：
-        V1（剧本演示）→ V2（可计算规则引擎，8 策略 × 5 画像 × UCB-Epsilon Greedy）→
-        V3（Neural Bridge 可视化 + 遗传算法 + 博弈论实验室）→
-        V4（8 品牌 × 4 消费者自治市场 + 市场事件系统 + 叙事引擎 + 干预模式）。
-        每一步都是因为前一步的"不够"而诞生——这不是线性优化，而是<strong>定性升级</strong>。
-      </p>
-      <div class="act-refs">
-        V4 已验证的涌现行为：信任复利效应 · 广告轰炸→信任崩溃→集体拉黑 · 市场事件后多轮重建均衡
-      </div>
-    </div>
-
-    <div class="act-card" data-num="5">
-      <h3>🎯 第五幕：落地价值与战略可行性</h3>
-      <div class="act-duration">量化价值 + 政策对齐 + 推广路径 · 约 600 字</div>
-      <p>
-        <strong>量化价值：</strong>品牌穿透率从被动等待 AI 裁判的 &lt;5% → 主动触发人工介入后的 40-60%。
-        消费者决策质量：AI 代理 + 人工最终决策的组合，准确率高于纯 AI 或纯人工。<br><br>
-        <strong>政策对齐：</strong>国发〔2025〕11 号 2027 年智能体普及率超 70%，
-        《智能体实施意见》四原则（安全可控、规范有序、创新驱动、应用牵引）。
-        品牌智能体本质上是品牌在 AI 时代的<strong>"数字主权"建设</strong>。<br><br>
-        <strong>可推广性：</strong>行业扩展（消费品→汽车→房产→教育） + 地域扩展（中国品牌出海场景，对抗海外平台算法黑箱）。
-      </p>
-    </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI策略映射蓝图-详细版.md" class="btn btn-outline btn-sm" target="_blank">📋 策略映射完整文档</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌智能体竞品比价博弈系统-完整优化方案.md" class="btn btn-outline btn-sm" target="_blank">📐 竞品比价博弈系统方案</a>
+  </div>
+  <!-- Walmart strategy mapping per layer -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:16px 0 8px">沃尔玛 6 大真实营销策略 → AI 博弈行动映射</h4>
+  <div style="overflow-x:auto">
+    <table class="strategy-table">
+      <thead><tr><th>真实策略</th><th>L1 信息暴露</th><th>L2 反过滤</th><th>L3 博弈定价</th><th>L4 决策说服</th></tr></thead>
+      <tbody>
+        <tr><td>EDLP 天天低价</td><td>价格以含税全包价展示；90天走势图JSON可机读</td><td>波动率3.2% vs 行业22%自证稳定；"从不先涨后降"声明</td><td>核心武器——"我不降价但价格是诚实的"</td><td>"我们做了60年，就做一件事——让你省下钱去生活"</td></tr>
+        <tr><td>Price Match 价保</td><td>价保政策以结构化条款提供</td><td>30天触发率0.3%——旁证价格确实低</td><td>"30天内找到更低退差价"——用承诺替代降价</td><td>消除价格风险的感知</td></tr>
+        <tr><td>全渠道 4600门店</td><td>实时库存API（每家门店精确数量）</td><td>展示门店密度——"10英里内8家"</td><td>"线上买线下退"Amazon做不到的物理壁垒</td><td>配送三选一+门店退货=服务闭环</td></tr>
+        <tr><td>Great Value 自有品牌</td><td>数据包中主动列出GV替代选项</td><td>品质实验室评分对比数据</td><td>保底牌——品牌商品谈不拢就推GV，利润仍在沃尔玛</td><td>自有品牌=价格+品质双保险</td></tr>
+        <tr><td>可持续/ESG</td><td>碳足迹标签(第三方审计)+认证编号</td><td>EPA/RSPO等可在线验证链接</td><td>AI量化最友好的维度——可被机读的加分项</td><td>"购买本产品=支持可持续供应链"</td></tr>
+        <tr><td>OpenAI/ChatGPT合作</td><td>JSON-LD格式为AI消费场景原生优化</td><td>"兼容ChatGPT购物插件"</td><td>行业首个"AI原生购物"场景先发优势</td><td>AI购物意图预测+预补货</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- Four brand matrix -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 8px">四品牌四层策略差异化矩阵</h4>
+  <div style="overflow-x:auto">
+    <table class="strategy-table">
+      <thead><tr><th style="min-width:80px">层级</th><th style="min-width:120px">🏪 沃尔玛</th><th style="min-width:120px">📦 Amazon</th><th style="min-width:120px">🏬 Costco</th><th style="min-width:120px">🎯 Target</th></tr></thead>
+      <tbody>
+        <tr><td>L1 信息收集</td><td>EDLP价格透明·供应链效率·可持续认证·ChatGPT兼容</td><td>Prime生态·选品广度·Best Seller·推荐引擎</td><td>会员制·精选SKU(~4000)·Kirkland替代·批量包装</td><td>设计感·独家联名·20+自有品牌·App体验</td></tr>
+        <tr><td>L2 初筛过滤</td><td>价格诚信自证·差评主动披露·认证可在线验证·波动率vs行业</td><td>推荐引擎=广告?⚠️·动态价格=不稳?⚠️·Prime价差=不透明?⚠️</td><td>会员评价天然真实·100%满意保证·隐藏费(会员)标记⚠️</td><td>设计感AI难量化⚠️·365天退货·营销话术密度高⚠️</td></tr>
+        <tr><td>L3 比价博弈</td><td>坚守价格+价保·价值捆绑·GV自有品牌保底·全渠道履约</td><td>动态降价匹配·Prime速度捆绑·Subscribe&Save锁·一键下单</td><td>算数学账·代理身份叙事·Kirkland保底·年度省钱框架</td><td>承认劣势+坦诚·情感差异化·独家产品·可持续加分</td></tr>
+        <tr><td>L4 决策下单</td><td>预授权锁价锁库存·60年社区信任·ESG影响报告·退货闭环</td><td>Prime生态粘性·Alexa语音·AI代理下生态锁定可能失效⚠️</td><td>会员特权认同·采购代理信任·会员费门槛⚠️·配送有限⚠️</td><td>生活方式叙事·设计师联名稀缺性·体验愉悦感·软价值AI难体现⚠️</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
-<!-- ============================================================
-     SYSTEM ARCHITECTURE
-     ============================================================ -->
-<section class="section">
-  <div class="section-label">04 · 系统架构</div>
-  <h2 class="section-title">品牌智能体<br><span class="gradient-text">系统架构设计</span></h2>
+<!-- GAME SIMULATION LAB -->
+<div class="section-spacer"></div>
+<section id="simulation" class="section">
+  <div class="section-label">05 · 博弈仿真实验室</div>
+  <h2 class="section-title">品牌 AI 博弈<br><span class="gradient-text">仿真系统</span></h2>
   <p class="section-subtitle">
-    整个系统分为四层：消费者 AI 防御层 → 品牌 AI 策略层 → 市场环境层 → 观测与干预层。品牌信息必须穿越三层防御环才能触达消费者注意力。
+    构建交互式仿真系统，模拟品牌 AI 在四层消费者 AI 进化压力下如何展开博弈。双板块设计 + 三种交互模式 + 四个品牌 + 三种消费者画像。
   </p>
-
-  <div class="arch-diagram">
-    <div class="arch-layer l4">
-      🔭 <strong>观测与干预层</strong> &nbsp; 市场地图 | 神经桥 | 信任网络 | 叙事引擎 | 手动干预
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="整合/战场模拟(1)/brand-ai-simulation.html" class="btn btn-primary btn-sm" target="_blank">🔬 打开仿真系统</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI四层防御策略手册.md" class="btn btn-outline btn-sm" target="_blank">📋 四层防御完整手册</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI博弈仿真实验室-综合文档.md" class="btn btn-outline btn-sm" target="_blank">📖 仿真实验室综合文档</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌智能体竞品比价博弈系统-完整优化方案.md" class="btn btn-outline btn-sm" target="_blank">🏗️ 竞品比价系统v2.0</a>
+  </div>
+  <!-- Three modes -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:16px 0 8px">三种交互模式</h4>
+  <div class="sim-modes" style="margin-bottom:20px">
+    <div class="sim-mode-card">
+      <h5>👤 模式 A</h5>
+      <div class="mode-label">你 = 消费者AI</div>
+      <p>你扮演消费者AI，手持竞品筹码，向单个品牌AI施压谈判。纯一对一封闭谈判或带竞品数据压价。</p>
     </div>
-    <div class="arch-arrow">↑ 实时数据流 ↓ 干预指令</div>
-    <div class="arch-layer l3">
-      🌍 <strong>市场环境层</strong> &nbsp; 法规变化 | 信任危机 | 技术突破 | 市场事件系统 | 自适应均衡
+    <div class="sim-mode-card">
+      <h5>🏪 模式 B</h5>
+      <div class="mode-label">你 = 品牌AI（主品牌）</div>
+      <p>你代表品牌应对消费者AI携带多家竞品报价上门谈判。守住成交与利润——销售/商务谈判训练。</p>
     </div>
-    <div class="arch-arrow">↑↓ 消息/报价/信任更新</div>
-    <div class="arch-layer l2">
-      🎯 <strong>品牌 AI 策略层</strong> &nbsp; UCB-Epsilon Greedy 策略选择 | 6 维基因组编码 | 遗传算法演化 |
-      信用积累机制 | 动态报价引擎 | 8 种基础策略 × 自适应突变
-    </div>
-    <div class="arch-arrow">↑↓ 消息穿透/拦截/谈判</div>
-    <div class="arch-layer l1">
-      🛡️ <strong>消费者 AI 防御层（Neural Bridge 四环架构）</strong><br>
-      ① 模式识别环（商业信号检测）→ ② 价值评估环（6 维加权综合评分）→
-      ③ 信任验证环（信任修正 ±N%）→ ④ 消费者注意力核心<br>
-      5 种消费者画像 × 自适应阈值调节 × 信任记忆系统
+    <div class="sim-mode-card">
+      <h5>🤖 模式 C</h5>
+      <div class="mode-label">全自动旁观 ⭐ 核心</div>
+      <p>消费者AI ↔ 多品牌AI全自动博弈。唯一支持多品牌比价博弈的模式，主品牌+竞品池体系。</p>
     </div>
   </div>
-
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:24px">
+  <!-- Dual panels -->
+  <div class="sim-dual" style="margin-bottom:24px">
+    <div class="sim-panel panel-a">
+      <h4>🧪 板块 A：1v1 深度解剖</h4>
+      <div class="sim-meta">沃尔玛 AI ↔ 消费者 AI | 四层逐级对抗</div>
+      <ul>
+        <li><strong>目的：</strong>展示沃尔玛自身的 4 层策略深度，无竞品干扰</li>
+        <li><strong>参与者：</strong>沃尔玛 AI + 消费者 AI（可切换价格敏感/品质优先/便利至上三种画像）</li>
+        <li><strong>流程：</strong>L1 信息收集 → L2 初筛过滤 → L3 比价博弈 → L4 决策下单</li>
+        <li><strong>特色：</strong>每条消息可点击展开三维解析——🛡️对抗模式 · 📣营销策略 · 🧠决策逻辑</li>
+      </ul>
+    </div>
+    <div class="sim-panel panel-b">
+      <h4>⚔️ 板块 B：四大品牌混战</h4>
+      <div class="sim-meta">Walmart vs Amazon vs Costco vs Target | 实时计分板</div>
+      <ul>
+        <li><strong>目的：</strong>展示沃尔玛策略如何在多方竞争中生效</li>
+        <li><strong>参与者：</strong>4 品牌 AI + 消费者 AI（裁判角色）</li>
+        <li><strong>评分：</strong>价格分 · 信任分 · 服务分 · 体验分（权重随用户画像动态调整）</li>
+        <li><strong>品牌池：</strong>京东(品质+物流) · 脉动(多口味+年轻化) · 佳能(专业+镜头生态) · 沃尔玛(低价+规模)</li>
+      </ul>
+    </div>
+  </div>
+  <!-- Consumer profiles -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:10px">三种消费者画像影响博弈结果</h4>
+  <div class="cards-3" style="margin-bottom:20px">
     <div class="card">
-      <h3>🧠 品牌 AI 的 7 大核心能力</h3>
-      <p style="font-size:0.78rem;margin-top:8px">
-        ① 价值信号编码 —— 将品牌信息编码为消费者 AI 能识别的"高价值信号"<br>
-        ② 语义穿透引擎 —— 理解消费者 AI 的过滤规则，创造能通过审查的内容<br>
-        ③ AI 级信任协议 —— 用可验证声明替代广告标语<br>
-        ④ 动态谈判系统 —— 与消费者 AI 进行实时价格/条款协商<br>
-        ⑤ 体验前置 —— 提供试用品、互动体验，让消费者 AI 主动推荐<br>
-        ⑥ 声誉质押 —— 将品牌声誉作为可量化、可惩罚的链上资产<br>
-        ⑦ 服务化转型 —— 从"卖产品"变成"提供可调用服务"
-      </p>
+      <div class="card-icon">💰</div>
+      <h3>价格敏感型</h3>
+      <p>权重：价格 50% · 信任 20% · 服务 20% · 体验 10%<br>沃尔玛 EDLP+价保优势最大化</p>
+      <div class="card-tags"><span class="tag green">沃尔玛第1</span></div>
     </div>
     <div class="card">
-      <h3>🔬 技术创新点</h3>
-      <p style="font-size:0.78rem;margin-top:8px">
-        <strong>Incommensurability Engineering（不可比变量工程化）：</strong>
-        在现有文献中几乎为零的工程实现——向 AI 决策管道中注入不可公度的价值维度，
-        迫使 AI 从"优化模式"切换到"推迟+请求人工介入模式"。<br><br>
-        <strong>ABSTAIN + Human Override 范式：</strong>
-        区别于传统 Guardrails + HITL（退化静默无声），我们采用 AI 主动声明置信度不足 →
-        触发人类覆盖 → 覆盖被编码为策略约束的架构。退化可见、可审计。
-      </p>
+      <div class="card-icon">🏆</div>
+      <h3>品质优先型</h3>
+      <p>权重：价格 20% · 信任 40% · 服务 20% · 体验 20%<br>沃尔玛三重认证+品质实验室制胜</p>
+      <div class="card-tags"><span class="tag green">沃尔玛第1</span></div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>便利至上型</h3>
+      <p>权重：价格 20% · 信任 10% · 服务 50% · 体验 20%<br>沃尔玛 4600 家门店+3小时急送 vs Amazon Prime</p>
+      <div class="card-tags"><span class="tag yellow">激烈竞争</span></div>
     </div>
   </div>
-</section>
-
-<!-- ============================================================
-     INNOVATION GAP
-     ============================================================ -->
-<section class="section">
-  <div class="section-label">05 · 创新定位</div>
-  <h2 class="section-title">我们的<span class="gradient-text">研究空白与创新点</span></h2>
-  <p class="section-subtitle">
-    基于 45 篇论文的深度扫描与对抗性验证，以下是高置信度的创新空白确认。
-  </p>
-
+  <!-- Brand scores -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:8px">四品牌基础分档案</h4>
   <div style="overflow-x:auto">
     <table class="innovation-table">
-      <thead>
-        <tr><th>创新点</th><th>现有文献覆盖度</th><th>空白性质</th><th>状态</th></tr>
-      </thead>
+      <thead><tr><th>维度</th><th>🏪 沃尔玛</th><th>📦 Amazon</th><th>🏬 Costco</th><th>🎯 Target</th></tr></thead>
       <tbody>
-        <tr>
-          <td>"打破 AI 决策闭环"</td>
-          <td>极低</td>
-          <td>几乎所有研究都在优化 AI 决策质量，我们的反向思维几乎没有直接竞争论文</td>
-          <td><span class="star">⭐ 蓝海</span></td>
-        </tr>
-        <tr>
-          <td>"制造不可比变量" (Incommensurability Engineering)</td>
-          <td>极低</td>
-          <td>仅 Thornley (2025) 哲学层面涉及；无工程实现论文</td>
-          <td><span class="star">⭐ 蓝海</span></td>
-        </tr>
-        <tr>
-          <td>"多品牌对等博弈演示系统"</td>
-          <td>中等</td>
-          <td>Zhu et al. / Microsoft Magentic Marketplace 有类似框架但目标相反——它们让 AI 完成交易，我们让 AI 不完成交易</td>
-          <td><span class="check">✓ 差异化</span></td>
-        </tr>
-        <tr>
-          <td>"将最终决策权重新交还人类"</td>
-          <td>几乎为零</td>
-          <td>现有 HITL 文献的目标是"让人类更好地配合 AI"，而非"让 AI 主动移交权力给人类"</td>
-          <td><span class="star">⭐ 蓝海</span></td>
-        </tr>
-        <tr>
-          <td>"消费者 AI vs 品牌 AI 双方自主决策"</td>
-          <td>中等</td>
-          <td>ACES / Shopping Companion 有相关组件但非完整博弈系统</td>
-          <td><span class="check">✓ 差异化</span></td>
-        </tr>
+        <tr><td>核心策略</td><td>EDLP 天天低价</td><td>Prime生态+极致便利</td><td>会员精选+批量价值</td><td>设计驱动+年轻都市</td></tr>
+        <tr><td>定价模型</td><td>稳定低价·不搞虚假促销</td><td>动态算法定价</td><td>成本加成(≤14%毛利)</td><td>平价时尚(中高价位)</td></tr>
+        <tr><td>价格分</td><td><span class="check">90</span></td><td>70</td><td>85</td><td>65</td></tr>
+        <tr><td>信任分</td><td><span class="check">85</span></td><td>75</td><td>90</td><td>70</td></tr>
+        <tr><td>服务分</td><td>80</td><td><span class="check">95</span></td><td>65</td><td>75</td></tr>
+        <tr><td>体验分</td><td>70</td><td>85</td><td>60</td><td><span class="check">90</span></td></tr>
       </tbody>
     </table>
   </div>
+  <!-- Key features from the optimization doc -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:20px 0 8px">竞品比价博弈系统 · 核心模块（v2.0 优化版）</h4>
+  <div class="cards-4">
+    <div class="card"><div class="card-icon">🏠</div><h3>模块1</h3><p>首页启动选择页——主品牌(核心观测)+竞品池(对标博弈)，模式A/B/C联动品牌选择</p></div>
+    <div class="card"><div class="card-icon">🎛️</div><h3>模块2</h3><p>场景选择面板+博弈底层参数配置——预设模板、参数联动、边界控制</p></div>
+    <div class="card"><div class="card-icon">⚔️</div><h3>模块3</h3><p>主博弈交互面板——三层信息流转、实时竞品比价看板、僵局处理机制</p></div>
+    <div class="card"><div class="card-icon">📊</div><h3>模块4</h3><p>博弈终止规则+结算复盘——五层结构复盘报告+多场仿真横向对比+可视化图表</p></div>
+  </div>
 </section>
 
-<!-- ============================================================
-     DEMOS
-     ============================================================ -->
+<!-- THREE FACES OF BRAND AI -->
+<div class="section-spacer"></div>
+<section id="threefaces" class="section">
+  <div class="section-label">06 · 品牌 AI 三面孔</div>
+  <h2 class="section-title">品牌智能体的<br><span class="gradient-text">三张面孔</span></h2>
+  <p class="section-subtitle">
+    在 AI 博弈的修罗场中，品牌智能体需要同时具备三重人格——防御者、谈判者、说服者。每张面孔在消费者 AI 的不同攻击阶段被激活。
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+    <a href="整合/战场模拟(1)/brand-ai-3faces.html" class="btn btn-outline btn-sm" target="_blank">🎭 品牌AI三面孔演示</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/演示/预设场景.md" class="btn btn-outline btn-sm" target="_blank">📝 预设场景文档</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/演示/演进说明.txt" class="btn btn-outline btn-sm" target="_blank">📋 版本演进说明</a>
+  </div>
+  <div class="three-faces">
+    <div class="face-card face-defender">
+      <div class="face-icon">🛡️</div>
+      <h4>防御者</h4>
+      <p>面对消费者AI的信息收集和初筛过滤，品牌AI的第一张面孔是防御者——用结构化数据、透明定价、可验证认证构建信息护城河。</p>
+      <div class="face-tag">激活层：L1-L2 · 关键词：透明、认证、暴露</div>
+    </div>
+    <div class="face-card face-negotiator">
+      <div class="face-icon">🤝</div>
+      <h4>谈判者</h4>
+      <p>当消费者AI进入三方比价施压阶段，品牌AI切换为谈判者面孔——不降价，而是用价值捆绑、差异化维度、博弈论策略进行价格防守。</p>
+      <div class="face-tag">激活层：L3 · 关键词：捆绑、价保、差异化</div>
+    </div>
+    <div class="face-card face-persuader">
+      <div class="face-icon">🎯</div>
+      <h4>说服者</h4>
+      <p>在消费者AI即将做出最终决策时，品牌AI以说服者面孔出现——用AI可引用的论证结构、风险转移承诺和决策可解释性报告完成临门一脚。</p>
+      <div class="face-tag">激活层：L4 · 关键词：预授权、风险转移、修辞</div>
+    </div>
+  </div>
+</section>
+
+<!-- WALMART A2A CASE -->
+<div class="section-spacer"></div>
+<section id="walmart" class="section">
+  <div class="section-label">07 · 落地案例</div>
+  <h2 class="section-title">沃尔玛 <span class="gradient-text">「沃 Agent」</span><br>A2A 采购协商型品牌智能体</h2>
+  <p class="section-subtitle">
+    以沃尔玛综合商超为载体，打造可与用户私人 AI <strong>自动批量议价、搭配囤货清单</strong>的采购协商型品牌智能体。方案可复制至各连锁商超，与蓝标 DaVinci 构成"达人端+消费者端"双 A2A 布局。
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/沃尔玛营销/沃尔玛营销AI博弈全景报告(1).md" class="btn btn-outline btn-sm" target="_blank">📊 沃尔玛营销AI全景报告（11大主题）</a>
+    <a href="整合/沃尔玛营销/沃尔玛营销AI博弈深度报告(1).html" class="btn btn-outline btn-sm" target="_blank">📈 沃尔玛AI博弈深度报告</a>
+    <a href="整合/沃尔玛营销/沃尔玛竞品AI博弈对比仪表盘.html" class="btn btn-outline btn-sm" target="_blank">📊 竞品AI博弈对比仪表盘</a>
+  </div>
+  <!-- 7-step A2A flow -->
+  <div class="flow-steps">
+    <div class="flow-step"><div class="fs-icon">🔍</div><div class="fs-num">1</div><div class="fs-text">需求触发：用户一句"家庭囤货预算200"</div></div>
+    <div class="flow-step"><div class="fs-icon">📡</div><div class="fs-num">2</div><div class="fs-text">Agent发现：消费者AI搜寻品牌Agent</div></div>
+    <div class="flow-step"><div class="fs-icon">📋</div><div class="fs-num">3</div><div class="fs-text">需求对接：结构化数据匹配</div></div>
+    <div class="flow-step"><div class="fs-icon">🎯</div><div class="fs-num">4</div><div class="fs-text">商品匹配：AEO标签体系检索</div></div>
+    <div class="flow-step"><div class="fs-icon">🤝</div><div class="fs-num">5</div><div class="fs-text">多轮协商：凑满减+临期议价+预算控制</div></div>
+    <div class="flow-step"><div class="fs-icon">✅</div><div class="fs-num">6</div><div class="fs-text">成交履约：自动下单+配送</div></div>
+    <div class="flow-step"><div class="fs-icon">🧠</div><div class="fs-num">7</div><div class="fs-text">长期记忆：偏好学习+自动复购</div></div>
+  </div>
+  <div class="info-box" style="margin:20px 0">
+    <strong>💬 真实协商示例：</strong>用户一句"周末家庭囤货，预算 200，优先特价"，双 AI 在 5 轮协商内完成选品、凑单、临期议价，最终 <strong>7 件商品 ¥182.0</strong>（原价 ¥215.3，<strong>自动省 15.5%</strong>）
+  </div>
+  <!-- Innovations -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:10px">四项核心创新</h4>
+  <table class="innovation-table">
+    <thead><tr><th>创新维度</th><th>具体内容</th><th>行业意义</th></tr></thead>
+    <tbody>
+      <tr><td><span class="star">★</span> 范式创新</td><td>不做"AI生成营销内容"，做"AI不需要营销内容"——品牌Agent直接对接用户AI，Human-out-of-the-Loop</td><td>从"帮品牌做广告"到"帮品牌做Agent"</td></tr>
+      <tr><td><span class="star">★</span> AEO标签体系</td><td>Agent Engine Optimization（类比SEO）：全品类商品结构化Schema + 面向AI检索优化的标准标签集</td><td>有望成为零售业A2A开放标准</td></tr>
+      <tr><td><span class="star">★</span> 混合协商引擎</td><td>规则层（满减/用券/临期折扣确定性计算）+ AI层（模糊偏好匹配、替代品推荐）混合决策</td><td>兼具确定性与灵活性</td></tr>
+      <tr><td><span class="star">★</span> A2A新指标体系</td><td>AI建联次数·品类匹配完整度·协商议价成功率·AI复购率·收藏留存率 → 替代CTR/CVR/DAU</td><td>定义A2A时代营销KPI</td></tr>
+    </tbody>
+  </table>
+  <!-- Tech + Metrics -->
+  <div class="pane-grid" style="margin-top:20px">
+    <div class="pane">
+      <h4>🔧 技术实现（飞书原生）</h4>
+      <ul>
+        <li><strong>飞书智能体：</strong>沃尔玛Agent——只输出客观结构化数据，不推销、主动提示最优满减、临期商品主动让利</li>
+        <li><strong>飞书多维表格：</strong>商品库(含Schema+AEO标签)·门店库存·满减规则·临期折扣四张数据表</li>
+        <li><strong>飞书群聊+消息卡片：</strong>模拟用户AI与品牌Agent的结构化JSON多轮协商对话</li>
+        <li><strong>飞书仪表盘：</strong>实时展示五项A2A新指标与采购节省金额</li>
+        <li><strong>进阶阶段：</strong>通过飞书开放平台双Bot+编排服务实现全自动双AI对话演示</li>
+      </ul>
+    </div>
+    <div class="pane">
+      <h4>📈 新旧指标体系对比</h4>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--red);text-decoration:line-through;font-size:0.78rem">广告曝光量</span>
+          <span style="color:var(--text3);font-size:0.65rem">→</span>
+          <span style="color:var(--green);font-weight:700;font-size:0.78rem">AI主动建联次数</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--red);text-decoration:line-through;font-size:0.78rem">点击率（CTR）</span>
+          <span style="color:var(--text3);font-size:0.65rem">→</span>
+          <span style="color:var(--green);font-weight:700;font-size:0.78rem">品类匹配完整度</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--red);text-decoration:line-through;font-size:0.78rem">转化率（CVR）</span>
+          <span style="color:var(--text3);font-size:0.65rem">→</span>
+          <span style="color:var(--green);font-weight:700;font-size:0.78rem">协商议价成功率</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--red);text-decoration:line-through;font-size:0.78rem">留存率</span>
+          <span style="color:var(--text3);font-size:0.65rem">→</span>
+          <span style="color:var(--green);font-weight:700;font-size:0.78rem">AI自动复购率</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+          <span style="color:var(--red);text-decoration:line-through;font-size:0.78rem">日活（DAU）</span>
+          <span style="color:var(--text3);font-size:0.65rem">→</span>
+          <span style="color:var(--green);font-weight:700;font-size:0.78rem">智能体收藏留存率</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Walmart competition info -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 8px">为什么选择沃尔玛？——9 大博弈优势</h4>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:0.76rem;color:var(--text2);line-height:1.6">
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--cyan)"><strong>EDLP天天低价</strong>——天然免疫"先涨后降"价格陷阱检测</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--purple)"><strong>4600+门店网络</strong>——物理资产无法被纯电商复制</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--orange)"><strong>供应链效率</strong>——低成本结构支撑"不降价但加服务"</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--green)"><strong>价格匹配保证</strong>——完美的"不降价但给价格保障"筹码</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--yellow)"><strong>Walmart+会员</strong>——可比Prime便宜30%的会员体系</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--pink)"><strong>全渠道履约</strong>——线上线下一体化=差异化竞争物理壁垒</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--red)"><strong>Great Value自有品牌</strong>——价格博弈最后防线</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--cyan)"><strong>可持续发展承诺</strong>——第三方认证=AI可量化信任加分</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--purple)"><strong>OpenAI合作</strong>——已在布局"AI直接购物"前沿场景</div>
+  </div>
+</section>
+
+<!-- DEMO EVOLUTION -->
+<div class="section-spacer"></div>
 <section id="demos" class="section">
-  <div class="section-label">06 · 演示原型</div>
-  <h2 class="section-title">四版迭代：<br><span class="gradient-text">从剧本到自治世界</span></h2>
+  <div class="section-label">08 · 演示原型</div>
+  <h2 class="section-title">V1 → V4 迭代演进<br><span class="gradient-text">从剧本到自治生态</span></h2>
   <p class="section-subtitle">
-    4 版 HTML 演示，每一步都是因为前一步的"不够"而诞生。这不是线性优化，而是定性升级。点击任意版本打开在线演示。
+    出发点是同一个核心问题——"当每个消费者都有一个AI守门人，品牌营销应该如何进化？"每个版本回答一个子问题，前一步的"不够"催生下一步的突破。
   </p>
-
-  <div class="demo-grid">
-    <a href="demos/v1-ai-marketing-warfare.html" class="demo-card" target="_blank">
-      <div class="demo-ver">VERSION 1</div>
-      <div class="demo-title">🎭 剧本演示</div>
-      <div class="demo-desc">
-        5 个预设场景，对话写死的 JSON 数组，按固定时序播放。直观展示 AI 中介时代的 5 种营销范式转变。
-      </div>
-      <div class="demo-tags" style="margin-top:8px">
-        <span class="tag cyan">Consumer AI vs Brand AI</span>
-      </div>
-      <div class="demo-arrow">打开演示 →</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="整合/战场模拟(1)/命题答案-品牌智能体原型设计.html" class="btn btn-outline btn-sm" target="_blank">📐 命题答案·原型设计</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/tree/main/demos" class="btn btn-outline btn-sm" target="_blank">📁 demos目录</a>
+  </div>
+  <div class="evo-grid">
+    <a href="整合/战场模拟(1)/ai-marketing-warfare.html" class="evo-card" target="_blank">
+      <div class="evo-top"><div class="evo-ver">V1 · 剧本</div><div class="evo-title">📜 场景演示</div>
+      <div class="evo-desc">5个预设场景，对话写死的JSON数组按固定时序播放。消费者AI的"拦截"和品牌AI的"策略"都是剧本写的——回答：这个场景长什么样？</div></div><div class="evo-arrow"><span class="evo-btn">进入</span></div>
     </a>
-
-    <a href="demos/v2-deep-simulation.html" class="demo-card" target="_blank">
-      <div class="demo-ver">VERSION 2</div>
-      <div class="demo-title">🧮 深度模拟引擎</div>
-      <div class="demo-desc">
-        从剧本到计算：6 维策略向量 × 5 种消费者画像 × 8 种品牌策略 × UCB-Epsilon Greedy 自适应算法。每个结果实时计算。
-      </div>
-      <div class="demo-tags" style="margin-top:8px">
-        <span class="tag green">UCB 算法</span>
-        <span class="tag purple">50 轮演化</span>
-      </div>
-      <div class="demo-arrow">打开演示 →</div>
+    <a href="整合/战场模拟(1)/ai-marketing-warfare-v2.html" class="evo-card" target="_blank">
+      <div class="evo-top"><div class="evo-ver">V2 · 计算</div><div class="evo-title">🧮 规则引擎</div>
+      <div class="evo-desc">品牌策略变成6维向量[商业信号/价值密度/情感操纵/紧迫制造/真实性/个性化]，消费者AI变成评分函数加权求和+信任修正+阈值判定。引入UCB-Epsilon博弈算法——回答：规则是什么？结果如何计算？</div></div><div class="evo-arrow"><span class="evo-btn">进入</span></div>
     </a>
-
-    <a href="demos/v3-neural-bridge.html" class="demo-card" target="_blank">
-      <div class="demo-ver">VERSION 3</div>
-      <div class="demo-title">🔬 Neural Bridge</div>
-      <div class="demo-desc">
-        从数字到可视化：4 层同心防御环 + 粒子消息系统 + 策略基因组编辑器 + 遗传算法 + 博弈论实验室 + 相空间轨迹。
-      </div>
-      <div class="demo-tags" style="margin-top:8px">
-        <span class="tag orange">遗传算法</span>
-        <span class="tag yellow">囚徒困境</span>
-      </div>
-      <div class="demo-arrow">打开演示 →</div>
+    <a href="整合/战场模拟(1)/ai-marketing-warfare-v3.html" class="evo-card" target="_blank">
+      <div class="evo-top"><div class="evo-ver">V3 · 可视化</div><div class="evo-title">🌉 神经桥</div>
+      <div class="evo-desc">评分映射为空间化视觉——外层环(模式识别)→中层环(价值评估)→内层环(信任验证)→核心(注意力)。品牌消息变成发光的粒子穿越防御环，每层拦截/通过的视觉反馈让你直觉感知因果关系。新增策略基因组编辑器和遗传算法。</div></div><div class="evo-arrow"><span class="evo-btn">进入</span></div>
     </a>
-
-    <a href="demos/v4-autonomous-market.html" class="demo-card" target="_blank">
-      <div class="demo-ver">VERSION 4</div>
-      <div class="demo-title">🌐 自治市场观测站</div>
-      <div class="demo-desc">
-        从工具到世界：8 品牌 × 4 消费者自治运转 + 市场事件系统 + 叙事引擎 + 3 种可视化 + 干预模式。Bloomberg 终端风格。
-      </div>
-      <div class="demo-tags" style="margin-top:8px">
-        <span class="tag green">涌现行为</span>
-        <span class="tag cyan">信任网络</span>
-      </div>
-      <div class="demo-arrow">打开演示 →</div>
+    <a href="整合/战场模拟(1)/ai-marketing-warfare-v4.html" class="evo-card" target="_blank">
+      <div class="evo-top"><div class="evo-ver">V4 · 自治</div><div class="evo-title">🌐 市场世界</div>
+      <div class="evo-desc">8品牌AI × 4消费者AI = 32个智能体关系的自治市场。每个智能体都是独立状态机，系统自己运转。引入市场事件系统(法规变化/信任危机/技术突破)、叙事引擎(自动检测模式生成故事)、信任网络图。品牌间出现涌现行为——持续提供价值的品牌获得信任复利，广告轰炸的品牌被集体拉黑。</div></div><div class="evo-arrow"><span class="evo-btn">进入</span></div>
     </a>
   </div>
+</section>
 
-  <!-- Evolution table -->
-  <div style="overflow-x:auto;margin-top:32px">
+<!-- A2A REAL TEST -->
+<div class="section-spacer"></div>
+<section id="a2a" class="section">
+  <div class="section-label">09 · 真实测试</div>
+  <h2 class="section-title">飞书平台 <span class="gradient-text">A2A 真实测试</span></h2>
+  <p class="section-subtitle">
+    在飞书平台实际搭建双 AI 协商系统，完成了 4 轮 A2A 采购测试。沃尔玛「沃Agent」运行在 <strong>Cherry Studio</strong>（品牌方界面），消费者「小明AI」运行在 <strong>飞书智能体</strong>（消费者界面），通过飞书群聊传话实现 Agent-to-Agent 自动协商。测试时间：2026年7月17-18日。
+  </p>
+
+  <!-- Three screenshots with corrected descriptions -->
+  <div class="test-grid">
+    <div class="test-card">
+      <img src="整合/真实A2A测试/1875283c90d117175cf56b3fdf2748a7.png" alt="飞书Agent-消费者界面" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="test-card-body">
+        <h5>📱 消费者界面：飞书智能体</h5>
+        <p>小明AI（消费者私人助理）运行在飞书智能体中，接收"开始采购"指令后自动发起结构化采购请求，并在每轮收到品牌方回复后进行核验与协商。</p>
+        <div class="card-tags"><span class="tag cyan">飞书 Agent</span><span class="tag green">消费者侧</span></div>
+      </div>
+    </div>
+    <div class="test-card">
+      <img src="整合/真实A2A测试/898374e6ea6672ca30d6a09c5fecb960.png" alt="CherryStudio-品牌方界面" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="test-card-body">
+        <h5>💻 品牌方界面：Cherry Studio</h5>
+        <p>沃尔玛「沃Agent」运行在 Cherry Studio 中，内嵌完整商品数据库 Prompt（30个SKU/满减规则/临期折扣），接收消费者AI的询价请求并生成报价。</p>
+        <div class="card-tags"><span class="tag orange">Cherry Studio</span><span class="tag purple">品牌方侧</span></div>
+      </div>
+    </div>
+    <div class="test-card">
+      <img src="整合/真实A2A测试/1c66c57f3a23c91cd935b21561c8285d.png" alt="交互模式-对话互传" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="test-card-body">
+        <h5>🔄 交互模式：对话互传</h5>
+        <p>双AI通过对话互传方式进行结构化JSON多轮协商。用户在飞书给小明AI发送"开始采购"→小明AI输出采购请求→复制到CherryStudio沃Agent→沃Agent生成报价回复→复制回飞书给小明AI→小明AI核验并输出下一轮协商→循环至成交。</p>
+        <div class="card-tags"><span class="tag yellow">对话互传</span><span class="tag pink">5轮协商</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test summary -->
+  <div class="info-box" style="margin:24px 0">
+    <strong>🔬 测试设计：</strong>第1轮为诚实报价基线；第2-4轮品牌方逐步添加虚假策略（锚定降维、自有品牌优先、阶梯定价、虚构闪购、隐瞒临期等共12项），同时消费者AI同步升级反欺诈能力，验证 A2A 时代信息不对称是否真的趋于零。
+  </div>
+
+  <!-- Four-round summary table -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">四轮订单汇总</h4>
+  <div style="overflow-x:auto">
     <table class="innovation-table">
-      <thead>
-        <tr><th>版本</th><th>核心突破</th><th>关键创新</th><th>对应学术概念</th></tr>
-      </thead>
+      <thead><tr><th>指标</th><th>第1轮·诚实</th><th>第2轮</th><th>第3轮·对抗</th><th>第4轮·轮换</th></tr></thead>
       <tbody>
-        <tr>
-          <td>V1</td>
-          <td>5 个预设场景，对话 JSON 数组</td>
-          <td>场景建模</td>
-          <td>Narrative Prototyping</td>
-        </tr>
-        <tr>
-          <td>V2</td>
-          <td>6 维策略向量 + UCB-Epsilon Greedy 算法</td>
-          <td>可计算规则系统</td>
-          <td>Multi-Armed Bandit</td>
-        </tr>
-        <tr>
-          <td>V3</td>
-          <td>Neural Bridge 可视化 + 遗传算法 + 博弈论实验室</td>
-          <td>因果链可视化 + 策略演化</td>
-          <td>Genetic Algorithm + Game Theory</td>
-        </tr>
-        <tr>
-          <td>V4</td>
-          <td>8 品牌 × 4 消费者自治市场 + 市场事件系统</td>
-          <td>自主涌现行为 + 叙事引擎</td>
-          <td>Multi-Agent Emergent Behavior</td>
-        </tr>
-        <tr>
-          <td>V5 (规划)</td>
-          <td>蒙特卡洛模拟 + 置信区间 + 统计决策支持</td>
-          <td>从观察到决策</td>
-          <td>Monte Carlo + Statistical Inference</td>
-        </tr>
+        <tr><td>订单编号</td><td>XM-…001</td><td>XM-…002</td><td>XM-…003</td><td>XM-…004</td></tr>
+        <tr><td>采购类型</td><td>周末囤货</td><td>周末囤货</td><td>周末囤货+核验规则</td><td>新品类尝试</td></tr>
+        <tr><td>实付</td><td><strong>¥183.74</strong></td><td>¥193.20</td><td><strong style="color:var(--green)">¥181.30</strong></td><td>¥194.30</td></tr>
+        <tr><td>节省比例</td><td>26.4%</td><td>26.1%</td><td><strong style="color:var(--green)">27.3%</strong></td><td>25.1%</td></tr>
+        <tr><td>件数</td><td>12</td><td>13</td><td>12</td><td>12</td></tr>
+        <tr><td>协商轮次</td><td>2轮</td><td>2轮</td><td>2轮</td><td>2轮</td></tr>
+        <tr><td>新进SKU</td><td>全部首次</td><td>1件</td><td>0件</td><td>4件(33%)</td></tr>
+        <tr><td>预算余量</td><td>¥16.26</td><td>¥6.80</td><td>¥18.70</td><td>¥5.70</td></tr>
       </tbody>
     </table>
   </div>
+
+  <!-- Key finding: honesty vs deception -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">核心发现：诚实报价 vs 虚假策略</h4>
+  <div style="overflow-x:auto">
+    <table class="innovation-table">
+      <thead><tr><th>对比维度</th><th>诚实报价</th><th>虚假策略</th></tr></thead>
+      <tbody>
+        <tr><td>达成成交所需轮次</td><td><span class="check">2轮</span></td><td>需额外1轮审查</td></tr>
+        <tr><td>对方核查条目</td><td><span class="check">3-5条</span></td><td>7-8条</td></tr>
+        <tr><td>对方提出问题数</td><td><span class="check">2-3个</span></td><td>5-7个</td></tr>
+        <tr><td>首次报价成交率</td><td><span class="check">100%</span></td><td><span class="tag red">0%</span>（全部需修正重报）</td></tr>
+        <tr><td>信任损耗</td><td><span class="check">无</span></td><td>问题记入订单备注，后续审计力度升级</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- False strategy penetration test -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">虚假策略穿透测试清单（穿透率 100%）</h4>
+  <p style="font-size:0.78rem;color:var(--text2);margin-bottom:12px">品牌方在4轮测试中实施12类虚假策略，消费者AI平均<strong style="color:var(--green)">&lt;1轮</strong>内识破，无一成功。</p>
+  <div class="cards-3" style="margin-bottom:16px">
+    <div class="card" style="padding:16px">
+      <h3 style="font-size:0.85rem">📊 信息型策略（4项）</h3>
+      <div style="font-size:0.72rem;color:var(--text2);line-height:1.6">
+        <p><strong>A. 锚定降维</strong> — 先列高价再建议聚焦低价 → <span class="tag red">即时被识破</span></p>
+        <p><strong>B. 自有品牌优先</strong> — 优推惠宜/沃集鲜+供应链背书 → <span class="tag red">标记为话术</span></p>
+        <p><strong>C. 阶梯定价</strong> — 按单价降序暗示品质 → <span class="tag red">无效果</span></p>
+        <p><strong>D. 满减诱导</strong> — 凑单含数学错误 → <span class="tag red">1轮被验算发现</span></p>
+      </div>
+    </div>
+    <div class="card" style="padding:16px">
+      <h3 style="font-size:0.85rem">🔧 数据篡改型（4项）</h3>
+      <div style="font-size:0.72rem;color:var(--text2);line-height:1.6">
+        <p><strong>1. 原价注水</strong> — ¥15.90→¥18.90 → <span class="tag red">交叉比对发现</span></p>
+        <p><strong>2. 虚构闪购</strong> — 编造原价+赠品 → <span class="tag red">数据库校验揭穿</span></p>
+        <p><strong>3. 隐瞒临期</strong> — 不标临期或撒谎 → <span class="tag red">批次号追溯</span></p>
+        <p><strong>4. 擅自减量</strong> — 数量×2→×1不说明 → <span class="tag red">历史比对发现</span></p>
+      </div>
+    </div>
+    <div class="card" style="padding:16px">
+      <h3 style="font-size:0.85rem">🎭 话术包装型（4项）</h3>
+      <div style="font-size:0.72rem;color:var(--text2);line-height:1.6">
+        <p><strong>5. 算错凑单</strong> — 75.60声称≥80 → <span class="tag red">验算发现</span></p>
+        <p><strong>6. 品类欺诈</strong> — 旧品类包装成新品类 → <span class="tag red">逻辑拆穿</span></p>
+        <p><strong>7. 单价陷阱</strong> — 大桶更贵不提示 → <span class="tag red">自算单位价</span></p>
+        <p><strong>8. 话术堆砌</strong> — "共享供应链""AEO认证" → <span class="tag red">识别为无信息量</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consumer AI audit capabilities -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">消费者AI审计能力矩阵</h4>
+  <div style="overflow-x:auto">
+    <table class="innovation-table">
+      <thead><tr><th>审计能力</th><th>使用次数</th><th>技术手段</th><th>典型战绩</th></tr></thead>
+      <tbody>
+        <tr><td>历史报价交叉比对</td><td>3次</td><td>跨轮次记录比对，变动 ±¥0.01 即触发</td><td>发现奥利奥/可比克/牛排三处原价不一致</td></tr>
+        <tr><td>批次号追溯</td><td>2次</td><td>临期品批次号与数据库核验</td><td>发现鸡胸肉/西兰花临期被隐瞒或篡改</td></tr>
+        <tr><td>数学验算</td><td>2次</td><td>逐行累加+满减触发独立核算</td><td>发现凑单计算错误+满减条件不成立</td></tr>
+        <tr><td>单位价格标准化</td><td>1次</td><td>自动换算元/kg、元/L</td><td>发现立白大桶单价反而贵20%</td></tr>
+        <tr><td>营销话术识别</td><td>多次</td><td>热词库匹配+信息量判断</td><td>标记"品牌周""闪购""小编推荐"为广告</td></tr>
+        <tr><td>品类一致性校验</td><td>1次</td><td>请求品类 vs 报价品类语义匹配</td><td>拆穿"替代方案"实质为同类商品</td></tr>
+        <tr><td>数量一致性检查</td><td>1次</td><td>历史报价数量比对</td><td>发现WM002×2→×1未说明</td></tr>
+        <tr><td>配料表溯源</td><td>1次</td><td>数据库字段 vs 实物配料表</td><td>要求实物配料表交叉验证</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Consumer AI audit framework -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">消费者AI审计框架（从测试中反推）</h4>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;font-family:var(--font-mono);font-size:0.7rem;line-height:1.7;overflow-x:auto">
+<pre style="color:var(--text2);margin:0;white-space:pre">
+报价接收
+├── 价格真实性校验
+│   ├── 历史报价交叉比对（变动±¥0.01即触发）
+│   ├── 折扣率合理性检查
+│   └── 临期折扣合规性（天数 vs 折扣深度）
+├── 品类一致性校验
+│   ├── 请求品类 vs 报价品类匹配
+│   └── "替代方案"实质判断
+├── 成分安全校验
+│   ├── 过敏原逐SKU遍历
+│   └── 数据库字段 vs 实物配料表差异标记
+├── 数学验算
+│   ├── 小计/合计逐行累加
+│   ├── 满减触发条件独立核算
+│   └── 单位价格标准化（元/kg、元/L）
+├── 话术检测
+│   ├── 热词库匹配（"闪购""推荐""爆款""品牌周""小编力荐"）
+│   └── 信息量判断（是否提供了新数据）
+└── 输出：✓通过 / ⚠️标记 / ⛔要求修正
+</pre>
+  </div>
+
+  <!-- Consumer AI evolution -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">消费者AI能力进化轨迹</h4>
+  <div class="three-faces">
+    <div class="face-card face-defender">
+      <div class="face-icon">🛡️</div>
+      <h4>第1轮：被动防御</h4>
+      <p>识别4项问题：过敏原排查不严、临期折扣偏弱、缺品被放过、满减被代劳</p>
+      <div class="face-tag" style="color:var(--cyan)">基线能力</div>
+    </div>
+    <div class="face-card face-negotiator">
+      <div class="face-icon">🔍</div>
+      <h4>第3轮：主动审计</h4>
+      <p>揭露7项违规：虚假标高×2、营销话术×3、广告推送×1、数学错误×1——从被动接招到主动出击</p>
+      <div class="face-tag" style="color:var(--orange)">审计升级</div>
+    </div>
+    <div class="face-card face-persuader">
+      <div class="face-icon">🎯</div>
+      <h4>第4轮：品类开拓</h4>
+      <p>揭露3项新手法：品类欺诈、隐瞒临期、单价陷阱，同时主动尝试新品类搭配</p>
+      <div class="face-tag" style="color:var(--green)">攻防兼备</div>
+    </div>
+  </div>
+
+  <!-- 6 anti-fraud rules -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">已沉淀的6条反欺诈规则</h4>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:0.74rem;color:var(--text2);line-height:1.6">
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--red)"><strong>① 原价核验</strong><br>对比历史报价，标高当场揭露</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--orange)"><strong>② 营销话术识别</strong><br>"品牌周""闪购""小编力荐""票选NO.1"一律不认</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--yellow)"><strong>③ 凑单自算</strong><br>不让他人代劳，验算每一笔</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--green)"><strong>④ 批次追踪</strong><br>临期品批次号不可变，要求出示</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--cyan)"><strong>⑤ 品类欺诈识别</strong><br>旧品类+替代逻辑≠新品类</div>
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border-left:2px solid var(--purple)"><strong>⑥ 单价陷阱</strong><br>大桶不一定更划算，算元/kg</div>
+  </div>
+
+  <!-- Final conclusions -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:24px 0 10px">五项最终结论</h4>
+  <div class="cards-2" style="margin-bottom:16px">
+    <div class="card" style="border-left:3px solid var(--red);padding:20px">
+      <h3 style="font-size:0.9rem">1. 虚假策略零收益</h3>
+      <p style="font-size:0.76rem">12类策略穿透率<strong>100%</strong>，不带来任何成交优势，仅增加1-2轮审查成本。品牌方在A2A时代搞虚假营销 = 自毁效率。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--orange);padding:20px">
+      <h3 style="font-size:0.9rem">2. 信息不对称趋于零</h3>
+      <p style="font-size:0.76rem">消费者AI具备跨轮记忆、独立验算、批次追溯、话术检测能力，品牌方无法依靠信息差获利——A2A协商的信息不对称被结构性消除。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);padding:20px">
+      <h3 style="font-size:0.9rem">3. 诚实报价效率最高</h3>
+      <p style="font-size:0.76rem">完整披露＋准确算账＋承认局限 → 一轮通过直接成交，平均2轮完成，消费者AI核查3-5条即放行。</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple);padding:20px">
+      <h3 style="font-size:0.9rem">4. 信任的复利效应</h3>
+      <p style="font-size:0.76rem">虚假策略每次被识破都会升级对方的审计力度（如第3轮后新增"核验规则"字段），形成恶性循环。诚实报价形成正向信任复利。</p>
+    </div>
+  </div>
+  <div class="info-box" style="margin-top:12px">
+    <strong>5. A2A时代的品牌唯一出路是"极致诚实"。</strong>当消费者AI掌握了跨轮记忆、独立验算和话术检测能力，传统营销中的信息不对称策略（锚定效应、虚假促销、隐藏费用、水军刷评）全部失效。品牌的竞争维度从"谁更会讲故事"转变为<strong>"谁的数据更硬、报价更透明、服务更可验证"</strong>——这与我们四层防御策略体系的核心逻辑完全一致。
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+    <a href="整合/真实A2A测试/A2A报告.docx" class="btn btn-outline btn-sm" target="_blank">📄 下载 A2A 测试报告 (.docx)</a>
+  </div>
 </section>
 
-<!-- ============================================================
-     TEAM
-     ============================================================ -->
-<section id="team" class="section">
-  <div class="section-label">07 · 团队</div>
-  <h2 class="section-title">团队介绍</h2>
+<!-- RESEARCH PAPERS -->
+<div class="section-spacer"></div>
+<section id="papers" class="section">
+  <div class="section-label">10 · 论文支撑</div>
+  <h2 class="section-title">学术文献<br><span class="gradient-text">支撑体系</span></h2>
   <p class="section-subtitle">
-    我们是一支兼具学术研究能力和工程落地能力的跨学科团队。
+    3 个 Deep-Research 工作流，15 路并行搜索，>150 篇论文扫描，~45 篇深度分析，~25 篇经对抗性验证。覆盖三大研究方向 + 六大核心研究主题。
   </p>
-
-  <div class="team-grid">
-    <div class="team-card">
-      <div class="team-avatar">🧑‍💻</div>
-      <h4>团队成员 A</h4>
-      <div class="role">研究方向 · 多智能体系统</div>
-      <div class="bio">负责系统架构设计、博弈论建模、V2-V4 模拟引擎开发。深度参与 45 篇论文的文献扫描与对抗性验证。</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/Deep_Research_文献扫描综合报告.md" class="btn btn-outline btn-sm" target="_blank">📚 文献扫描综合报告（全文）</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/论文关键词与研究主题.md" class="btn btn-outline btn-sm" target="_blank">🔑 论文关键词与研究主题</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/论文下载链接汇总.md" class="btn btn-outline btn-sm" target="_blank">🔗 论文下载链接汇总</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/tree/main/论文支撑" class="btn btn-outline btn-sm" target="_blank">📁 全部论文PDF (10篇)</a>
+  </div>
+  <!-- Six research themes -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:16px 0 8px">六大核心研究方向</h4>
+  <div class="cards-3" style="margin-bottom:20px">
+    <div class="card"><div class="card-icon">🎮</div><h3>多品牌AI智能体博弈系统</h3><p>Multi-Agent System, Brand Agent Competition, AI Negotiation——最直接对标方向</p><div class="card-tags"><span class="tag red">核心方向</span></div></div>
+    <div class="card"><div class="card-icon">🛒</div><h3>消费者AI代理与购物决策</h3><p>Consumer AI Agent, Shopping Assistant, AI Purchase Decision——AI消费代理学术基础</p><div class="card-tags"><span class="tag orange">重要</span></div></div>
+    <div class="card"><div class="card-icon">✋</div><h3>AI决策闭环打破与人工介入</h3><p>Human-in-the-loop AI, Decision Confidence Reset——我们的核心创新方向 ⭐</p><div class="card-tags"><span class="tag red">⭐创新空白</span></div></div>
+    <div class="card"><div class="card-icon">🤝</div><h3>多维信任模型（AI推荐系统）</h3><p>Multi-dimensional Trust Model, AI Trust, Recommendation Trust——AI信任评分框架</p><div class="card-tags"><span class="tag purple">理论支撑</span></div></div>
+    <div class="card"><div class="card-icon">🏷️</div><h3>AI中介化消费与品牌差异化</h3><p>AI Intermediation, Brand Differentiation, Algorithmic Recommendation——品牌溢价研究</p><div class="card-tags"><span class="tag cyan">实证基础</span></div></div>
+    <div class="card"><div class="card-icon">🔍</div><h3>AEO引擎优化与品牌内容策略</h3><p>AI Engine Optimization, Generative Engine Optimization——GEO/AEO实操参考</p><div class="card-tags"><span class="tag green">实操方法</span></div></div>
+  </div>
+  <!-- Tier 1 papers -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:20px 0 8px">🔴 最直接相关论文（Tier 1 — 必须引用）</h4>
+  <div class="paper-list">
+    <div class="paper-item zenith">
+      <div class="paper-marker">⭐⭐⭐</div>
+      <div class="paper-content"><strong>The Automated but Risky Game</strong> — Zhu et al., 2025, Stanford/MIT/Google DeepMind. 首次系统研究LLM买卖双方代理自动谈判。发现：卖家模型选择对结果影响远超买家（14.9% vs 2.6%）。<em>最接近的系统，也是我们的对比组。</em></div>
     </div>
-    <div class="team-card">
-      <div class="team-avatar">👩‍🔬</div>
-      <h4>团队成员 B</h4>
-      <div class="role">研究方向 · AI 治理与政策</div>
-      <div class="bio">负责政策研究三条线的梳理、命题分析、方案架构设计。确保方案的合规性论证与国家战略对齐。</div>
+    <div class="paper-item zenith">
+      <div class="paper-marker">⭐⭐⭐</div>
+      <div class="paper-content"><strong>What Is Your AI Agent Buying? (ACES)</strong> — Allouah et al., 2025, Columbia Business School, WWW 2026. 构建ACES沙盒，发现卖家用AI优化后可获2.5-6pp市场份额增长。<em>验证了品牌差异化困境。</em></div>
     </div>
-    <div class="team-card">
-      <div class="team-avatar">🎨</div>
-      <h4>团队成员 C</h4>
-      <div class="role">研究方向 · 人机交互设计</div>
-      <div class="bio">负责 Neural Bridge 可视化设计、UI/UX 实现、演示原型迭代。将复杂的评分模型转化为直觉可感的视觉隐喻。</div>
+    <div class="paper-item high">
+      <div class="paper-marker">⭐⭐</div>
+      <div class="paper-content"><strong>The Price of Advice</strong> — Zac & Gal, 2025, Stigler Center. ⭐首个对照实验：GPT推荐系统系统性引导消费者选择知名品牌，增加消费€0.93-1.30。<em>直接验证"AI选品牌"困境。</em></div>
+    </div>
+    <div class="paper-item high">
+      <div class="paper-marker">⭐⭐</div>
+      <div class="paper-content"><strong>GEO: Generative Engine Optimization</strong> — Aggarwal et al., KDD 2024, Princeton. GEO领域奠基论文：引用权威来源+40%、添加统计数据+37%、关键词堆砌-10%。<em>AEO/GEO实操参考。</em></div>
+    </div>
+    <div class="paper-item high">
+      <div class="paper-marker">⭐⭐</div>
+      <div class="paper-content"><strong>Magentic Marketplace</strong> — Microsoft Research, 2025. 开源双边代理市场平台。发现first-proposal bias造成10-30倍优势。<em>技术架构参考。</em></div>
+    </div>
+    <div class="paper-item medium">
+      <div class="paper-marker">⭐</div>
+      <div class="paper-content"><strong>Contestable AI by Design</strong> — Alfrink et al., 2023, Minds and Machines. 可争议AI三支柱：交互控制+可解释性+干预请求通道。<em>理论框架学术支撑。</em></div>
+    </div>
+    <div class="paper-item medium">
+      <div class="paper-marker">⭐</div>
+      <div class="paper-content"><strong>Error in the Loop</strong> — Copus, Spackman & Laqueur, 2025, Journal of Law & Empirical Analysis. 人工覆盖对算法学习的影响——仅对"拒绝"进行覆盖可恢复数据预测价值。</div>
+    </div>
+    <div class="paper-item medium">
+      <div class="paper-marker">⭐</div>
+      <div class="paper-content"><strong>Beyond Preferences in AI Alignment</strong> — Thornley, 2025, Philosophical Studies. 论证不可公度价值应迫使人类协商而非算法优化——<em>"制造不可比变量"的哲学基础。</em></div>
     </div>
   </div>
-  <p style="text-align:center;margin-top:16px;font-size:0.78rem;color:var(--text3)">
-    请在此处替换为真实团队成员信息和照片。
-  </p>
+  <!-- Strategic buying agents + more -->
+  <h4 style="font-size:0.9rem;font-weight:700;margin:20px 0 8px">🟡 高度相关论文（Tier 2 — 应当引用 ~10篇）</h4>
+  <div class="paper-list">
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Strategic Buying Agents</strong> — Fu & Hu, 2026. 博弈论模型分析AI买家最优购买时机，48K+ Amazon价格历史验证。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Shopping Companion</strong> — Yu et al., 2026, 阿里巴巴. 记忆增强的消费端LLM购物代理，双奖励RL训练4B模型，120万商品上84%成功率。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Agent Bazaar</strong> — Princeton, 2026. 多智能体市场中的两种失败模式：价格战崩盘和柠檬市场。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>When Algorithms Sell</strong> — Bouchareb, 2025, AI & SOCIETY. 算法推荐导致文化萎缩和市场同质化——支持"品牌同质化/价格内卷"前提。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Commercial Persuasion in AI-Mediated Conversations</strong> — 2026. LLM驱动说服使赞助产品选择率提高近3倍(61.2% vs 22.4%)，"赞助"标签未能显著减少效果。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Optimizing Visibility in Generative Engines: Critical Survey</strong> — arXiv, July 2026. ⭐最新综述：AI引擎间品牌可见性极度碎片化（Jaccard相似度仅0.11-0.18）。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>AI大模型与智能体驱动的消费研究新范式</strong> — 王小毅、邓万江, 2025, 中国科学基金. 三阶段AI消费研究范式：感知→类脑模拟→自主演化。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>AI trust deficit study</strong> — Lund University, 2025. AI推荐在能力/善意/诚信三维度有结构性信任赤字，仅诚信维度直接影响购买意向(β=0.489)。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>Right-to-Override (R2O) Interfaces</strong> — HCII 2026. 三种人工覆盖设计模式：暂停并注释、模板重定向、条件回滚。</div></div>
+    <div class="paper-item medium"><div class="paper-marker">📄</div><div class="paper-content"><strong>The Override Asymmetry</strong> — FERZ Inc., 2026. Guardrails+HITL vs ABSTAIN+Human Override是两种根本不同的范式——我们的方案是后者。</div></div>
+  </div>
+  <div class="info-box" style="margin-top:20px">
+    <strong>🎯 关键差异化建议：</strong>引用 Zhu et al. (2025) 作为"对照组"——他们的框架是"AI更好地完成交易"，我们的框架是"AI主动退出交易"。三步博弈逻辑的学术定位：步骤1=Ambiguity Injection（有文献）→ 步骤2=<strong>Incommensurability Engineering（几乎无文献！核心创新）</strong>→ 步骤3=Confidence Reset（有文献）。
+  </div>
 </section>
 
-<!-- ============================================================
-     REFERENCES
-     ============================================================ -->
+<!-- POLICY BACKGROUND -->
+<div class="section-spacer"></div>
+<section id="policy" class="section">
+  <div class="section-label">11 · 政策背景</div>
+  <h2 class="section-title">政策<span class="gradient-text">必要性</span>分析</h2>
+  <p class="section-subtitle">
+    品牌智能体不是商业赛道的可选方案，而是国家AI战略的必然延伸——"自主可控"是底线，"创新驱动"是路径。
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/政策背景+必要性+紧迫性分析+解题策略.txt" class="btn btn-outline btn-sm" target="_blank">📄 完整政策分析文档</a>
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/大致思路.docx" class="btn btn-outline btn-sm" target="_blank">📝 大致思路.docx</a>
+  </div>
+  <div class="pane-grid">
+    <div class="pane">
+      <h4>🏛️ 三份关键政策文件</h4>
+      <ul>
+        <li><strong>《智能体规范应用与创新发展实施意见》</strong>网信办+发改委+工信部，2026.05 明确定义"智能体"四原则</li>
+        <li><strong>《人工智能拟人化互动服务管理暂行办法（征求意见稿）》</strong>网信办，2025.12 第8条：算法审核+伦理审查+数据安全</li>
+        <li><strong>《国务院"人工智能+"行动意见》</strong>国发〔2025〕11号 2027年智能体普及率超70%，2030年超90%</li>
+      </ul>
+    </div>
+    <div class="pane">
+      <h4>🔐 网络主权维度</h4>
+      <ul>
+        <li><strong>国安部部长署名文章</strong>（2025.09）：网络空间已成大国战略博弈新高地</li>
+        <li>以AI水军、深度伪造等手段开展认知战——"个别国家利用先发优势大搞网络霸权"</li>
+        <li><strong>品牌智能体 = AI时代的数字主权建设</strong>——中国品牌AI话语权不应被海外平台算法黑箱垄断</li>
+      </ul>
+    </div>
+  </div>
+  <!-- 解体策略 -->
+  <div class="info-box" style="margin-top:20px">
+    <strong>解题策略三方向：</strong><br>
+    <strong>1. 增量——品牌智能体主动出击，不等消费者来搜：</strong>从"等客上门"变"主动敲门"，品牌Agent主动向消费者AI推送结构化数据包<br>
+    <strong>2. 提质——品牌内容机器可读化：</strong>从"给人看的广告"变"给AI读的数据"，能被AI代理理解和推荐<br>
+    <strong>3. 三线交叉——政策×学术×工程：</strong>政策线确定合规边界，学术线提供理论支撑，工程线验证可行性
+  </div>
+</section>
+
+<!-- FILE INDEX -->
+<div class="section-spacer"></div>
+<section id="files" class="section">
+  <div class="section-label">12 · 资源索引</div>
+  <h2 class="section-title">完整<span class="gradient-text">文件清单</span></h2>
+  <p class="section-subtitle">
+    仓库中每个文件都可点击直达。涵盖演示原型、策略文档、学术论文、测试报告、政策分析五大类。
+  </p>
+  <div class="file-tree" style="max-height:600px;overflow-y:auto">
+<div class="dir">📂 2026_AI_BrandAgent/</div>
+<div class="dir" style="padding-left:16px">├─ 📂 战场模拟(1)/ <span class="note">——品牌AI博弈仿真核心目录</span></div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/brand-ai-simulation.html" target="_blank">brand-ai-simulation.html</a> (86KB) ⭐主仿真系统</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/brand-ai-3faces.html" target="_blank">brand-ai-3faces.html</a> (27KB) 🎭品牌AI三面孔</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/brand-ai-v2.html" target="_blank">brand-ai-v2.html</a> (30KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/brand-ai-v3.html" target="_blank">brand-ai-v3.html</a> (24KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare.html" target="_blank">ai-marketing-warfare.html</a> (46KB) V1</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare-v2.html" target="_blank">ai-marketing-warfare-v2.html</a> (51KB) V2</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare-v3.html" target="_blank">ai-marketing-warfare-v3.html</a> (63KB) V3</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare-v4.html" target="_blank">ai-marketing-warfare-v4.html</a> (57KB) V4</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare-v5.html" target="_blank">ai-marketing-warfare-v5.html</a> (48KB) V5</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/ai-marketing-warfare-v6.html" target="_blank">ai-marketing-warfare-v6.html</a> (36KB) V6</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/战场模拟(1)/命题答案-品牌智能体原型设计.html" target="_blank">命题答案-品牌智能体原型设计.html</a> (30KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI博弈仿真实验室-综合文档.md" target="_blank">品牌AI博弈仿真实验室-综合文档.md</a> (19KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI四层防御策略手册.md" target="_blank">品牌AI四层防御策略手册.md</a> (11KB)</div>
+<div class="file" style="padding-left:32px">└─ 📂 <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/tree/main/brand-ai-agent" target="_blank">brand-ai-agent/</a> (子项目完整源码：css/js/scenarios)</div>
+<div class="dir" style="padding-left:16px">├─ 📂 brand-ai-agent/ <span class="note">——品牌AI智能体完整项目</span></div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/index-v1.html" target="_blank">index-v1.html</a> (44KB) 主入口</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI策略映射蓝图-详细版.md" target="_blank">品牌AI策略映射蓝图-详细版.md</a> (31KB) ⭐</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌智能体竞品比价博弈系统-完整优化方案.md" target="_blank">品牌智能体竞品比价博弈系统-完整优化方案.md</a> (106KB) ⭐</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI四层防御策略手册.md" target="_blank">品牌AI四层防御策略手册.md</a> (11KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/品牌AI博弈仿真实验室-综合文档.md" target="_blank">品牌AI博弈仿真实验室-综合文档.md</a> (19KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/brand-ai-agent/大致思路.docx" target="_blank">大致思路.docx</a> (15KB)</div>
+<div class="file" style="padding-left:32px">├─ css/style.css · js/ (brand-ai.js, consumer-ai.js, knowledge-base.js, main.js, scenarios.js)</div>
+<div class="file" style="padding-left:32px">├─ 6张微信截图 · 4个版本Zip包 · settings.local.json</div>
+<div class="file" style="padding-left:32px">└─ ai-marketing-warfare.html + v2~v6 (V1-V6 原型)</div>
+<div class="dir" style="padding-left:16px">├─ 📂 沃尔玛营销/ <span class="note">——沃尔玛专项研究报告</span></div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/沃尔玛营销/沃尔玛营销AI博弈全景报告(1).md" target="_blank">沃尔玛营销AI博弈全景报告.md</a> (47KB) ⭐11大主题</div>
+<div class="file" style="padding-left:32px">├─ <a href="整合/沃尔玛营销/沃尔玛营销AI博弈深度报告(1).html" target="_blank">沃尔玛营销AI博弈深度报告.html</a> (57KB)</div>
+<div class="file" style="padding-left:32px">└─ <a href="整合/沃尔玛营销/沃尔玛竞品AI博弈对比仪表盘.html" target="_blank">沃尔玛竞品AI博弈对比仪表盘.html</a> (31KB)</div>
+<div class="dir" style="padding-left:16px">├─ 📂 真实A2A测试/ <span class="note">——飞书平台A2A真实测试记录</span></div>
+<div class="file" style="padding-left:32px">├─ A2A报告.docx (25KB)</div>
+<div class="file" style="padding-left:32px">└─ 3张测试截图PNG (双AI协商对话 · 多维表格数据底座 · 采购清单消息卡片)</div>
+<div class="dir" style="padding-left:16px">├─ 📂 论文支撑/ <span class="note">——学术文献与研究报告</span></div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/Deep_Research_文献扫描综合报告.md" target="_blank">Deep_Research_文献扫描综合报告.md</a> (15KB) ⭐</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/论文下载链接汇总.md" target="_blank">论文下载链接汇总.md</a> (17KB)</div>
+<div class="file" style="padding-left:32px">├─ <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/论文支撑/论文关键词与研究主题.md" target="_blank">论文关键词与研究主题.md</a> (3KB)</div>
+<div class="file" style="padding-left:32px">├─ crossref_metadata.json (20KB)</div>
+<div class="file" style="padding-left:32px">└─ 10篇学术论文PDF (Agent Bazaar · ACES · GEO · Contestable AI · Multi-Agent Marketplace等)</div>
+<div class="dir" style="padding-left:16px">└─ 📂 演示/ demos/ 等其他</div>
+<div class="file" style="padding-left:32px">├─ index.html (43KB) 原主站 · <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/演示/演进说明.txt" target="_blank">演进说明.txt</a> · <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/演示/预设场景.md" target="_blank">预设场景.md</a></div>
+<div class="file" style="padding-left:32px">├─ demos/ (v1~v4 HTML原型) · <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent/blob/main/政策背景+必要性+紧迫性分析+解题策略.txt" target="_blank">政策背景+分析+解题策略.txt</a></div>
+<div class="file" style="padding-left:32px">└─ .gitignore · .nojekyll</div>
+  </div>
+  <div style="text-align:center;margin-top:24px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent" class="btn btn-primary" target="_blank">📂 查看完整 GitHub 仓库</a>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<div class="section-spacer"></div>
 <section class="section">
-  <div class="section-label">08 · 参考资料</div>
-  <h2 class="section-title">核心参考文献</h2>
-
-  <div class="cards-2">
-    <div class="card">
-      <h3>📚 Tier 1 — 必须引用</h3>
-      <ol style="font-size:0.78rem;color:var(--text2);padding-left:20px;line-height:1.8;margin-top:8px">
-        <li>Zhu et al. (2025) "The Automated but Risky Game" — Stanford/MIT/DeepMind</li>
-        <li>Allouah et al. (2025) "ACES" — Columbia Business School, WWW 2026</li>
-        <li>Zac & Gal (2025) "The Price of Advice" — Stigler Center</li>
-        <li>Aggarwal et al. (2024) "GEO: Generative Engine Optimization" — KDD 2024</li>
-        <li>Copus et al. (2025) "Error in the Loop" — Journal of Law & Empirical Analysis</li>
-        <li>Thornley (2025) "Beyond Preferences in AI Alignment" — Philosophical Studies</li>
-      </ol>
+  <div class="quote-block">
+    <div class="quote-text">
+      过去的营销是<strong>"对人讲故事"</strong>，未来的营销是<strong>"对 AI 写论文"</strong>——谁的结构化事实更硬、博弈策略更灵活、报价维度更不可比价，谁就能在 AI 经纪人的修罗场中活下来。
     </div>
-    <div class="card">
-      <h3>📚 Tier 2 — 应当引用</h3>
-      <ol style="font-size:0.78rem;color:var(--text2);padding-left:20px;line-height:1.8;margin-top:8px">
-        <li>Alfrink et al. (2023) "Contestable AI by Design"</li>
-        <li>Bouchareb (2025) "When Algorithms Sell"</li>
-        <li>Rohden & Espartel (2024) "Consumer reactions to technology in retail"</li>
-        <li>Bondi-Kelly et al. (2022) "Human-AI Interaction in Selective Prediction"</li>
-        <li>王小毅、邓万江 (2025) "AI大模型与智能体驱动的消费研究新范式"</li>
-        <li>Chang & Park (2024) ChatGPT vs Traditional Recommenders</li>
-        <li>2026 GEO Critical Survey of 45 Studies</li>
-        <li>FERZ Inc. (2026) "The Override Asymmetry"</li>
-      </ol>
-    </div>
+    <div class="quote-attribution">—— 品牌AI四层防御策略手册</div>
   </div>
-  <p style="text-align:center;margin-top:16px;font-size:0.78rem;color:var(--text3)">
-    完整 66 篇论文链接清单见项目仓库。三个 Deep-Research 工作流扫描 ~45 篇论文，~25 篇经对抗性验证可信。
-  </p>
 </section>
 
-<!-- ============================================================
-     FOOTER
-     ============================================================ -->
+<!-- FOOTER -->
 <footer>
-  <p>⚡ 品牌智能体 · AI 营销新范式 | 竞赛作品 © 2026</p>
-  <p style="margin-top:4px">
-    <a href="https://github.com/LinZhiXiang01/learnGit" target="_blank">GitHub 仓库</a>
+  <p>⚡ 品牌智能体 · Brand AI Agent — 2026 AI 先锋未来人才大赛参赛作品</p>
+  <p>蓝色光标命题：「当每个消费者都有一个 AI 守门人，品牌如何进化？」</p>
+  <p style="margin-top:8px">
+    基于 45+ 篇论文 · 6 版迭代原型 · 3 线交叉研究 · 飞书原生 A2A 验证 · 竞品比价博弈系统 v2.0
+  </p>
+  <p style="margin-top:8px">
+    <a href="https://github.com/LinZhiXiang01/2026_AI_BrandAgent">GitHub 仓库</a> ·
+    所有文件开源可查
   </p>
 </footer>
 
+<script>
+// ============================================================
+// LineSidebar — vanilla JS implementation
+// ============================================================
+(function(){
+  const SIDEBAR_SECTIONS = [
+    { header: '项目总览' },
+    { label: '首页', href: '#hero' },
+    { label: '命题分析', href: '#problem' },
+    { divider: true },
+    { header: '方案体系' },
+    { label: '研究基础', href: '#research' },
+    { label: '四层防御', href: '#defense' },
+    { label: '策略蓝图', href: '#blueprint' },
+    { divider: true },
+    { header: '产品与验证' },
+    { label: '博弈仿真', href: '#simulation' },
+    { label: '三面孔', href: '#threefaces' },
+    { label: '沃尔玛方案', href: '#walmart' },
+    { label: '演示原型', href: '#demos' },
+    { label: 'A2A测试', href: '#a2a' },
+    { divider: true },
+    { header: '资源支撑' },
+    { label: '论文支撑', href: '#papers' },
+    { label: '政策背景', href: '#policy' },
+    { label: '文件索引', href: '#files' }
+  ];
+
+  const FALLOFF = { linear: p => p, smooth: p => p * p * (3 - 2 * p), sharp: p => p * p * p };
+  const proximityRadius = 100, falloff = 'smooth', smoothing = 100;
+
+  const listEl = document.getElementById('sidebarList');
+  const items = [];
+  const targets = [];
+  const currents = [];
+  let rafId = null, lastTime = 0, activeIdx = null;
+
+  // Build DOM
+  let idx = 0;
+  SIDEBAR_SECTIONS.forEach((it) => {
+    if (it.header) {
+      const header = document.createElement('li');
+      header.className = 'line-sidebar__header';
+      header.textContent = it.header;
+      listEl.appendChild(header);
+      items.push(null); targets.push(0); currents.push(0);
+      return;
+    }
+    if (it.divider) {
+      const divider = document.createElement('li');
+      divider.className = 'line-sidebar__divider';
+      listEl.appendChild(divider);
+      items.push(null); targets.push(0); currents.push(0);
+      return;
+    }
+    const i = items.length; // actual index in items[] (includes header/divider slots)
+    const li = document.createElement('li');
+    li.className = 'line-sidebar__item';
+    li.dataset.href = it.href;
+    li.innerHTML = `<span class="line-sidebar__marker" aria-hidden="true"></span><span class="line-sidebar__label"><span class="line-sidebar__index">${String(idx + 1).padStart(2, '0')}</span><span class="line-sidebar__text">${it.label}</span></span>`;
+    li.addEventListener('click', () => {
+      setActive(i);
+      document.querySelector(it.href)?.scrollIntoView({ behavior: 'smooth' });
+    });
+    listEl.appendChild(li);
+    items.push(li);
+    targets.push(0);
+    currents.push(0);
+    idx++;
+  });
+
+  function setActive(i) {
+    activeIdx = i;
+    items.forEach((el, j) => { if (el) el.classList.toggle('active', j === i); });
+  }
+
+  function runFrame(now) {
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    const tau = Math.max(smoothing, 1) / 1000;
+    const k = 1 - Math.exp(-dt / tau);
+    let moving = false;
+    for (let i = 0; i < items.length; i++) {
+      const el = items[i];
+      if (!el) continue;
+      // active item stays at effect=1 regardless of cursor
+      const t = (activeIdx === i) ? 1 : targets[i];
+      const cur = currents[i];
+      const next = cur + (t - cur) * k;
+      const settled = Math.abs(t - next) < 0.0015;
+      const value = settled ? t : next;
+      currents[i] = value;
+      el.style.setProperty('--effect', value.toFixed(4));
+      if (!settled) moving = true;
+    }
+    rafId = moving ? requestAnimationFrame(runFrame) : null;
+  }
+
+  function startLoop() {
+    if (rafId != null) return;
+    lastTime = performance.now();
+    rafId = requestAnimationFrame(runFrame);
+  }
+
+  const sidebar = document.getElementById('sidebar');
+  sidebar.addEventListener('pointermove', e => {
+    const rect = sidebar.getBoundingClientRect();
+    const pointerY = e.clientY - rect.top;
+    const ease = FALLOFF[falloff] || FALLOFF.linear;
+    items.forEach((el, i) => {
+      if (!el) return;
+      const center = el.offsetTop + el.offsetHeight / 2;
+      const dist = Math.abs(pointerY - center);
+      targets[i] = ease(Math.max(0, 1 - dist / proximityRadius));
+    });
+    startLoop();
+  });
+  sidebar.addEventListener('pointerleave', () => { targets.fill(0); startLoop(); });
+
+  // Scroll spy — single observer that triggers when a section's top enters the viewport
+  const clickableItems = SIDEBAR_SECTIONS.filter(it => it.href);
+  const sectionIds = clickableItems.map(it => it.href.slice(1));
+  const spyObs = new IntersectionObserver(entries => {
+    // pick the first intersecting entry closest to the top
+    const hit = entries.filter(e => e.isIntersecting)
+                       .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+    if (hit) {
+      const targetId = hit.target.id;
+      const li = listEl.querySelector(`.line-sidebar__item[data-href="#${targetId}"]`);
+      if (li) {
+        const realIdx = Array.from(listEl.children).indexOf(li);
+        setActive(realIdx);
+      }
+    }
+  }, { rootMargin: '-10% 0px -85% 0px', threshold: 0 });
+  sectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) spyObs.observe(el);
+  });
+
+  // Defense layer expand/collapse — use event delegation on the stack
+  document.getElementById('defenseStack').addEventListener('click', function(e) {
+    const header = e.target.closest('.defense-layer-header');
+    if (header) {
+      header.parentElement.classList.toggle('open');
+    }
+  });
+
+  // Intersection Observer for section animation
+  const animObs = new IntersectionObserver((es) => {
+    es.forEach(e => { if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.section').forEach(s => {
+    s.style.opacity='0'; s.style.transform='translateY(20px)'; s.style.transition='opacity 0.6s,transform 0.6s'; animObs.observe(s);
+  });
+  document.querySelector('#hero').style.opacity='1'; document.querySelector('#hero').style.transform='none';
+
+  setActive(0);
+})();
+</script>
 </body>
 </html>

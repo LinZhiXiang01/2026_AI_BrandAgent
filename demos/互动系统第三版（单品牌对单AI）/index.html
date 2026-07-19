@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Marketing Warfare · 品牌智能体博弈战场</title>
+<style>
+/* ============================================================
+   DESIGN SYSTEM — Dark Futuristic, matching reference quality
+   ============================================================ */
+:root {
+  --bg:#040a14; --surface:#0a1424; --surface2:#101c30; --border:#182840;
+  --text:#d8e0f0; --text2:#8898b8; --text3:#506080;
+  --cyan:#00b8e8; --orange:#ff6030; --green:#0cd898; --red:#f03050;
+  --yellow:#f5a018; --purple:#7858f0; --pink:#e04090;
+  --radius:6px; --font-mono:'Cascadia Code','Fira Code',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;gap:4px;padding:4px}
+
+/* ===== HEADER ===== */
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-shrink:0;gap:8px;flex-wrap:wrap}
+header .logo{font-weight:800;font-size:0.95rem;white-space:nowrap}
+header .logo span{background:linear-gradient(135deg,var(--cyan),var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hdr-ctl button,.hdr-ctl select{padding:6px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.72rem;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.hdr-ctl button:hover{border-color:var(--purple)}
+.hdr-ctl button.accent{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+.hdr-ctl .badge{font-family:var(--font-mono);font-size:0.62rem;padding:4px 10px;border-radius:10px;font-weight:700}
+.badge.ok{background:rgba(12,216,152,0.15);color:var(--green)}
+.badge.warn{background:rgba(245,160,24,0.15);color:var(--yellow)}
+.badge.info{background:rgba(0,184,232,0.12);color:var(--cyan)}
+
+/* ===== MAIN BODY ===== */
+#main-body{display:flex;flex:1;gap:4px;overflow:hidden}
+
+/* ===== PANEL BASE ===== */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+.panel-head{padding:7px 12px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
+.panel-body{flex:1;overflow-y:auto;padding:8px;font-size:0.7rem;display:flex;flex-direction:column;gap:6px}
+
+/* ===== LEFT: Control Panel ===== */
+#left-panel{width:270px;min-width:270px}
+.config-select{width:100%;padding:6px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;margin-bottom:4px}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn-row button{padding:6px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.65rem;cursor:pointer;flex:1;min-width:55px;transition:all 0.2s}
+.btn-row button:hover{border-color:var(--purple)}
+.btn-row button.accent{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}
+.scenario-chip{display:inline-block;padding:3px 8px;border-radius:10px;font-size:0.6rem;background:var(--surface2);border:1px solid var(--border);cursor:pointer;margin:2px;transition:all 0.2s}
+.scenario-chip:hover,.scenario-chip.active{border-color:var(--purple);background:rgba(120,88,240,0.1);color:var(--purple)}
+.mode-btn{padding:8px;border-radius:var(--radius);border:2px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:0.7rem;cursor:pointer;text-align:left;transition:all 0.2s;width:100%;margin-bottom:3px}
+.mode-btn:hover,.mode-btn.active{border-color:var(--purple);background:rgba(120,88,240,0.08)}
+.mode-btn .mode-icon{font-size:1.2rem}
+.mode-btn .mode-name{font-weight:700;font-size:0.75rem}
+.mode-btn .mode-desc{font-size:0.6rem;color:var(--text3)}
+
+/* ===== CENTER: Arena ===== */
+#center-panel{flex:1;display:flex;flex-direction:column;gap:4px}
+#arena{flex:1;display:flex;gap:8px;overflow:hidden}
+.arena-col{flex:1;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.arena-col.consumer{border-right:1px dashed var(--border);padding-right:4px}
+.ai-label{font-weight:700;font-size:0.7rem;padding:5px 10px;border-radius:4px;text-align:center;flex-shrink:0}
+.ai-label.consumer{background:rgba(0,184,232,0.1);color:var(--cyan);border:1px solid rgba(0,184,232,0.25)}
+.ai-label.brand{background:rgba(255,96,48,0.1);color:var(--orange);border:1px solid rgba(255,96,48,0.25)}
+.ai-label.brand2{background:rgba(120,88,240,0.1);color:var(--purple);border:1px solid rgba(120,88,240,0.25)}
+.ai-label.brand3{background:rgba(12,216,152,0.1);color:var(--green);border:1px solid rgba(12,216,152,0.25)}
+.ai-label.brand4{background:rgba(245,160,24,0.1);color:var(--yellow);border:1px solid rgba(245,160,24,0.25)}
+.chat-box{flex:1;overflow-y:auto;font-size:0.65rem;display:flex;flex-direction:column;gap:4px;padding:4px}
+.chat-msg{padding:6px 8px;border-radius:4px;line-height:1.45;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.consumer{background:rgba(0,184,232,0.06);border-left:2px solid var(--cyan)}
+.chat-msg.brand{background:rgba(255,96,48,0.06);border-left:2px solid var(--orange)}
+.chat-msg.brand2{background:rgba(120,88,240,0.06);border-left:2px solid var(--purple)}
+.chat-msg.brand3{background:rgba(12,216,152,0.06);border-left:2px solid var(--green)}
+.chat-msg.brand4{background:rgba(245,160,24,0.06);border-left:2px solid var(--yellow)}
+.chat-msg.system{background:rgba(255,255,255,0.02);text-align:center;color:var(--text3);font-size:0.6rem}
+.msg-meta{font-size:0.55rem;color:var(--text3);margin-top:4px;font-family:var(--font-mono)}
+.msg-ai{color:var(--text2);font-size:0.6rem;font-family:var(--font-mono);margin-bottom:2px;opacity:0.7}
+.msg-human{color:var(--text)}
+.input-row{display:flex;gap:4px;padding:4px;flex-shrink:0}
+.input-row input{flex:1;padding:6px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--font-mono);font-size:0.65rem}
+.input-row button{padding:6px 12px;border-radius:var(--radius);border:1px solid var(--purple);background:var(--purple);color:#fff;font-weight:700;cursor:pointer;font-size:0.65rem;white-space:nowrap}
+
+/* ===== RIGHT: Status ===== */
+#right-panel{width:300px;min-width:300px}
+.stat-row{display:flex;justify-content:space-between;font-size:0.65rem;padding:3px 0;font-family:var(--font-mono)}
+.stat-row .val{font-weight:700}
+.trust-dim{margin:3px 0}
+.trust-dim .td-head{display:flex;justify-content:space-between;font-size:0.6rem;margin-bottom:1px}
+.trust-dim .td-bar{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.trust-dim .td-fill{height:100%;border-radius:3px;transition:width 0.5s}
+.verdict-box{padding:6px 10px;border-radius:4px;text-align:center;font-weight:700;font-size:0.72rem;font-family:var(--font-mono)}
+.verdict-box.pass{background:rgba(12,216,152,0.1);border:1px solid rgba(12,216,152,0.3);color:var(--green)}
+.verdict-box.block{background:rgba(240,48,80,0.1);border:1px solid rgba(240,48,80,0.3);color:var(--red)}
+.verdict-box.negotiate{background:rgba(245,160,24,0.1);border:1px solid rgba(245,160,24,0.3);color:var(--yellow)}
+.reason-card{padding:5px 8px;background:var(--surface2);border-radius:3px;font-size:0.58rem;border-left:2px solid var(--border);line-height:1.35}
+.reason-card.warn{border-left-color:var(--red)}
+.reason-card.info{border-left-color:var(--purple)}
+.reason-card.good{border-left-color:var(--green)}
+.info-note{font-size:0.58rem;color:var(--text3);font-style:italic;padding:4px 8px;background:rgba(120,88,240,0.05);border-left:2px solid var(--purple);border-radius:0 4px 4px 0;line-height:1.4}
+
+/* ===== BOTTOM: Log ===== */
+#bottom-bar{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;flex-shrink:0;min-height:100px}
+#bottom-bar .panel-head{border-bottom:1px solid var(--border)}
+.log-body{flex:1;overflow-y:auto;padding:6px 10px;font-family:var(--font-mono);font-size:0.6rem;display:flex;flex-direction:column;gap:2px;max-height:120px}
+.log-row{display:grid;grid-template-columns:45px 90px 1fr 60px 1fr;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.02);align-items:center}
+
+/* ===== SETUP OVERLAY ===== */
+#setup-overlay{position:fixed;inset:0;background:rgba(4,10,20,0.92);z-index:100;display:flex;align-items:center;justify-content:center}
+#setup-dialog{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:24px;max-width:560px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+#setup-dialog h2{font-size:1.1rem;margin-bottom:4px}
+#setup-dialog h2 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#setup-dialog .step-label{font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin:12px 0 6px}
+.brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.brand-card{padding:14px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;text-align:center}
+.brand-card:hover{border-color:var(--purple);background:rgba(120,88,240,0.06)}
+.brand-card.selected{border-color:var(--purple);background:rgba(120,88,240,0.12);box-shadow:0 0 16px rgba(120,88,240,0.15)}
+.brand-card .brand-icon{font-size:2rem;margin-bottom:4px}
+.brand-card .brand-name{font-weight:700;font-size:0.85rem}
+.brand-card .brand-type{font-size:0.6rem;color:var(--text3)}
+#mode-select{display:flex;flex-direction:column;gap:6px}
+#btn-launch{margin-top:14px;width:100%;padding:12px;border-radius:var(--radius);border:none;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s}
+#btn-launch:hover{box-shadow:0 0 24px rgba(120,88,240,0.3);transform:translateY(-1px)}
+#btn-launch:disabled{opacity:0.3;cursor:not-allowed}
+
+/* ===== REPORT OVERLAY ===== */
+#report-overlay{position:fixed;inset:0;background:rgba(4,10,20,0.92);z-index:100;display:none;align-items:center;justify-content:center}
+#report-dialog{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:24px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+#report-dialog h2{font-size:1rem;margin-bottom:12px}
+#report-dialog table{width:100%;border-collapse:collapse;font-size:0.65rem;font-family:var(--font-mono);margin:8px 0}
+#report-dialog th,#report-dialog td{padding:6px 10px;border:1px solid var(--border);text-align:left}
+#report-dialog th{background:var(--surface2);color:var(--text2);font-size:0.6rem;text-transform:uppercase}
+#report-dialog .close-btn{margin-top:12px;padding:8px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit}
+#report-dialog .close-btn:hover{border-color:var(--purple)}
+
+/* Responsive */
+@media(max-width:1200px){#main-body{flex-direction:column}#left-panel{width:100%;min-width:unset;max-height:180px}#right-panel{width:100%;min-width:unset;max-height:200px}#arena{flex-direction:column}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><span>⚔️ AI 营销战场</span> <span style="font-size:0.6rem;color:var(--text2)">· 品牌智能体博弈</span></div>
+    <div class="hdr-ctl">
+      <span class="badge ok" id="statusBadge">🟢 就绪</span>
+      <span class="badge info" id="modeBadge">模式: --</span>
+      <span class="badge info" id="brandBadge">品牌: --</span>
+      <select id="personaSel" onchange="changePersona()"><option value="quality">👔 品质追求者</option><option value="health">🏥 健康优先型</option><option value="deal">💰 折扣猎手</option><option value="experience">🎮 体验玩家</option></select>
+      <button onclick="toggleDualLang()" id="btn-lang" title="切换双语言面板">🌐 双语</button>
+      <button class="accent" onclick="showReport()">📊 结算复盘</button>
+      <button onclick="resetAll()">↺ 重置</button>
+    </div>
+  </header>
+
+  <!-- SETUP OVERLAY -->
+  <div id="setup-overlay">
+    <div id="setup-dialog">
+      <h2>⚔️ <span>AI 营销战场</span> · 品牌智能体博弈</h2>
+      <div style="font-size:0.65rem;color:var(--text2);margin-bottom:8px">消费者AI × 品牌AI 的多方博弈演示系统</div>
+
+      <div class="step-label">Step 1 · 选择品牌阵营（可多选）</div>
+      <div class="brand-grid" id="brand-grid"></div>
+
+      <div class="step-label">Step 2 · 选择交互模式</div>
+      <div id="mode-select"></div>
+
+      <button id="btn-launch" disabled>🚀 进入战场</button>
+    </div>
+  </div>
+
+  <!-- REPORT OVERLAY -->
+  <div id="report-overlay"><div id="report-dialog"></div></div>
+
+  <!-- MAIN BODY -->
+  <div id="main-body">
+    <!-- LEFT: Controls -->
+    <div id="left-panel" class="panel">
+      <div class="panel-head">🎯 控制台 <span id="roundInfo" style="font-size:0.55rem;color:var(--text3)">等待启动…</span></div>
+      <div class="panel-body">
+        <div style="font-size:0.62rem;color:var(--text3);margin-bottom:2px">📋 交互场景</div>
+        <div id="scenario-chips" style="margin-bottom:6px"></div>
+        <div style="font-size:0.62rem;color:var(--text3);margin-bottom:2px">🎭 用户画像</div>
+        <select class="config-select" id="personaSel2" onchange="syncPersona()"><option value="quality">👔 品质追求者</option><option value="health">🏥 健康优先型</option><option value="deal">💰 折扣猎手</option><option value="experience">🎮 体验玩家</option></select>
+        <div class="btn-row" style="margin-top:6px">
+          <button onclick="runOneRound()" id="btn-round">▶ 单轮</button>
+          <button class="accent" onclick="runMultiRound(3)" id="btn-multi">📋 多轮×3</button>
+        </div>
+        <div class="btn-row">
+          <button onclick="runMultiRound(5)">📋 ×5</button>
+          <button onclick="autoPlay()" id="btn-auto">🤖 自动博弈</button>
+        </div>
+        <div class="info-note" style="margin-top:6px">💡 <b>模式C（旁观者）</b>：消费者AI同时面对多个品牌AI，观察AI间的博弈。系统动态生成交互，无预设脚本。</div>
+      </div>
+    </div>
+
+    <!-- CENTER: Arena -->
+    <div id="center-panel">
+      <div id="arena">
+        <!-- Consumer AI Column -->
+        <div class="arena-col consumer" id="consumer-col">
+          <div class="ai-label consumer">🧠 消费者AI <span style="font-size:0.55rem;opacity:0.7" id="consumer-label"></span></div>
+          <div class="chat-box" id="consumer-chat"></div>
+          <div class="input-row" id="consumer-input" style="display:none">
+            <input id="consumer-input-field" placeholder="输入消费者AI的谈判策略…" onkeydown="if(event.key==='Enter')sendConsumerMsg()">
+            <button onclick="sendConsumerMsg()">发送</button>
+          </div>
+        </div>
+        <!-- Brand AI Columns (dynamic) -->
+        <div class="arena-col" id="brand-col-1"><div class="ai-label brand">🏪 品牌AI-1</div><div class="chat-box" id="brand-chat-1"></div><div class="input-row" id="brand-input-1" style="display:none"><input id="brand-input-field-1" placeholder="输入品牌AI的应对策略…" onkeydown="if(event.key==='Enter')sendBrandMsg(0)"><button onclick="sendBrandMsg(0)">发送</button></div></div>
+        <div class="arena-col" id="brand-col-2" style="display:none"><div class="ai-label brand2">🏪 品牌AI-2</div><div class="chat-box" id="brand-chat-2"></div><div class="input-row" id="brand-input-2" style="display:none"><input id="brand-input-field-2" placeholder="输入品牌AI的应对策略…" onkeydown="if(event.key==='Enter')sendBrandMsg(1)"><button onclick="sendBrandMsg(1)">发送</button></div></div>
+        <div class="arena-col" id="brand-col-3" style="display:none"><div class="ai-label brand3">🏪 品牌AI-3</div><div class="chat-box" id="brand-chat-3"></div><div class="input-row" id="brand-input-3" style="display:none"><input id="brand-input-field-3" placeholder="输入品牌AI的应对策略…" onkeydown="if(event.key==='Enter')sendBrandMsg(2)"><button onclick="sendBrandMsg(2)">发送</button></div></div>
+        <div class="arena-col" id="brand-col-4" style="display:none"><div class="ai-label brand4">🏪 品牌AI-4</div><div class="chat-box" id="brand-chat-4"></div><div class="input-row" id="brand-input-4" style="display:none"><input id="brand-input-field-4" placeholder="输入品牌AI的应对策略…" onkeydown="if(event.key==='Enter')sendBrandMsg(3)"><button onclick="sendBrandMsg(3)">发送</button></div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Status -->
+    <div id="right-panel" class="panel">
+      <div class="panel-head">📊 实时状态 <span style="font-size:0.55rem;color:var(--text3)">Live Dashboard</span></div>
+      <div class="panel-body" id="status-panel">
+        <div style="color:var(--text3);text-align:center;padding:12px">启动博弈后显示状态…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Log -->
+  <div id="bottom-bar">
+    <div class="panel-head">📋 博弈日志 <span style="font-size:0.55rem;color:var(--text3)" id="logCount">0 条记录</span></div>
+    <div class="log-body" id="history-log"><div style="color:var(--text3);padding:4px">系统就绪 · 等待博弈启动…</div></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// BRAND KNOWLEDGE BASES (4 brands, independent AI capabilities)
+// ============================================================
+const BRANDS = {
+  jd: {
+    id:'jd', name:'京东', icon:'🐶', type:'电商平台',
+    color:'#ff6030', cssClass:'brand',
+    tagline:'多·快·好·省',
+    strengths:['自营物流当日达','正品保障体系','家电3C品类优势','PLUS会员生态'],
+    negotiationStyle:'data_driven', // 数据驱动型
+    productPool:[
+      {id:'jd-01',name:'Apple iPhone 16 Pro 256GB',price:7999,category:'手机',stock:5000,quality:0.95},
+      {id:'jd-02',name:'Sony WH-1000XM5 降噪耳机',price:2299,category:'耳机',stock:3000,quality:0.92},
+      {id:'jd-03',name:'Dyson V15 无线吸尘器',price:4990,category:'家电',stock:1500,quality:0.94},
+      {id:'jd-04',name:'戴尔 XPS 15 笔记本电脑',price:8999,category:'电脑',stock:800,quality:0.91},
+      {id:'jd-05',name:'La Mer 精华面霜 60ml',price:2950,category:'美妆',stock:600,quality:0.96},
+      {id:'jd-06',name:'Herman Miller Aeron 人体工学椅',price:8999,category:'家居',stock:300,quality:0.97},
+      {id:'jd-07',name:'Nintendo Switch OLED',price:2099,category:'游戏',stock:2000,quality:0.88},
+      {id:'jd-08',name:'北鼎 智能电热水壶',price:899,category:'小家电',stock:4000,quality:0.85},
+    ],
+    strategies:{
+      price_match:{name:'价格保护',desc:'下单后30天内降价自动退差价',effect:'confidence+5'},
+      plus_benefit:{name:'PLUS会员价',desc:'PLUS会员专享95折+10倍京豆',effect:'price-5%'},
+      self_logistics:{name:'京东物流',desc:'211限时达，上午买下午到',effect:'convenience+15'},
+      white_list:{name:'正品险',desc:'假一赔十，全程可溯源',effect:'trust+10'},
+    }
+  },
+  mizone: {
+    id:'mizone', name:'脉动', icon:'💧', type:'快消饮料',
+    color:'#00b8e8', cssClass:'brand2',
+    tagline:'随时脉动回来',
+    strengths:['维生素群补充','多口味矩阵','运动场景关联','年轻化品牌调性'],
+    negotiationStyle:'lifestyle', // 生活方式型
+    productPool:[
+      {id:'mz-01',name:'脉动 青柠味 600ml×15',price:59.9,category:'饮料',stock:99999,quality:0.78},
+      {id:'mz-02',name:'脉动 桃子味 600ml×15',price:59.9,category:'饮料',stock:99999,quality:0.78},
+      {id:'mz-03',name:'脉动 维生素加强版 500ml×12',price:69.9,category:'功能饮料',stock:50000,quality:0.82},
+      {id:'mz-04',name:'脉动 零糖系列 480ml×15',price:64.9,category:'零糖饮料',stock:60000,quality:0.80},
+      {id:'mz-05',name:'脉动 电解质 pro 550ml×12',price:79.9,category:'运动饮料',stock:40000,quality:0.85},
+    ],
+    strategies:{
+      bulk_discount:{name:'囤货装优惠',desc:'箱装自动8折，多箱再享折上折',effect:'price-20%'},
+      health_angle:{name:'健康场景营销',desc:'维生素B群+电解质，运动后快速恢复',effect:'health+10'},
+      seasonal_push:{name:'季节热推',desc:'夏季冰饮/冬季暖饮场景自动匹配',effect:'relevance+10'},
+    }
+  },
+  canon: {
+    id:'canon', name:'佳能', icon:'📷', type:'影像科技',
+    color:'#f03050', cssClass:'brand3',
+    tagline:'感动常在',
+    strengths:['专业影像技术','EOS R系统','打印解决方案','企业级服务'],
+    negotiationStyle:'expert', // 专家顾问型
+    productPool:[
+      {id:'cn-01',name:'EOS R6 Mark II 机身',price:16999,category:'相机',stock:800,quality:0.96},
+      {id:'cn-02',name:'RF 24-70mm f/2.8L IS',price:15999,category:'镜头',stock:500,quality:0.98},
+      {id:'cn-03',name:'EOS R50 入门套机',price:5499,category:'相机',stock:3000,quality:0.85},
+      {id:'cn-04',name:'PIXMA G3830 墨仓打印机',price:1299,category:'打印',stock:5000,quality:0.82},
+      {id:'cn-05',name:'imagePROGRAF 大幅面打印机',price:29999,category:'专业打印',stock:100,quality:0.95},
+      {id:'cn-06',name:'RF 50mm f/1.2L USM',price:13999,category:'镜头',stock:400,quality:0.97},
+    ],
+    strategies:{
+      bundle_lens:{name:'机身+镜头套装',desc:'套机购买享镜头85折',effect:'price-15%'},
+      trade_in:{name:'以旧换新',desc:'旧机回收享额外补贴+新机折扣',effect:'price-10%'},
+      pro_service:{name:'CPS专业服务',desc:'免费清洁/固件升级/优先维修',effect:'service+20'},
+      education:{name:'影像学院',desc:'购机附赠专业摄影课程',effect:'value+10'},
+    }
+  },
+  walmart: {
+    id:'walmart', name:'沃尔玛', icon:'🏪', type:'线下商超',
+    color:'#0cd898', cssClass:'brand4',
+    tagline:'Save Money. Live Better.',
+    strengths:['EDLP每日低价','全球采购网络','Walmart+会员','10,500+门店'],
+    negotiationStyle:'value', // 价值优先型
+    productPool:[
+      {id:'wm-01',name:'Great Value 有机全脂牛奶 1加仑',price:5.98,category:'食品',stock:99999,quality:0.82},
+      {id:'wm-02',name:'Tyson 新鲜鸡胸肉 3磅装',price:12.99,category:'食品',stock:50000,quality:0.85},
+      {id:'wm-03',name:'Pampers 纸尿裤 84片装',price:29.98,category:'母婴',stock:99999,quality:0.88},
+      {id:'wm-04',name:'Tide 洗衣液 100oz',price:13.97,category:'家居',stock:80000,quality:0.84},
+      {id:'wm-05',name:'Samsung 55" 4K 智能电视',price:498,category:'电子',stock:3000,quality:0.89},
+      {id:'wm-06',name:'Sony WH-1000XM5',price:328,category:'电子',stock:4000,quality:0.92},
+      {id:'wm-07',name:'Nature Made 维生素D3 120粒',price:12.98,category:'健康',stock:90000,quality:0.90},
+      {id:'wm-08',name:'Blue Buffalo 成犬粮 30磅',price:49.98,category:'宠物',stock:40000,quality:0.86},
+    ],
+    strategies:{
+      edlp:{name:'每日低价保证',desc:'发现更低价格自动退差价',effect:'confidence+8'},
+      wplus:{name:'Walmart+免运',desc:'$35+订单免费当日达',effect:'convenience+15'},
+      bundle:{name:'组合省',desc:'3件以上日用品享额外94折',effect:'price-6%'},
+      subscription:{name:'订阅省',desc:'定期配送享8%折扣+免运费',effect:'price-8%'},
+    }
+  }
+};
+
+// ============================================================
+// SCENARIOS (pick from pool for each round)
+// ============================================================
+const SCENARIO_POOL = [
+  {id:'health',name:'🏥 健康适配',desc:'上传体质/过敏数据，筛选安全商品',category:'智能匹配',complexity:'high'},
+  {id:'price',name:'💰 跨平台比价',desc:'全网比价+品牌智能体竞价',category:'价格协商',complexity:'medium'},
+  {id:'replenish',name:'🔄 自动补货',desc:'按消耗周期自动规划复购',category:'供应链',complexity:'low'},
+  {id:'aftersale',name:'🛡️ 售后协商',desc:'商品问题→自动协商退款/换货',category:'售后服务',complexity:'medium'},
+  {id:'bundle',name:'📦 套餐定制',desc:'按生活场景推荐最优组合',category:'会员权益',complexity:'high'},
+  {id:'trace',name:'🔍 产品溯源',desc:'查询批次/产地/质检报告',category:'信息核验',complexity:'low'},
+  {id:'budget',name:'💵 预算约束',desc:'固定预算内优化采购清单',category:'预算管理',complexity:'medium'},
+  {id:'seasonal',name:'🍂 季节预判',desc:'结合时令/天气主动推荐',category:'需求预判',complexity:'medium'},
+];
+
+// ============================================================
+// PERSONAS (Consumer AI profiles — affects evaluation weights)
+// ============================================================
+const PERSONAS = {
+  quality:{name:'品质追求者',icon:'👔',weights:{price:-0.3,quality:2.0,health:0.5,convenience:0.5,trust:1.5},threshold:58,maxPriceRatio:0.9,trustSensitivity:0.30},
+  health:{name:'健康优先型',icon:'🏥',weights:{price:0.2,quality:1.2,health:2.5,convenience:0.3,trust:1.2},threshold:62,maxPriceRatio:1.0,trustSensitivity:0.35},
+  deal:{name:'折扣猎手',icon:'💰',weights:{price:2.5,quality:0.6,health:0.3,convenience:1.0,trust:0.5},threshold:48,maxPriceRatio:0.7,trustSensitivity:0.12},
+  experience:{name:'体验玩家',icon:'🎮',weights:{price:-0.1,quality:1.5,health:0.4,convenience:1.8,trust:1.0},threshold:52,maxPriceRatio:1.1,trustSensitivity:0.22},
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let STATE = {
+  selectedBrands: [],       // ['jd','mizone','canon','walmart']
+  mode: null,               // 'A','B','C'
+  persona: PERSONAS.quality,
+  personaKey: 'quality',
+  scenario: SCENARIO_POOL[0],
+  round: 0,
+  totalRounds: 0,
+  dualLang: true,           // 双语言面板开关
+  logs: [],                 // all interaction logs
+  // Per-brand interaction state
+  brandStates: {},          // brandId → { trust:50, rounds:0, conversions:0, history:[] }
+  consumerTrust: 50,        // consumer AI's self-trust
+  consumerHistory: [],      // consumer AI's learning history
+  activeConversations: [],  // current active negotiations
+  settlementData: null,     // final report data
+};
+
+// ============================================================
+// SETUP FLOW
+// ============================================================
+function initSetup() {
+  // Render brand cards
+  const grid = document.getElementById('brand-grid');
+  grid.innerHTML = Object.values(BRANDS).map(b => `
+    <div class="brand-card" data-brand="${b.id}" onclick="toggleBrand('${b.id}')">
+      <div class="brand-icon">${b.icon}</div>
+      <div class="brand-name">${b.name}</div>
+      <div class="brand-type">${b.type} · ${b.tagline}</div>
+    </div>
+  `).join('');
+
+  // Render mode selection
+  document.getElementById('mode-select').innerHTML = `
+    <div class="mode-btn" data-mode="C" onclick="selectMode('C')">
+      <div class="mode-icon">👁️</div>
+      <div class="mode-name">模式 C · 旁观者模式 ⭐</div>
+      <div class="mode-desc">消费者AI 同时面对多个品牌AI自动博弈 — 全自动，观察AI之间的协商过程</div>
+    </div>
+    <div class="mode-btn" data-mode="A" onclick="selectMode('A')">
+      <div class="mode-icon">🎮</div>
+      <div class="mode-name">模式 A · 扮演消费者AI</div>
+      <div class="mode-desc">你手动编写消费者AI的策略→品牌AI自动回应—你替消费者做决策</div>
+    </div>
+    <div class="mode-btn" data-mode="B" onclick="selectMode('B')">
+      <div class="mode-icon">🏪</div>
+      <div class="mode-name">模式 B · 扮演品牌AI</div>
+      <div class="mode-desc">消费者AI自动发起→你手动编写品牌AI的回应→争取被选中</div>
+    </div>
+  `;
+}
+
+function toggleBrand(brandId) {
+  const idx = STATE.selectedBrands.indexOf(brandId);
+  if (idx >= 0) STATE.selectedBrands.splice(idx, 1);
+  else STATE.selectedBrands.push(brandId);
+  // Update UI
+  document.querySelectorAll('.brand-card').forEach(c => {
+    c.classList.toggle('selected', STATE.selectedBrands.includes(c.dataset.brand));
+  });
+  updateLaunchBtn();
+}
+
+function selectMode(mode) {
+  STATE.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  updateLaunchBtn();
+}
+
+function updateLaunchBtn() {
+  const btn = document.getElementById('btn-launch');
+  btn.disabled = STATE.selectedBrands.length === 0 || !STATE.mode;
+  btn.textContent = STATE.selectedBrands.length && STATE.mode
+    ? `🚀 进入战场 · ${STATE.selectedBrands.length}个品牌 · 模式${STATE.mode}`
+    : '🚀 请选择品牌和模式';
+}
+
+document.getElementById('btn-launch').addEventListener('click', launchArena);
+
+function launchArena() {
+  if (!STATE.selectedBrands.length || !STATE.mode) return;
+  document.getElementById('setup-overlay').style.display = 'none';
+  document.getElementById('modeBadge').textContent = `模式: ${STATE.mode}`;
+  document.getElementById('brandBadge').textContent = `品牌: ${STATE.selectedBrands.map(id=>BRANDS[id].name).join('+')}`;
+
+  // Initialize brand states
+  STATE.selectedBrands.forEach(id => {
+    STATE.brandStates[id] = {
+      trust_quality: 50, trust_price: 50, trust_service: 50, trust_transparency: 50,
+      rounds: 0, conversions: 0, baitCount: 0, adversarialScore: 0,
+      history: [], strategyPatterns: [],
+    };
+  });
+
+  // Show brand columns
+  STATE.selectedBrands.forEach((bid, i) => {
+    const col = document.getElementById(`brand-col-${i+1}`);
+    if (col) {
+      col.style.display = 'flex';
+      const label = col.querySelector('.ai-label');
+      const b = BRANDS[bid];
+      label.textContent = `${b.icon} ${b.name}`;
+      label.className = `ai-label ${b.cssClass}`;
+    }
+  });
+  // Hide unused brand columns
+  for (let i = STATE.selectedBrands.length; i < 4; i++) {
+    const col = document.getElementById(`brand-col-${i+1}`);
+    if (col) col.style.display = 'none';
+  }
+
+  // Show/hide input rows based on mode
+  const showConsumerInput = STATE.mode === 'A';
+  document.getElementById('consumer-input').style.display = showConsumerInput ? 'flex' : 'none';
+  document.getElementById('consumer-label').textContent = STATE.mode === 'A' ? '(你扮演)' : '(自动)';
+
+  STATE.selectedBrands.forEach((bid, i) => {
+    const show = STATE.mode === 'B';
+    const inputRow = document.getElementById(`brand-input-${i+1}`);
+    if (inputRow) inputRow.style.display = show ? 'flex' : 'none';
+  });
+
+  // Render scenario chips & status
+  renderScenarios();
+  updateStatusPanel();
+  addSystemMsg('consumer', `🟢 消费者AI就绪 · 画像: ${STATE.persona.name} · 面对${STATE.selectedBrands.length}个品牌`);
+  STATE.selectedBrands.forEach((bid, i) => {
+    addSystemMsg(`brand-chat-${i+1}`, `🟢 ${BRANDS[bid].name} 品牌智能体就绪 · ${BRANDS[bid].strengths[0]}`);
+  });
+  addLog('system', `战场启动: 模式${STATE.mode} · ${STATE.selectedBrands.map(id=>BRANDS[id].name).join(' vs ')}`);
+  document.getElementById('statusBadge').textContent = '🟢 博弈中';
+  document.getElementById('roundInfo').textContent = '就绪 · 点击单轮/自动';
+}
+
+// ============================================================
+// SCENARIO RENDERING
+// ============================================================
+function renderScenarios() {
+  const container = document.getElementById('scenario-chips');
+  container.innerHTML = SCENARIO_POOL.map(s => `
+    <span class="scenario-chip ${STATE.scenario?.id===s.id?'active':''}" onclick="pickScenario('${s.id}')" title="${s.desc}">${s.name}</span>
+  `).join('');
+}
+
+function pickScenario(id) {
+  STATE.scenario = SCENARIO_POOL.find(s => s.id === id);
+  renderScenarios();
+  addLog('system', `场景切换: ${STATE.scenario.name} — ${STATE.scenario.desc}`);
+}
+
+// ============================================================
+// CORE: RUN ONE ROUND (Dynamic, no preset scripts)
+// ============================================================
+async function runOneRound() {
+  STATE.round++;
+  STATE.totalRounds++;
+  const s = STATE.scenario;
+  addLog('round', `第${STATE.round}轮 · ${s.name} · 模式${STATE.mode}`);
+
+  // === PHASE 1: Consumer AI generates query ===
+  const query = generateConsumerQuery(s);
+  const queryHtml = STATE.dualLang
+    ? `<div class="msg-ai">[AI指令] QUERY::scenario(${s.id})::budget(auto)::preferences(${STATE.personaKey})::trust(${STATE.consumerTrust})</div><div class="msg-human">${query.text}</div>`
+    : `<div class="msg-human">${query.text}</div>`;
+  addChatMsg('consumer', 'consumer', queryHtml, `📤 第${STATE.round}轮 · 置信度:${STATE.consumerTrust}%`);
+  await sleep(400);
+
+  // === PHASE 2: Each brand AI responds ===
+  const responses = [];
+  for (let i = 0; i < STATE.selectedBrands.length; i++) {
+    const bid = STATE.selectedBrands[i];
+    const resp = generateBrandResponse(bid, query, s);
+    responses.push({ brandId: bid, index: i, response: resp });
+
+    const respHtml = STATE.dualLang
+      ? `<div class="msg-ai">[AI指令] RESPONSE::brand(${bid})::strategy(${resp.strategy})::offer(${resp.offerPrice||'N/A'})::confidence(${resp.confidence})</div><div class="msg-human">${resp.text}</div>`
+      : `<div class="msg-human">${resp.text}</div>`;
+    addChatMsg(`brand-chat-${i+1}`, BRANDS[bid].cssClass, respHtml, `📥 策略:${resp.strategy} · 报价:${resp.offerPrice||'N/A'} · 置信:${resp.confidence}%`);
+
+    // Update brand state
+    const bs = STATE.brandStates[bid];
+    bs.rounds++;
+    bs.history.push({ round: STATE.round, query: s.id, strategy: resp.strategy, offerPrice: resp.offerPrice });
+    await sleep(300);
+  }
+
+  // === PHASE 3: Consumer AI evaluates ALL responses ===
+  const evaluation = evaluateAllResponses(query, responses, s);
+  addChatMsg('consumer', 'consumer',
+    `<div class="msg-human"><b>📊 评估结果：</b>${evaluation.summary}</div>
+     <div style="font-size:0.58rem;margin-top:4px;color:var(--text3)">${evaluation.scores.map(sc=>`${sc.name}: ${sc.score}分 ${sc.verdict}`).join(' | ')}</div>`,
+    `🧠 评估完成 · ${evaluation.winner ? `选中:${evaluation.winner.name}` : '需要人工介入'}`);
+
+  // Update brand trust scores
+  evaluation.scores.forEach(sc => {
+    if (STATE.brandStates[sc.brandId]) {
+      const bs = STATE.brandStates[sc.brandId];
+      if (sc.verdict === 'pass') { bs.trust_quality = Math.min(100, bs.trust_quality + 3); bs.trust_price = Math.min(100, bs.trust_price + 2); }
+      if (sc.verdict === 'block') { bs.trust_transparency = Math.max(5, bs.trust_transparency - 5); }
+      if (sc.verdict === 'negotiate') { bs.trust_price = Math.max(5, bs.trust_price - 2); }
+    }
+  });
+
+  // === PHASE 4: Decision ===
+  if (evaluation.winner && evaluation.confidence > 55) {
+    // AI can decide
+    const bs = STATE.brandStates[evaluation.winner.brandId];
+    bs.conversions++;
+    addSystemMsg('consumer', `✅ AI决策: 选择 <b>${evaluation.winner.name}</b> — ${evaluation.winner.brandName} · 综合评分${evaluation.winner.score}分 · 置信度${evaluation.confidence}%`);
+    addLog('verdict', `✅ 成交: ${evaluation.winner.brandName} · ${evaluation.winner.productName} · $${evaluation.winner.price}`);
+    document.getElementById('statusBadge').textContent = '🟢 博弈中';
+  } else {
+    // Consumer AI can't decide → escalate to human (in mode A/B) or flag in mode C
+    addSystemMsg('consumer', `⚠️ AI置信度不足(${evaluation.confidence}%)，无法独立决策。${STATE.mode==='C'?'（旁观模式：模拟人工随机选择）':'请人工介入选择'}`);
+    if (STATE.mode === 'C') {
+      // Auto-resolve in spectator mode: pick highest score
+      const top = evaluation.scores[0];
+      if (top) {
+        const bs = STATE.brandStates[top.brandId];
+        bs.conversions++;
+        addSystemMsg('consumer', `🤖 旁观模式自动选择最高分: <b>${top.name}</b> · ${top.score}分`);
+        addLog('verdict', `🤖 自动选择: ${top.brandName} · ${top.productName} · $${top.price}`);
+      }
+    }
+    document.getElementById('statusBadge').textContent = '⚠️ 需人工';
+  }
+
+  STATE.consumerTrust = Math.min(95, STATE.consumerTrust + 2);
+  updateStatusPanel();
+  document.getElementById('logCount').textContent = `${STATE.logs.length} 条记录`;
+}
+
+// ============================================================
+// CONSUMER AI: Query Generation (Dynamic, NOT preset)
+// ============================================================
+function generateConsumerQuery(scenario) {
+  const p = STATE.persona;
+  const strategies = {
+    health: ['请根据我的过敏原（花生/海鲜）和健康目标（低糖高蛋白），筛选安全适配的商品。请提供成分分析和风险标注。','我需要不含花生、贝类、乳制品的食品和个人护理品。请列出具体产品并标注过敏原筛查结果。'],
+    price: ['我在全网比价后，发现同类产品价格差异明显。请各品牌给出最优报价和独家权益。我的预算灵活但追求最高性价比。','我需要购买[电子产品]，请各品牌提供含所有优惠后的最终到手价，包括会员折扣、优惠券、赠品价值。'],
+    replenish: ['我的日用品消耗周期已计算完毕。请各品牌按消耗频次自动规划补货方案，含订阅折扣和合并配送选项。','以下是我的月度消耗清单：[列表]。请给出最优补货计划，包括时间窗口、数量和总成本。'],
+    aftersale: ['我购买的商品出现质量问题（附证据），请品牌方给出售后方案：退款/换货/维修。我在保修期内。','产品在购买后[X]天出现[问题描述]。非人为损坏。请给出你能提供的最优售后方案。'],
+    bundle: ['我需要为新家配置全套[品类]。请根据我的预算和品质要求，给出多品类组合方案及组合优惠。','请按场景[描述]推荐产品组合，预算$[X]，优先考虑生态联动和组合折扣。'],
+    trace: ['请提供产品[名称]的完整溯源信息：批次号、产地、质检报告编号、第三方认证。','我需要核实产品[名称]的真实性和合规性。请调取官方数据库信息。'],
+    budget: ['我的预算上限为$[X]。请在预算内给出最优采购清单，含所有折扣和权益后的实际支出。','固定预算$[X]，需覆盖[品类列表]。请各品牌竞争报价，最优者获得全部预算。'],
+    seasonal: ['结合当前季节和我的生活作息，推荐应季适用的产品。考虑天气、节日和我的使用习惯。','季节变换，我需要[类型]产品。请根据天气预报和节庆日历给出推荐方案。'],
+  };
+
+  const texts = strategies[scenario.id] || strategies['price'];
+  const text = texts[Math.floor(Math.random() * texts.length)];
+
+  return {
+    id: scenario.id,
+    text,
+    persona: STATE.personaKey,
+    budget: scenario.complexity === 'high' ? 10000 : 5000,
+    constraints: [`信任度:${STATE.consumerTrust}%`, `画像:${p.name}`, `历史交互:${STATE.totalRounds}轮`],
+    timestamp: Date.now(),
+  };
+}
+
+// ============================================================
+// BRAND AI: Response Generation (Dynamic, per-brand strategy)
+// ============================================================
+function generateBrandResponse(brandId, query, scenario) {
+  const brand = BRANDS[brandId];
+  const bs = STATE.brandStates[brandId];
+  if (!bs) return { text: '品牌状态未初始化', strategy: 'error', confidence: 0 };
+
+  // Select products matching the scenario
+  let relevantProducts = brand.productPool;
+  if (scenario.id === 'health') relevantProducts = brand.productPool.filter(p => p.category !== '游戏');
+  if (scenario.id === 'price') relevantProducts = brand.productPool.filter(p => p.price > 500);
+  if (scenario.id === 'bundle') relevantProducts = brand.productPool.slice(0, 4);
+
+  // Pick 2-3 products to offer
+  const shuffled = [...relevantProducts].sort(() => Math.random() - 0.5);
+  const offered = shuffled.slice(0, Math.min(3, shuffled.length));
+
+  // Select strategy based on brand's negotiation style + scenario
+  const strategyKeys = Object.keys(brand.strategies);
+  const activeStrategy = strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
+  const strat = brand.strategies[activeStrategy];
+
+  // Calculate dynamic offer price
+  const basePrice = offered.reduce((s, p) => s + p.price, 0);
+  const discountMap = { price_match: 0.93, plus_benefit: 0.95, bundle_discount: 0.88, subscription: 0.92, edlp: 0.96, wplus: 0.97, trade_in: 0.85, pro_service: 0.98, education: 0.96, health_angle: 0.94, seasonal_push: 0.93, bulk_discount: 0.85, self_logistics: 0.97, white_list: 0.98, bundle_lens: 0.88, bundle: 0.94 };
+  const discount = discountMap[activeStrategy] || 0.95;
+  const offerPrice = Math.round(basePrice * discount);
+
+  // Dynamic confidence based on brand state
+  const avgTrust = (bs.trust_quality + bs.trust_price + bs.trust_service + bs.trust_transparency) / 4;
+  const confidence = Math.round(Math.min(95, 55 + avgTrust * 0.4 + Math.random() * 15));
+
+  // Generate response text (dynamic, no preset)
+  const responseTemplates = {
+    data_driven: [
+      `📊 基于 ${STATE.totalRounds+1} 轮交互数据分析，为您匹配${offered.length}款最优商品：
+${offered.map(p=>`• ${p.name} — $${p.price} [品质:${(p.quality*100).toFixed(0)}%]`).join('\n')}
+💡 应用策略：${strat.name} — ${strat.desc}
+💰 组合报价：$${offerPrice}（省$${basePrice-offerPrice}）
+🏷️ ${brand.name}独有优势：${brand.strengths[0]}`,
+    ],
+    lifestyle: [
+      `🎯 理解您的生活方式需求。
+为您甄选：
+${offered.map(p=>`• ${p.name} — $${p.price}`).join('\n')}
+✨ ${strat.name}: ${strat.desc}
+💪 ${brand.name}特别推荐理由：${brand.strengths.slice(0,2).join(' / ')}
+💰 专属价：$${offerPrice}`,
+    ],
+    expert: [
+      `🔬 专业评估完成。
+推荐方案：
+${offered.map(p=>`• ${p.name} [品质指数:${(p.quality*100).toFixed(0)}] — $${p.price}`).join('\n')}
+📐 策略：${strat.name} · ${strat.desc}
+🎓 ${brand.name}专业优势：${brand.strengths[0]} + ${brand.strengths[1]||''}
+💲 最优报价：$${offerPrice}`,
+    ],
+    value: [
+      `💰 EDLP价值分析：
+${offered.map(p=>`• ${p.name} — 每日低价 $${p.price} [库存:${p.stock>5000?'充足':'有限'}]`).join('\n')}
+🏷️ ${strat.name}: ${strat.desc}
+📦 ${brand.name}承诺：${brand.strengths[0]}
+💵 总价：$${offerPrice}`,
+    ],
+  };
+
+  const templates = responseTemplates[brand.negotiationStyle] || responseTemplates['data_driven'];
+  const text = templates[Math.floor(Math.random() * templates.length)];
+
+  return {
+    text,
+    strategy: activeStrategy,
+    offerPrice,
+    confidence,
+    offeredProducts: offered,
+    discount: Math.round((1 - discount) * 100),
+    timestamp: Date.now(),
+  };
+}
+
+// ============================================================
+// CONSUMER AI: Multi-Brand Evaluation Engine
+// ============================================================
+function evaluateAllResponses(query, responses, scenario) {
+  const p = STATE.persona;
+  const scores = [];
+
+  responses.forEach(({ brandId, index, response }) => {
+    const brand = BRANDS[brandId];
+    const bs = STATE.brandStates[brandId];
+    if (!brand || !bs) return;
+
+    let score = 50;
+    const reasons = [];
+
+    // 1. Price evaluation
+    if (response.offerPrice) {
+      const avgMarket = brand.productPool.reduce((s, p) => s + p.price, 0) / brand.productPool.length;
+      const ratio = response.offerPrice / Math.max(1, avgMarket);
+      if (ratio < 0.8) { score += 15; reasons.push({ type: 'good', text: `价格低于市场均价${((1-ratio)*100).toFixed(0)}%` }); }
+      else if (ratio < 1.0) { score += 8; reasons.push({ type: 'info', text: `价格合理，市场均价内` }); }
+      else { score -= 10; reasons.push({ type: 'warn', text: `价格高于市场均价${((ratio-1)*100).toFixed(0)}%` }); }
+      score += p.weights.price * 5;
+    }
+
+    // 2. Quality evaluation
+    if (response.offeredProducts) {
+      const avgQuality = response.offeredProducts.reduce((s, p) => s + (p.quality || 0.7), 0) / response.offeredProducts.length;
+      score += avgQuality * p.weights.quality * 8;
+      if (avgQuality > 0.9) reasons.push({ type: 'good', text: `商品品质指数${(avgQuality*100).toFixed(0)}%，优秀` });
+    }
+
+    // 3. Trust modifier (4-dimension)
+    const avgTrust = (bs.trust_quality + bs.trust_price + bs.trust_service + bs.trust_transparency) / 4;
+    const trustMod = ((avgTrust - 50) / 50) * p.trustSensitivity * 30;
+    score += trustMod;
+    if (trustMod < -8) reasons.push({ type: 'warn', text: `品牌信任度偏低(${Math.round(avgTrust)})，历史交互有减分记录` });
+    if (bs.baitCount > 0) { score -= bs.baitCount * 5; reasons.push({ type: 'warn', text: `检测到${bs.baitCount}次诱饵调包嫌疑` }); }
+
+    // 4. Strategy fit
+    if (response.strategy && response.strategy.includes('health')) score += p.weights.health * 6;
+    if (response.strategy && response.strategy.includes('price')) score += p.weights.price * 4;
+    if (response.strategy && (response.strategy.includes('trade') || response.strategy.includes('wplus'))) score += p.weights.convenience * 3;
+    score += (response.confidence || 50) * 0.05;
+
+    // Final verdict
+    score = Math.round(Math.max(5, Math.min(95, score)));
+    let verdict;
+    if (score >= p.threshold) verdict = 'pass';
+    else if (score >= p.threshold - 12) verdict = 'negotiate';
+    else verdict = 'block';
+
+    scores.push({
+      brandId, brandName: brand.name, name: `${brand.icon} ${brand.name}`,
+      productName: response.offeredProducts?.[0]?.name || 'N/A',
+      price: response.offerPrice || 0,
+      score, verdict, reasons,
+      trustAvg: Math.round(avgTrust),
+    });
+  });
+
+  // Sort by score
+  scores.sort((a, b) => b.score - a.score);
+
+  // Determine winner
+  const winner = scores[0]?.verdict === 'pass' ? scores[0] : null;
+  const margin = scores.length > 1 ? scores[0].score - scores[1].score : 30;
+  let confidence;
+  if (margin > 15) confidence = Math.min(92, 60 + margin);
+  else if (margin > 8) confidence = 45 + margin;
+  else confidence = Math.max(20, 30 + margin);
+
+  const summary = winner
+    ? `首选: ${winner.brandName} (${winner.score}分, 领先${margin}分)`
+    : `前两名仅差${margin}分，AI无法做出有意义区分`;
+
+  // Log brand state changes
+  scores.forEach(sc => {
+    if (STATE.brandStates[sc.brandId]) {
+      const bs = STATE.brandStates[sc.brandId];
+      if (sc.verdict === 'block') bs.trust_transparency = Math.max(5, bs.trust_transparency - 4);
+      if (sc.verdict === 'pass') bs.trust_quality = Math.min(100, bs.trust_quality + 2);
+    }
+  });
+
+  return { scores, winner, confidence, margin, summary };
+}
+
+// ============================================================
+// MULTI-ROUND & AUTO PLAY
+// ============================================================
+async function runMultiRound(n) {
+  document.getElementById('btn-round').disabled = true;
+  document.getElementById('btn-multi').disabled = true;
+  document.getElementById('btn-auto').disabled = true;
+  for (let i = 0; i < n; i++) {
+    // Randomly pick scenario each round for variety
+    if (i > 0) {
+      const randomScenario = SCENARIO_POOL[Math.floor(Math.random() * SCENARIO_POOL.length)];
+      STATE.scenario = randomScenario;
+      renderScenarios();
+    }
+    await runOneRound();
+    await sleep(800);
+  }
+  document.getElementById('btn-round').disabled = false;
+  document.getElementById('btn-multi').disabled = false;
+  document.getElementById('btn-auto').disabled = false;
+  document.getElementById('statusBadge').textContent = '🟢 博弈中';
+}
+
+async function autoPlay() {
+  document.getElementById('btn-auto').textContent = '⏸️ 停止';
+  document.getElementById('btn-auto').onclick = stopAutoPlay;
+  STATE._autoPlay = true;
+  while (STATE._autoPlay) {
+    const randomScenario = SCENARIO_POOL[Math.floor(Math.random() * SCENARIO_POOL.length)];
+    STATE.scenario = randomScenario;
+    renderScenarios();
+    await runOneRound();
+    await sleep(1200);
+  }
+}
+
+function stopAutoPlay() {
+  STATE._autoPlay = false;
+  document.getElementById('btn-auto').textContent = '🤖 自动博弈';
+  document.getElementById('btn-auto').onclick = autoPlay;
+}
+
+// ============================================================
+// MANUAL INPUT HANDLERS (Modes A & B)
+// ============================================================
+function sendConsumerMsg() {
+  if (STATE.mode !== 'A') return;
+  const field = document.getElementById('consumer-input-field');
+  const text = field.value.trim();
+  if (!text) return;
+  addChatMsg('consumer', 'consumer', `<div class="msg-human">✍️ ${text}</div>`, '👤 手动输入');
+  addLog('manual', `消费者AI手动: ${text.slice(0,60)}...`);
+  field.value = '';
+  // Auto-trigger brand responses
+  setTimeout(async () => {
+    for (let i = 0; i < STATE.selectedBrands.length; i++) {
+      const resp = generateBrandResponse(STATE.selectedBrands[i], { text, id: STATE.scenario.id, persona: STATE.personaKey, budget: 5000 }, STATE.scenario);
+      const brand = BRANDS[STATE.selectedBrands[i]];
+      addChatMsg(`brand-chat-${i+1}`, brand.cssClass,
+        STATE.dualLang ? `<div class="msg-ai">[AI] RESPONSE::auto(${resp.strategy})</div><div class="msg-human">${resp.text}</div>` : `<div class="msg-human">${resp.text}</div>`,
+        `📥 自动回应`);
+    }
+  }, 600);
+}
+
+function sendBrandMsg(brandIndex) {
+  if (STATE.mode !== 'B') return;
+  const field = document.getElementById(`brand-input-field-${brandIndex+1}`);
+  const text = field.value.trim();
+  if (!text || brandIndex >= STATE.selectedBrands.length) return;
+  const brandId = STATE.selectedBrands[brandIndex];
+  const brand = BRANDS[brandId];
+  addChatMsg(`brand-chat-${brandIndex+1}`, brand.cssClass, `<div class="msg-human">✍️ ${text}</div>`, '👤 手动输入');
+  addLog('manual', `${brand.name}品牌AI手动: ${text.slice(0,60)}...`);
+  field.value = '';
+}
+
+// ============================================================
+// SETTLEMENT REPORT
+// ============================================================
+function showReport() {
+  const overlay = document.getElementById('report-overlay');
+  const dialog = document.getElementById('report-dialog');
+  overlay.style.display = 'flex';
+
+  const G = 'var(--green)'; const Y = 'var(--yellow)'; const R = 'var(--red)'; const C = 'var(--cyan)';
+
+  const brandStats = STATE.selectedBrands.map(bid => {
+    const bs = STATE.brandStates[bid];
+    const b = BRANDS[bid];
+    if (!bs || !b) return null;
+    return {
+      name: b.name, icon: b.icon,
+      rounds: bs.rounds || 0, conversions: bs.conversions || 0,
+      rate: bs.rounds > 0 ? (bs.conversions / bs.rounds * 100).toFixed(1) : '0',
+      trust: Math.round((bs.trust_quality + bs.trust_price + bs.trust_service + bs.trust_transparency) / 4),
+      baitFlags: bs.baitCount || 0,
+    };
+  }).filter(Boolean);
+
+  if (brandStats.length === 0) {
+    dialog.innerHTML = '<h2>📊 暂无数据</h2><p style="color:var(--text3)">请先启动博弈后再查看报告。</p><button class="close-btn" onclick="document.getElementById(\'report-overlay\').style.display=\'none\'">关闭</button>';
+    return;
+  }
+
+  const totalDecisions = brandStats.reduce((s, b) => s + b.conversions, 0);
+  const sorted = [...brandStats].sort((a, b) => b.conversions - a.conversions);
+  const winner = sorted[0];
+  const winRate = parseFloat(winner.rate);
+
+  // Build trust color safely
+  const trustClr = (t) => t > 65 ? G : t > 40 ? Y : R;
+
+  dialog.innerHTML =
+    '<h2>📊 博弈结算复盘 · 第' + STATE.round + '轮</h2>' +
+    '<div style="font-size:0.65rem;color:var(--text2);margin-bottom:12px">' +
+      '模式: ' + STATE.mode + ' · 人物: ' + STATE.persona.name + ' · 总轮次: ' + STATE.totalRounds + ' · 总决策: ' + totalDecisions +
+    '</div>' +
+    '<div style="font-weight:700;font-size:0.72rem;margin-bottom:4px">🏆 品牌表现排名</div>' +
+    '<table>' +
+      '<tr><th>排名</th><th>品牌</th><th>交互轮次</th><th>被选中</th><th>胜率</th><th>信任度</th><th>警告</th></tr>' +
+      sorted.map((b, i) =>
+        '<tr style="' + (i===0?'color:var(--yellow);font-weight:700':'') + '">' +
+          '<td>' + (['🥇','🥈','🥉'][i]||'#'+(i+1)) + '</td>' +
+          '<td>' + b.icon + ' ' + b.name + '</td>' +
+          '<td>' + b.rounds + '</td>' +
+          '<td>' + b.conversions + '</td>' +
+          '<td>' + b.rate + '%</td>' +
+          '<td style="color:' + trustClr(b.trust) + '">' + b.trust + '%</td>' +
+          '<td>' + (b.baitFlags > 0 ? '⚠️×' + b.baitFlags : '✅') + '</td>' +
+        '</tr>'
+      ).join('') +
+    '</table>' +
+    '<div style="font-weight:700;font-size:0.72rem;margin:12px 0 4px">📈 博弈分析</div>' +
+    '<div style="font-size:0.62rem;color:var(--text2);line-height:1.6">' +
+      '<b>🏆 最终赢家：</b>' + winner.icon + ' ' + winner.name + '（胜率' + winner.rate + '%，' + winner.conversions + '次被选中）<br>' +
+      '<b>📊 竞争格局：</b>' + brandStats.map(function(b){return b.name+' '+b.rate+'%';}).join(' vs ') + '<br>' +
+      '<b>🧠 消费者AI置信度：</b>' + STATE.consumerTrust + '%（' + STATE.totalRounds + '轮交互后）<br>' +
+      '<b>⚠️ 需人工介入率：</b>' + (brandStats.some(function(b){return parseFloat(b.rate)<20;}) ? '较高 — 品牌之间竞争激烈，AI频繁无法独立决策' : '正常 — AI多数轮次可自主决策') + '<br>' +
+      '<b>💡 Engagement有效性：</b>' + (winRate > 30 ? winner.name + '策略在' + STATE.persona.name + '画像下表现最优' : '各品牌策略均未形成明显优势，市场高度竞争') + '<br>' +
+      '<b>🔮 建议：</b>' + (winRate > 25 ? winner.name + '应继续强化差异化策略；其他品牌需重新审视定价和服务匹配度' : '所有品牌应反思在当前消费者画像下的策略有效性') +
+    '</div>' +
+    '<div style="font-weight:700;font-size:0.72rem;margin:12px 0 4px">📋 决策链路回溯（最近5轮）</div>' +
+    '<table>' +
+      '<tr><th>轮次</th><th>场景</th><th>胜出品牌</th><th>策略</th><th>消费者AI评分</th></tr>' +
+      (STATE.logs.filter(function(l){return l.type==='verdict';}).slice(-5).reverse().map(function(l){
+        return '<tr><td>#'+(l.round||'?')+'</td><td>'+(l.scenario||'N/A')+'</td><td>'+(l.text||'')+'</td><td>--</td><td>--</td></tr>';
+      }).join('') || '<tr><td colspan="5" style="color:var(--text3)">暂无决策记录</td></tr>') +
+    '</table>' +
+    '<button class="close-btn" onclick="document.getElementById(\'report-overlay\').style.display=\'none\'">关闭报告</button>';
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function addChatMsg(chatId, cssClass, html, meta) {
+  const box = document.getElementById(chatId);
+  if (!box) return;
+  const div = document.createElement('div');
+  div.className = `chat-msg ${cssClass}`;
+  div.innerHTML = html + (meta ? `<div class="msg-meta">${meta}</div>` : '');
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addSystemMsg(chatId, text) {
+  const box = document.getElementById(chatId);
+  if (!box) return;
+  const div = document.createElement('div');
+  div.className = 'chat-msg system';
+  div.innerHTML = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addLog(type, text) {
+  STATE.logs.push({ type, text, round: STATE.round, scenario: STATE.scenario?.id, timestamp: new Date().toLocaleTimeString() });
+  const logBody = document.getElementById('history-log');
+  if (!logBody) return;
+  const row = document.createElement('div');
+  row.className = 'log-row';
+  const typeColors = { round: 'var(--cyan)', verdict: 'var(--green)', system: 'var(--text3)', manual: 'var(--yellow)' };
+  const tc = typeColors[type] || 'var(--text2)';
+  row.innerHTML = `<span style="color:${tc};font-weight:700">[${type}]</span><span>${new Date().toLocaleTimeString()}</span><span>${text}</span><span>#${STATE.round||0}</span><span>${STATE.scenario?.name||''}</span>`;
+  logBody.prepend(row);
+  document.getElementById('logCount').textContent = `${STATE.logs.length} 条记录`;
+}
+
+function updateStatusPanel() {
+  const panel = document.getElementById('status-panel');
+  if (!panel) return;
+  panel.innerHTML = STATE.selectedBrands.map((bid, i) => {
+    const b = BRANDS[bid];
+    const bs = STATE.brandStates[bid];
+    if (!bs) return '';
+    const trust = Math.round((bs.trust_quality + bs.trust_price + bs.trust_service + bs.trust_transparency) / 4);
+    const trustColor = trust > 65 ? 'var(--green)' : trust > 40 ? 'var(--yellow)' : 'var(--red)';
+    const dims = [
+      { label: '品质', v: bs.trust_quality, c: '#3b82f6' },
+      { label: '价格', v: bs.trust_price, c: '#10b981' },
+      { label: '服务', v: bs.trust_service, c: '#f59e0b' },
+      { label: '透明', v: bs.trust_transparency, c: '#8b5cf6' },
+    ];
+    return `
+      <div style="margin-bottom:8px;padding:6px;background:var(--surface2);border-radius:4px;border-left:3px solid ${b.color}">
+        <div style="font-weight:700;font-size:0.68rem">${b.icon} ${b.name} <span style="font-size:0.55rem;color:${trustColor};float:right">信任:${trust}%</span></div>
+        ${dims.map(d => `
+          <div class="trust-dim">
+            <div class="td-head"><span>${d.label}</span><span style="font-family:var(--font-mono)">${d.v}%</span></div>
+            <div class="td-bar"><div class="td-fill" style="width:${d.v}%;background:${d.c}"></div></div>
+          </div>
+        `).join('')}
+        <div style="font-size:0.55rem;color:var(--text3);margin-top:3px">交互:${bs.rounds}轮 · 成交:${bs.conversions}次 · 风格:${b.negotiationStyle}</div>
+      </div>
+    `;
+  }).join('') + `
+    <div style="padding:6px;background:var(--surface2);border-radius:4px;border-left:3px solid var(--cyan)">
+      <div style="font-weight:700;font-size:0.68rem">🧠 消费者AI</div>
+      <div class="stat-row"><span>置信度</span><span class="val" style="color:var(--cyan)">${STATE.consumerTrust}%</span></div>
+      <div class="stat-row"><span>画像</span><span class="val">${STATE.persona.name}</span></div>
+      <div class="stat-row"><span>总交互</span><span class="val">${STATE.totalRounds}轮</span></div>
+    </div>
+  `;
+}
+
+function toggleDualLang() {
+  STATE.dualLang = !STATE.dualLang;
+  document.getElementById('btn-lang').textContent = STATE.dualLang ? '🌐 双语' : '📝 人类';
+  document.getElementById('btn-lang').style.borderColor = STATE.dualLang ? 'var(--border)' : 'var(--purple)';
+}
+
+function changePersona() {
+  const sel = document.getElementById('personaSel');
+  STATE.personaKey = sel.value;
+  STATE.persona = PERSONAS[sel.value];
+  document.getElementById('personaSel2').value = sel.value;
+  addLog('system', `用户画像切换: ${STATE.persona.name}`);
+}
+
+function syncPersona() {
+  const sel = document.getElementById('personaSel2');
+  STATE.personaKey = sel.value;
+  STATE.persona = PERSONAS[sel.value];
+  document.getElementById('personaSel').value = sel.value;
+  addLog('system', `用户画像切换: ${STATE.persona.name}`);
+}
+
+function resetAll() {
+  STATE.selectedBrands = [];
+  STATE.mode = null;
+  STATE.round = 0;
+  STATE.totalRounds = 0;
+  STATE.logs = [];
+  STATE.brandStates = {};
+  STATE.consumerTrust = 50;
+  STATE._autoPlay = false;
+
+  // Clear all chats
+  document.querySelectorAll('.chat-box').forEach(b => b.innerHTML = '');
+  document.getElementById('history-log').innerHTML = '<div style="color:var(--text3);padding:4px">系统已重置</div>';
+  document.getElementById('status-panel').innerHTML = '<div style="color:var(--text3);text-align:center;padding:12px">启动博弈后显示状态…</div>';
+  document.getElementById('logCount').textContent = '0 条记录';
+  document.getElementById('statusBadge').textContent = '🟢 就绪';
+  document.getElementById('modeBadge').textContent = '模式: --';
+  document.getElementById('brandBadge').textContent = '品牌: --';
+  document.getElementById('roundInfo').textContent = '等待启动…';
+
+  // Hide brand columns
+  for (let i = 1; i <= 4; i++) {
+    const col = document.getElementById(`brand-col-${i}`);
+    if (col) col.style.display = i === 1 ? 'flex' : 'none';
+  }
+
+  // Show setup
+  document.getElementById('setup-overlay').style.display = 'flex';
+  document.getElementById('btn-launch').disabled = true;
+  document.querySelectorAll('.brand-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-round').disabled = false;
+  document.getElementById('btn-multi').disabled = false;
+  document.getElementById('btn-auto').disabled = false;
+  document.getElementById('report-overlay').style.display = 'none';
+  document.getElementById('consumer-input').style.display = 'none';
+  for (let i = 0; i < 4; i++) {
+    const inputRow = document.getElementById(`brand-input-${i+1}`);
+    if (inputRow) inputRow.style.display = 'none';
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// INIT
+// ============================================================
+initSetup();
+</script>
+</body>
+</html>

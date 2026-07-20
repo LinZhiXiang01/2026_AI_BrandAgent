@@ -5,6 +5,7 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线演示-blue?logo=github)](https://linzhixiang01.github.io/2026_AI_BrandAgent/)
 [![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+![Uploading image.png…]()
 
 ---
 

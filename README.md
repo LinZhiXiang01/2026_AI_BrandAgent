@@ -3,9 +3,9 @@
 > 🏆 **2026 AI 先锋未来人才大赛** · 蓝色光标命题  
 > *"当每个消费者都有一个 AI 守门人，品牌如何进化？"*
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线演示-blue?logo=github)](https://linzhixiang01.github.io/2026_AI_BrandAgent/)
+[![GitHub Pages 点击跳转](https://img.shields.io/badge/GitHub%20Pages-在线演示-blue?logo=github)](https://linzhixiang01.github.io/2026_AI_BrandAgent/)
 [![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
-![Uploading image.png…]()
+![HTML页面展示](./demos/screenshots/HTML页面.png)
 
 ---
 
